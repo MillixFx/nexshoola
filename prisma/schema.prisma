@@ -2,8 +2,7 @@
 // Prisma Schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -641,7 +640,7 @@ model Book {
   author       String?
   isbn         String?
   categoryId   String?
-  category     String?
+  categoryName String?
   quantity     Int      @default(1)
   available    Int      @default(1)
   shelfNo      String?
