@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 const faqs = [
   {
     q: "Do I need a credit card to start?",
-    a: "No. The Free plan requires no credit card. For paid plans, you can pay via Paystack using Mobile Money (MTN, AirtelTigo, Vodafone Cash) or card.",
+    a: "No credit card needed to start. Your 1-month free trial is completely free. After that, pay via Paystack using Mobile Money (MTN, AirtelTigo, Vodafone Cash) or card.",
   },
   {
     q: "Can I use NexSchoola for multiple school branches?",
@@ -24,10 +24,6 @@ const faqs = [
   {
     q: "Can students and parents access the system?",
     a: "Yes. Students can view their results, attendance, timetable, and fees. Parents can view their child's academic records and receive messages from teachers.",
-  },
-  {
-    q: "What languages is NexSchoola available in?",
-    a: "Currently English. We plan to add Twi and other Ghanaian languages based on demand.",
   },
   {
     q: "How long does setup take?",
