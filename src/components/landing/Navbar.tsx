@@ -37,8 +37,8 @@ export default function Navbar() {
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md group-hover:bg-indigo-700 transition-colors">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-gray-900">
-            Nex<span className="text-indigo-600">Schoool</span>a
+          <span className={cn("font-bold text-xl tracking-tight transition-colors", scrolled ? "text-gray-900" : "text-white")}>
+            Nex<span className="text-indigo-400">Schoola</span>
           </span>
         </Link>
 
@@ -48,7 +48,7 @@ export default function Navbar() {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                className={cn("text-sm font-medium transition-colors hover:text-indigo-400", scrolled ? "text-gray-600" : "text-white/80")}
               >
                 {link.label}
               </a>
@@ -60,7 +60,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors px-4 py-2"
+            className={cn("text-sm font-medium transition-colors px-4 py-2", scrolled ? "text-gray-700 hover:text-indigo-600" : "text-white/80 hover:text-white")}
           >
             Sign in
           </Link>
