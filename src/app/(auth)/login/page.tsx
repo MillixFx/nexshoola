@@ -40,7 +40,7 @@ export default function LoginPage() {
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <span className="font-bold text-xl text-white">
-              Nex<span className="text-indigo-300">Schoool</span>a
+              Nex<span className="text-indigo-300">Schoola</span>
             </span>
           </Link>
           <p className="text-indigo-300 text-sm mt-3">Sign in to your school dashboard</p>
