@@ -13,7 +13,11 @@ export default auth(async function middleware(req: NextRequest) {
   const host = hostname.replace(/:.*/, "")
 
   // Determine if this is a school subdomain
-  const isRootDomain = host === ROOT_DOMAIN || host === `www.${ROOT_DOMAIN}` || host === "localhost"
+  const isRootDomain =
+    host === ROOT_DOMAIN ||
+    host === `www.${ROOT_DOMAIN}` ||
+    host === "localhost" ||
+    host.endsWith(".vercel.app") // Vercel preview / production URLs treated as root
   const subdomain = isRootDomain ? null : host.replace(`.${ROOT_DOMAIN}`, "")
 
   // ─── Root domain routes (marketing + auth) ───
