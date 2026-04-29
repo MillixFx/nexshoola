@@ -4,20 +4,20 @@ import { prisma } from "@/lib/prisma"
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const { title, author, isbn, category, quantity, shelfNo } = await req.json()
-    const qty = Number(quantity) || 1
-    const book = await prisma.book.update({
+    const { name, type, capacity, warden } = await req.json()
+    const dorm = await prisma.dormitory.update({
       where: { id },
-      data: { title, author: author || null, isbn: isbn || null, categoryName: category || null, quantity: qty, shelfNo: shelfNo || null },
+      data: { name, type, capacity: Number(capacity) || 0, warden: warden || null },
+      include: { _count: { select: { rooms: true } } },
     })
-    return NextResponse.json({ ...book, category: book.categoryName, availableQty: book.available })
+    return NextResponse.json(dorm)
   } catch (e) { return NextResponse.json({ error: "Failed" }, { status: 500 }) }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    await prisma.book.delete({ where: { id } })
+    await prisma.dormitory.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (e) { return NextResponse.json({ error: "Failed" }, { status: 500 }) }
 }

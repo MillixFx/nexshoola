@@ -1,8 +1,10 @@
 "use client"
 
-import { Bell, Search, ChevronDown, Menu, GraduationCap } from "lucide-react"
+import { Bell, Search, ChevronDown, Menu, GraduationCap, LogOut, Settings, User } from "lucide-react"
 import { getInitials } from "@/lib/utils"
 import Link from "next/link"
+import { signOut } from "next-auth/react"
+import { useState, useRef, useEffect } from "react"
 
 interface HeaderProps {
   userName?: string
@@ -17,6 +19,19 @@ export default function Header({
   role = "ADMIN",
   onMenuToggle,
 }: HeaderProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30">
       {/* Left: hamburger (mobile) + logo (mobile) */}
@@ -63,16 +78,52 @@ export default function Header({
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        {/* User avatar */}
-        <div className="flex items-center gap-2 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-            {getInitials(userName)}
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-gray-800 leading-tight">{userName}</p>
-            <p className="text-xs text-gray-400 capitalize">{role.toLowerCase().replace("_", " ")}</p>
-          </div>
-          <ChevronDown className="hidden sm:block w-4 h-4 text-gray-400" />
+        {/* User avatar + dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(o => !o)}
+            className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-gray-50 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {getInitials(userName)}
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-sm font-semibold text-gray-800 leading-tight">{userName}</p>
+              <p className="text-xs text-gray-400 capitalize">{role.toLowerCase().replace("_", " ")}</p>
+            </div>
+            <ChevronDown className={`hidden sm:block w-4 h-4 text-gray-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {/* Dropdown */}
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
+              {/* User info */}
+              <div className="px-4 py-3 border-b border-gray-50">
+                <p className="text-sm font-bold text-gray-900 truncate">{userName}</p>
+                <p className="text-xs text-gray-400 capitalize mt-0.5">{role.toLowerCase().replace("_", " ")}</p>
+              </div>
+
+              {/* Menu items */}
+              <div className="py-1.5">
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-gray-400" />
+                  Settings
+                </Link>
+
+                <button
+                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
