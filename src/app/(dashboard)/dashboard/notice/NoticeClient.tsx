@@ -5,7 +5,7 @@ import { Bell, Plus, Trash2 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatDate, cn } from "@/lib/utils"
 
-type Notice = { id: string; title: string; content: string; audience: string; priority: string; createdAt: string | Date; expiresAt: string | Date | null }
+type Notice = { id: string; title: string; content: string; audience: string | null; priority: string; createdAt: string | Date; expiresAt: string | Date | null }
 const AUDIENCES = ["ALL", "STUDENTS", "TEACHERS", "PARENTS", "STAFF"]
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"]
 const PRIORITY_COLORS: Record<string, string> = { LOW: "bg-gray-100 text-gray-600", NORMAL: "bg-blue-50 text-blue-700", HIGH: "bg-amber-50 text-amber-700", URGENT: "bg-red-50 text-red-700" }

@@ -261,19 +261,23 @@ model Student {
 }
 
 model Teacher {
-  id           String   @id @default(cuid())
-  schoolId     String
-  userId       String   @unique
-  employeeId   String?
-  qualification String?
-  experience   Int?
+  id             String   @id @default(cuid())
+  schoolId       String
+  userId         String   @unique
+  employeeId     String?
+  teacherId      String?
+  qualification  String?
+  designation    String?
+  department     String?
+  experience     Int?
   specialization String?
-  dateOfBirth  DateTime?
-  gender       Gender?
-  address      String?
-  photo        String?
-  joiningDate  DateTime @default(now())
-  isActive     Boolean  @default(true)
+  dateOfBirth    DateTime?
+  gender         Gender?
+  address        String?
+  photo          String?
+  joiningDate    DateTime @default(now())
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
 
   school     School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -290,6 +294,8 @@ model Parent {
   address     String?
   phone       String?
   photo       String?
+  relation    String?
+  createdAt   DateTime @default(now())
 
   school   School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -903,12 +909,14 @@ model LeaveApplication {
   id        String      @id @default(cuid())
   schoolId  String
   userId    String
+  leaveType String      @default("CASUAL")
   startDate DateTime
   endDate   DateTime
   reason    String
   status    LeaveStatus @default(PENDING)
   checkedBy String?
   checkedAt DateTime?
+  createdAt DateTime    @default(now())
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

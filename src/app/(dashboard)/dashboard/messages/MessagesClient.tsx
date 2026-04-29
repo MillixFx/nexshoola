@@ -5,7 +5,7 @@ import { MessageSquare, Plus, Send } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatDate, cn } from "@/lib/utils"
 
-type Message = { id: string; subject: string; body: string; isRead: boolean; createdAt: string | Date; sender: { name: string; role: string } }
+type Message = { id: string; subject: string | null; body: string; createdAt: string | Date; sender: { name: string; role: string } }
 type User = { id: string; name: string; role: string }
 
 const ROLE_BADGE: Record<string, string> = { ADMIN: "bg-purple-50 text-purple-700", TEACHER: "bg-emerald-50 text-emerald-700", STUDENT: "bg-blue-50 text-blue-700", PARENT: "bg-amber-50 text-amber-700", HEADMASTER: "bg-red-50 text-red-700" }
@@ -42,8 +42,7 @@ export default function MessagesClient({ messages: initial, users, schoolId }: {
               {messages.map(m => (
                 <button key={m.id} onClick={() => setSelected(m)} className={cn("w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors", selected?.id === m.id && "bg-indigo-50")}>
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className={cn("text-sm truncate", !m.isRead ? "font-bold text-gray-900" : "font-medium text-gray-700")}>{m.subject}</p>
-                    {!m.isRead && <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />}
+                    <p className="text-sm truncate font-medium text-gray-900">{m.subject}</p>
                   </div>
                   <p className="text-xs text-gray-400 truncate">From: {m.sender.name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{formatDate(m.createdAt)}</p>

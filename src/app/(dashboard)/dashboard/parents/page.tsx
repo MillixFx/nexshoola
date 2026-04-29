@@ -9,7 +9,7 @@ export default async function ParentsPage() {
     where: { schoolId },
     include: {
       user: { select: { name: true, email: true, phone: true, isActive: true } },
-      children: { include: { student: { include: { user: { select: { name: true } } } } } },
+      students: { include: { student: { include: { user: { select: { name: true } } } } } },
     },
     orderBy: { createdAt: "desc" },
   })

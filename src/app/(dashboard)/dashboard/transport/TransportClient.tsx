@@ -6,7 +6,7 @@ import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import { formatCurrency } from "@/lib/utils"
 
-type Route = { id: string; routeName: string; vehicleNo: string | null; vehicleModel: string | null; driverName: string | null; driverPhone: string | null; capacity: number; fare: number | null }
+type Route = { id: string; routeName: string | null; vehicleNo: string | null; vehicleModel: string | null; driverName: string | null; driverPhone: string | null; capacity: number | null; fare: number | null }
 const emptyForm = { routeName: "", vehicleNo: "", vehicleModel: "", driverName: "", driverPhone: "", capacity: "", fare: "" }
 
 export default function TransportClient({ routes: initial, schoolId }: { routes: Route[]; schoolId: string }) {

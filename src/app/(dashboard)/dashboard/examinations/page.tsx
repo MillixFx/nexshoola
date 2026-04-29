@@ -9,8 +9,8 @@ export default async function ExaminationsPage() {
     prisma.exam.findMany({
       where: { schoolId },
       include: {
-        examRoutines: { include: { subject: { select: { title: true } }, class: { select: { name: true, section: true } } } },
-        _count: { select: { examRoutines: true } },
+        routines: { include: { subject: { select: { title: true } }, class: { select: { name: true, section: true } } } },
+        _count: { select: { routines: true } },
       },
       orderBy: { createdAt: "desc" },
     }),

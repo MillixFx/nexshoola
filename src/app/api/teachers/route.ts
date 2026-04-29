@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         teacher: {
           create: {
             schoolId, teacherId, qualification, designation, department,
-            joiningDate: joiningDate ? new Date(joiningDate) : null,
+            joiningDate: joiningDate ? new Date(joiningDate) : undefined,
             gender, address,
           },
         },

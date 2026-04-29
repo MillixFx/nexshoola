@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { AttendanceStatus } from "@prisma/client"
 
 // GET /api/attendance?schoolId=&classId=&date=
 export async function GET(req: NextRequest) {
@@ -41,8 +42,8 @@ export async function POST(req: NextRequest) {
       records.map(({ studentId, status, note }: { studentId: string; status: string; note?: string }) =>
         prisma.dailyAttendance.upsert({
           where: { studentId_date: { studentId, date: d } },
-          create: { schoolId, classId, studentId, date: d, status, note },
-          update: { status, note },
+          create: { schoolId, classId, studentId, date: d, status: status as AttendanceStatus, note },
+          update: { status: status as AttendanceStatus, note },
         })
       )
     )

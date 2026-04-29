@@ -9,11 +9,7 @@ export default async function FinancePage() {
   const [transactions, feeItems, students, classes] = await Promise.all([
     prisma.transaction.findMany({
       where: { schoolId },
-      include: {
-        student: { include: { user: { select: { name: true } } } },
-        feeItem: { select: { title: true, amount: true } },
-      },
-      orderBy: { createdAt: "desc" },
+      orderBy: { date: "desc" },
       take: 200,
     }),
     prisma.feeItem.findMany({

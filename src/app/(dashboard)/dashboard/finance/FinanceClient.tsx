@@ -6,9 +6,9 @@ import PageHeader from "@/components/dashboard/PageHeader"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
 
 type Transaction = {
-  id: string; amount: number; type: string; method: string; status: string; reference: string | null; note: string | null; createdAt: string | Date
-  student: { user: { name: string } } | null
-  feeItem: { title: string; amount: number } | null
+  id: string; amount: number; type: string; method: string | null; status: string; reference: string | null; note: string | null; description: string | null; date: string | Date
+  student?: { user: { name: string } } | null
+  feeItem?: { title: string; amount: number } | null
 }
 type FeeItem = { id: string; title: string; amount: number; term: string | null; academicYear: string | null; class: { name: string; section: string | null } | null }
 type Student = { id: string; user: { name: string } }
@@ -113,8 +113,8 @@ export default function FinanceClient({ transactions: initialTx, feeItems: initi
                     <CreditCard className={cn("w-4 h-4", t.type === "INCOME" ? "text-emerald-600" : "text-red-500")} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{t.feeItem?.title ?? t.note ?? "Payment"}</p>
-                    <p className="text-xs text-gray-400">{t.student?.user.name ?? "—"} · {formatDate(t.createdAt)} · {t.method}</p>
+                    <p className="text-sm font-medium text-gray-900">{t.feeItem?.title ?? t.description ?? t.note ?? "Payment"}</p>
+                    <p className="text-xs text-gray-400">{t.student?.user.name ?? "—"} · {formatDate(t.date)} · {t.method}</p>
                   </div>
                   <span className={cn("text-sm font-bold", t.type === "INCOME" ? "text-emerald-600" : "text-red-500")}>
                     {t.type === "INCOME" ? "+" : "-"}{formatCurrency(t.amount)}
@@ -141,9 +141,9 @@ export default function FinanceClient({ transactions: initialTx, feeItems: initi
                 <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">No transactions.</td></tr>
               ) : transactions.map(t => (
                 <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{formatDate(t.createdAt)}</td>
+                  <td className="px-4 py-3 text-gray-500">{formatDate(t.date)}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{t.student?.user.name ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{t.feeItem?.title ?? t.note ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-600">{t.feeItem?.title ?? t.description ?? t.note ?? "—"}</td>
                   <td className="px-4 py-3"><span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium">{t.method}</span></td>
                   <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatCurrency(t.amount)}</td>
                 </tr>

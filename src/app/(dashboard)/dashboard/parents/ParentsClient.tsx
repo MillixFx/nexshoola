@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 type Parent = {
   id: string; occupation: string | null; relation: string | null; address: string | null
   user: { name: string; email: string; phone: string | null; isActive: boolean }
-  children: { student: { user: { name: string } } }[]
+  students: { student: { user: { name: string } } }[]
 }
 
 const emptyForm = { name: "", email: "", phone: "", password: "", occupation: "", address: "", relation: "Parent" }
@@ -53,7 +53,7 @@ export default function ParentsClient({ parents: initial, schoolId }: { parents:
     { key: "relation", label: "Relation", render: p => p.relation ?? "Parent" },
     { key: "occupation", label: "Occupation", render: p => p.occupation ?? "—" },
     { key: "phone", label: "Phone", render: p => p.user.phone ?? "—" },
-    { key: "children", label: "Children", render: p => p.children.length > 0 ? p.children.map(c => c.student.user.name).join(", ") : <span className="text-gray-400">None linked</span> },
+    { key: "students", label: "Children", render: p => p.students.length > 0 ? p.students.map(c => c.student.user.name).join(", ") : <span className="text-gray-400">None linked</span> },
     { key: "isActive", label: "Status", render: p => <span className={cn("text-xs font-semibold px-2.5 py-0.5 rounded-full", p.user.isActive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600")}>{p.user.isActive ? "Active" : "Inactive"}</span> },
   ]
 

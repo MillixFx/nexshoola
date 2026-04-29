@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 // PUT /api/students/[id]
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const body = await req.json()
     const { name, email, phone, classId, rollNumber, studentId, dateOfBirth, gender, address, bloodGroup, religion, nationality, isActive } = body
 
-    const student = await prisma.student.findUnique({ where: { id: params.id }, include: { user: true } })
+    const student = await prisma.student.findUnique({ where: { id }, include: { user: true } })
     if (!student) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
     await prisma.user.update({
@@ -16,7 +17,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     })
 
     const updated = await prisma.student.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         classId: classId || null,
         rollNumber,
@@ -42,9 +43,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE /api/students/[id]
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const student = await prisma.student.findUnique({ where: { id: params.id } })
+    const { id } = await params
+    const student = await prisma.student.findUnique({ where: { id } })
     if (!student) return NextResponse.json({ error: "Not found" }, { status: 404 })
     // Deleting the user cascades to student
     await prisma.user.delete({ where: { id: student.userId } })

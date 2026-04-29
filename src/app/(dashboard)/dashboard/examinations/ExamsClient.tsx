@@ -8,8 +8,8 @@ import { formatDate, cn } from "@/lib/utils"
 type Exam = {
   id: string; title: string; term: string | null; academicYear: string | null
   startDate: string | Date | null; endDate: string | Date | null
-  _count: { examRoutines: number }
-  examRoutines: { subject: { title: string }; class: { name: string; section: string | null } }[]
+  _count: { routines: number }
+  routines: { subject: { title: string }; class: { name: string; section: string | null } }[]
 }
 type Class = { id: string; name: string; section: string | null }
 type Subject = { id: string; title: string }
@@ -29,7 +29,7 @@ export default function ExamsClient({ exams: initial, classes, subjects, schoolI
       const res = await fetch("/api/exams", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, schoolId }) })
       if (!res.ok) throw new Error((await res.json()).error)
       const exam = await res.json()
-      setExams(prev => [{ ...exam, _count: { examRoutines: 0 }, examRoutines: [] }, ...prev])
+      setExams(prev => [{ ...exam, _count: { routines: 0 }, routines: [] }, ...prev])
       setOpen(false)
       setForm(emptyForm)
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
@@ -83,7 +83,7 @@ export default function ExamsClient({ exams: initial, classes, subjects, schoolI
                 </div>
               )}
               <div className="flex items-center justify-between text-xs text-gray-500 mt-2 pt-3 border-t border-gray-100">
-                <span>{exam._count.examRoutines} subject{exam._count.examRoutines !== 1 ? "s" : ""}</span>
+                <span>{exam._count.routines} subject{exam._count.routines !== 1 ? "s" : ""}</span>
                 <button onClick={() => deleteExam(exam.id)} className="text-red-400 hover:text-red-600 font-medium">Delete</button>
               </div>
             </div>
