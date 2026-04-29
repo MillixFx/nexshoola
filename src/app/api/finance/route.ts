@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-// GET /api/finance?schoolId=
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const schoolId = searchParams.get("schoolId")
@@ -10,11 +9,7 @@ export async function GET(req: NextRequest) {
   const [transactions, feeItems] = await Promise.all([
     prisma.transaction.findMany({
       where: { schoolId },
-      include: {
-        student: { include: { user: { select: { name: true } } } },
-        feeItem: { select: { title: true, amount: true } },
-      },
-      orderBy: { createdAt: "desc" },
+      orderBy: { date: "desc" },
       take: 200,
     }),
     prisma.feeItem.findMany({
@@ -27,7 +22,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ transactions, feeItems })
 }
 
-// POST /api/finance — create fee item
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -35,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     if (type === "fee_item") {
       const item = await prisma.feeItem.create({
-        data: { schoolId, title, amount: Number(amount), classId: classId || null, term, academicYear },
+        data: { schoolId, title, amount: Number(amount), classId: classId || null, term: term || null, academicYear: academicYear || null },
         include: { class: { select: { name: true, section: true } } },
       })
       return NextResponse.json(item, { status: 201 })

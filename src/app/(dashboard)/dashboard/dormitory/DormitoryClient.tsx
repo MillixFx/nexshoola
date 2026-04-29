@@ -4,7 +4,7 @@ import { useState } from "react"
 import { BedDouble, Plus } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 
-type Dorm = { id: string; name: string; type: string | null; capacity: number; warden: string | null; _count: { beds: number } }
+type Dorm = { id: string; name: string; type: string | null; capacity: number; warden: string | null; _count: { rooms: number } }
 const emptyForm = { name: "", type: "BOYS", capacity: "", warden: "" }
 
 export default function DormitoryClient({ dorms: initial, schoolId }: { dorms: Dorm[]; schoolId: string }) {
@@ -41,7 +41,7 @@ export default function DormitoryClient({ dorms: initial, schoolId }: { dorms: D
               <div className="text-sm text-gray-600 space-y-1">
                 <p>Capacity: <span className="font-semibold text-gray-900">{d.capacity}</span></p>
                 <p>Warden: <span className="font-semibold text-gray-900">{d.warden ?? "—"}</span></p>
-                <p>Beds assigned: <span className="font-semibold text-indigo-600">{d._count.beds}</span></p>
+                <p>Rooms: <span className="font-semibold text-indigo-600">{d._count.rooms}</span></p>
               </div>
             </div>
           ))}

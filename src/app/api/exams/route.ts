@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const exams = await prisma.exam.findMany({
     where: { schoolId },
     include: {
-      examRoutines: {
+      routines: {
         include: { subject: { select: { title: true } }, class: { select: { name: true, section: true } } },
       },
     },
@@ -23,7 +23,9 @@ export async function POST(req: NextRequest) {
     const { schoolId, title, term, academicYear, startDate, endDate } = body
     const exam = await prisma.exam.create({
       data: {
-        schoolId, title, term, academicYear,
+        schoolId, title,
+        term: term || null,
+        academicYear: academicYear || null,
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
       },

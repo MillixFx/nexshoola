@@ -98,10 +98,10 @@ model User {
   employee      Employee?
   sentMessages     Message[]  @relation("SentMessages")
   receivedMessages MessageRecipient[]
-  suggestions   Suggestion[]
-  leaveApps     LeaveApplication[]
-  sessions      Session[]
-  events        CalendarEvent[]
+  suggestions      Suggestion[]
+  leaveApps        LeaveApplication[]
+  sessions         Session[]
+  events           CalendarEvent[]
 
   @@unique([schoolId, email])
   @@map("users")
@@ -394,15 +394,17 @@ enum AttendanceStatus {
 // ─────────────────────────────────────────────
 
 model Exam {
-  id          String   @id @default(cuid())
-  schoolId    String
-  title       String
-  description String?
-  startDate   DateTime
-  endDate     DateTime?
-  isFinal     Boolean  @default(false)
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id           String    @id @default(cuid())
+  schoolId     String
+  title        String
+  description  String?
+  term         String?
+  academicYear String?
+  startDate    DateTime?
+  endDate      DateTime?
+  isFinal      Boolean   @default(false)
+  isPublished  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
 
   school     School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   routines   ExamRoutine[]
@@ -537,28 +539,35 @@ enum AccountType {
 }
 
 model Transaction {
-  id           String      @id @default(cuid())
-  schoolId     String
-  titleId      String
-  amount       Float
-  type         AccountType
-  description  String?
-  reference    String?
-  date         DateTime    @default(now())
+  id          String      @id @default(cuid())
+  schoolId    String
+  titleId     String?
+  amount      Float
+  type        AccountType @default(INCOME)
+  description String?
+  reference   String?
+  method      String?
+  note        String?
+  status      String      @default("COMPLETED")
+  studentId   String?
+  feeItemId   String?
+  date        DateTime    @default(now())
 
-  school School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  title  AccountTitle @relation(fields: [titleId], references: [id])
+  school School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  title  AccountTitle? @relation(fields: [titleId], references: [id])
 
   @@map("transactions")
 }
 
 model FeeItem {
-  id       String  @id @default(cuid())
-  schoolId String
-  classId  String?
-  title    String
-  amount   Float
-  isAnnual Boolean @default(false)
+  id           String  @id @default(cuid())
+  schoolId     String
+  classId      String?
+  title        String
+  amount       Float
+  term         String?
+  academicYear String?
+  isAnnual     Boolean @default(false)
 
   school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   class  Class?  @relation(fields: [classId], references: [id])
@@ -632,8 +641,10 @@ model Book {
   author       String?
   isbn         String?
   categoryId   String?
+  category     String?
   quantity     Int      @default(1)
   available    Int      @default(1)
+  shelfNo      String?
   cover        String?
   publishYear  Int?
   createdAt    DateTime @default(now())
@@ -700,6 +711,7 @@ model Dormitory {
   name     String
   type     DormitoryType
   capacity Int
+  warden   String?
 
   school School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   rooms  DormitoryRoom[]
@@ -742,13 +754,17 @@ model DormitoryBed {
 // ─────────────────────────────────────────────
 
 model Transport {
-  id          String  @id @default(cuid())
-  schoolId    String
-  route       String
-  vehicle     String?
-  driverName  String?
-  driverPhone String?
-  capacity    Int?
+  id           String  @id @default(cuid())
+  schoolId     String
+  route        String?
+  routeName    String?
+  vehicle      String?
+  vehicleNo    String?
+  vehicleModel String?
+  driverName   String?
+  driverPhone  String?
+  capacity     Int?
+  fare         Float?
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -788,7 +804,10 @@ model InventoryItem {
   vendorId   String?
   name       String
   quantity   Int     @default(0)
-  rate       Float
+  rate       Float   @default(0)
+  unitPrice  Float?
+  unit       String?
+  supplier   String?
   discount   Float?
 
   school   School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
@@ -818,12 +837,15 @@ model ItemIssue {
 // ─────────────────────────────────────────────
 
 model Notice {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   schoolId  String
   title     String
   content   String
-  postedBy  String
-  createdAt DateTime @default(now())
+  audience  String?
+  priority  String    @default("NORMAL")
+  expiresAt DateTime?
+  postedBy  String    @default("Admin")
+  createdAt DateTime  @default(now())
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -861,14 +883,15 @@ model MessageRecipient {
 model Suggestion {
   id        String   @id @default(cuid())
   schoolId  String
-  userId    String
+  userId    String?
   subject   String
   body      String
   isAnon    Boolean  @default(false)
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("suggestions")
 }
@@ -931,17 +954,19 @@ model WeekDay {
 }
 
 model CalendarEvent {
-  id        String   @id @default(cuid())
-  schoolId  String
-  userId    String
-  title     String
-  startDate DateTime
-  endDate   DateTime?
-  color     String?
-  allDay    Boolean  @default(false)
+  id          String    @id @default(cuid())
+  schoolId    String
+  userId      String?
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  type        String?
+  color       String?
+  allDay      Boolean   @default(false)
 
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("calendar_events")
 }

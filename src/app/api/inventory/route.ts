@@ -11,8 +11,17 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { schoolId, name, category, quantity, unit, unitPrice, supplier } = await req.json()
-    const item = await prisma.inventoryItem.create({ data: { schoolId, name, category, quantity: Number(quantity) || 0, unit, unitPrice: unitPrice ? Number(unitPrice) : null, supplier } })
+    const { schoolId, name, quantity, unit, unitPrice, supplier } = await req.json()
+    const item = await prisma.inventoryItem.create({
+      data: {
+        schoolId, name,
+        quantity: Number(quantity) || 0,
+        unit: unit || null,
+        unitPrice: unitPrice ? Number(unitPrice) : null,
+        rate: unitPrice ? Number(unitPrice) : 0,
+        supplier: supplier || null,
+      },
+    })
     return NextResponse.json(item, { status: 201 })
   } catch (e) { return NextResponse.json({ error: "Failed" }, { status: 500 }) }
 }
