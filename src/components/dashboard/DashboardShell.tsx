@@ -16,7 +16,11 @@ export default function DashboardShell({ children, userName, schoolName, role }:
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+        role={role}
+      />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header
           schoolName={schoolName}

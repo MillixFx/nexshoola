@@ -6,76 +6,159 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   ClipboardCheck, FileText, DollarSign, Library,
   BedDouble, Bus, Package, Bell,
-  MessageSquare, Calendar, LogOut as Leave,
-  Lightbulb, Settings, ChevronLeft, GraduationCap as Logo,
-  UserCheck, X,
+  MessageSquare, Calendar, LogOut as LeaveIcon,
+  Lightbulb, Settings, ChevronLeft,
+  GraduationCap as Logo, UserCheck, X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 
-const navItems = [
-  { label: "Dashboard",   href: "/dashboard",             icon: LayoutDashboard },
-  { label: "Students",    href: "/dashboard/students",    icon: Users },
-  { label: "Teachers",    href: "/dashboard/teachers",    icon: GraduationCap },
-  { label: "Parents",     href: "/dashboard/parents",     icon: UserCheck },
-  { label: "Classes",     href: "/dashboard/classes",     icon: BookOpen },
-  { label: "Subjects",    href: "/dashboard/subjects",    icon: BookOpen },
-  { label: "Attendance",  href: "/dashboard/attendance",  icon: ClipboardCheck },
-  { label: "Examinations",href: "/dashboard/examinations",icon: FileText },
-  { label: "Finance",     href: "/dashboard/finance",     icon: DollarSign },
-  { label: "Library",     href: "/dashboard/library",     icon: Library },
-  { label: "Dormitory",   href: "/dashboard/dormitory",   icon: BedDouble },
-  { label: "Transport",   href: "/dashboard/transport",   icon: Bus },
-  { label: "Inventory",   href: "/dashboard/inventory",   icon: Package },
-  { label: "Notice Board",href: "/dashboard/notice",      icon: Bell },
-  { label: "Messages",    href: "/dashboard/messages",    icon: MessageSquare },
-  { label: "Leave",       href: "/dashboard/leave",       icon: Leave },
-  { label: "Suggestions", href: "/dashboard/suggestions", icon: Lightbulb },
-  { label: "Calendar",    href: "/dashboard/calendar",    icon: Calendar },
-  { label: "Settings",    href: "/dashboard/settings",    icon: Settings },
+type Role = "ADMIN" | "HEADMASTER" | "TEACHER" | "STUDENT" | "PARENT"
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ElementType
+  roles: Role[]
+}
+
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+const ALL_ROLES: Role[] = ["ADMIN", "HEADMASTER", "TEACHER", "STUDENT", "PARENT"]
+const ADMIN_ONLY: Role[] = ["ADMIN", "HEADMASTER"]
+const STAFF: Role[] = ["ADMIN", "HEADMASTER", "TEACHER"]
+const GENERAL: Role[] = ["ADMIN", "HEADMASTER", "TEACHER", "STUDENT", "PARENT"]
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    title: "Overview",
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ALL_ROLES },
+    ],
+  },
+  {
+    title: "People",
+    items: [
+      { label: "Students",  href: "/dashboard/students",  icon: Users,         roles: ["ADMIN", "HEADMASTER", "TEACHER", "PARENT"] },
+      { label: "Teachers",  href: "/dashboard/teachers",  icon: GraduationCap, roles: ADMIN_ONLY },
+      { label: "Parents",   href: "/dashboard/parents",   icon: UserCheck,     roles: ADMIN_ONLY },
+    ],
+  },
+  {
+    title: "Academic",
+    items: [
+      { label: "Classes",      href: "/dashboard/classes",      icon: BookOpen,      roles: STAFF },
+      { label: "Subjects",     href: "/dashboard/subjects",     icon: BookOpen,      roles: STAFF },
+      { label: "Attendance",   href: "/dashboard/attendance",   icon: ClipboardCheck,roles: ALL_ROLES },
+      { label: "Examinations", href: "/dashboard/examinations", icon: FileText,      roles: ["ADMIN", "HEADMASTER", "TEACHER", "STUDENT"] },
+    ],
+  },
+  {
+    title: "Resources",
+    items: [
+      { label: "Finance",    href: "/dashboard/finance",    icon: DollarSign, roles: ["ADMIN", "HEADMASTER", "PARENT"] },
+      { label: "Library",    href: "/dashboard/library",    icon: Library,    roles: ALL_ROLES },
+      { label: "Dormitory",  href: "/dashboard/dormitory",  icon: BedDouble,  roles: ADMIN_ONLY },
+      { label: "Transport",  href: "/dashboard/transport",  icon: Bus,        roles: ADMIN_ONLY },
+      { label: "Inventory",  href: "/dashboard/inventory",  icon: Package,    roles: ADMIN_ONLY },
+    ],
+  },
+  {
+    title: "Communication",
+    items: [
+      { label: "Notice Board", href: "/dashboard/notice",      icon: Bell,         roles: GENERAL },
+      { label: "Messages",     href: "/dashboard/messages",    icon: MessageSquare,roles: GENERAL },
+      { label: "Leave",        href: "/dashboard/leave",       icon: LeaveIcon,    roles: STAFF },
+      { label: "Suggestions",  href: "/dashboard/suggestions", icon: Lightbulb,    roles: GENERAL },
+      { label: "Calendar",     href: "/dashboard/calendar",    icon: Calendar,     roles: GENERAL },
+    ],
+  },
+  {
+    title: "System",
+    items: [
+      { label: "Settings", href: "/dashboard/settings", icon: Settings, roles: ADMIN_ONLY },
+    ],
+  },
 ]
 
 interface SidebarProps {
   mobileOpen?: boolean
   onMobileClose?: () => void
+  role?: string
 }
 
-function NavList({ pathname, collapsed, onLinkClick }: { pathname: string; collapsed: boolean; onLinkClick?: () => void }) {
+function NavList({
+  pathname,
+  collapsed,
+  role,
+  onLinkClick,
+}: {
+  pathname: string
+  collapsed: boolean
+  role: Role
+  onLinkClick?: () => void
+}) {
   return (
-    <ul className="space-y-0.5">
-      {navItems.map((item) => {
-        const Icon = item.icon
-        const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+    <div className="space-y-4">
+      {NAV_SECTIONS.map((section) => {
+        const visibleItems = section.items.filter((item) => item.roles.includes(role))
+        if (visibleItems.length === 0) return null
+
         return (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              onClick={onLinkClick}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
-                isActive
-                  ? "bg-indigo-50 text-indigo-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                collapsed && "justify-center"
-              )}
-            >
-              <Icon className={cn("w-4 h-4 shrink-0", isActive && "text-indigo-600")} />
-              {!collapsed && <span>{item.label}</span>}
-              {isActive && !collapsed && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600" />
-              )}
-            </Link>
-          </li>
+          <div key={section.title}>
+            {!collapsed && (
+              <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {section.title}
+              </p>
+            )}
+            <ul className="space-y-0.5">
+              {visibleItems.map((item) => {
+                const Icon = item.icon
+                const isActive =
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname === item.href || pathname.startsWith(item.href + "/")
+
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={onLinkClick}
+                      title={collapsed ? item.label : undefined}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                        isActive
+                          ? "bg-indigo-50 text-indigo-700"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                        collapsed && "justify-center"
+                      )}
+                    >
+                      <Icon className={cn("w-4 h-4 shrink-0", isActive && "text-indigo-600")} />
+                      {!collapsed && <span>{item.label}</span>}
+                      {isActive && !collapsed && (
+                        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         )
       })}
-    </ul>
+    </div>
   )
 }
 
-export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
+export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADMIN" }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const userRole = (role as Role) in { ADMIN: 1, HEADMASTER: 1, TEACHER: 1, STUDENT: 1, PARENT: 1 }
+    ? (role as Role)
+    : "ADMIN"
 
   return (
     <>
@@ -111,7 +194,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-2">
-          <NavList pathname={pathname} collapsed={false} onLinkClick={onMobileClose} />
+          <NavList pathname={pathname} collapsed={false} role={userRole} onLinkClick={onMobileClose} />
         </nav>
       </aside>
 
@@ -149,7 +232,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-2">
-          <NavList pathname={pathname} collapsed={collapsed} />
+          <NavList pathname={pathname} collapsed={collapsed} role={userRole} />
         </nav>
       </aside>
     </>
