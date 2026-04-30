@@ -5,35 +5,74 @@ import type { NextRequest } from "next/server"
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "nexschoola.com"
 const PUBLIC_PATHS = ["/", "/pricing", "/features", "/about", "/contact", "/login", "/register"]
 
+// Routes each role is allowed to visit (prefix-matched)
+const ROLE_ALLOWED: Record<string, string[]> = {
+  ADMIN:      ["*"],
+  HEADMASTER: ["*"],
+  TEACHER: [
+    "/dashboard", "/dashboard/students", "/dashboard/classes", "/dashboard/subjects",
+    "/dashboard/attendance", "/dashboard/examinations", "/dashboard/library",
+    "/dashboard/notice", "/dashboard/messages", "/dashboard/leave",
+    "/dashboard/suggestions", "/dashboard/calendar", "/dashboard/settings",
+  ],
+  STUDENT: [
+    "/dashboard", "/dashboard/attendance", "/dashboard/examinations",
+    "/dashboard/library", "/dashboard/notice", "/dashboard/messages",
+    "/dashboard/suggestions", "/dashboard/calendar",
+  ],
+  PARENT: [
+    "/dashboard", "/dashboard/students", "/dashboard/attendance",
+    "/dashboard/finance", "/dashboard/library", "/dashboard/notice",
+    "/dashboard/messages", "/dashboard/suggestions", "/dashboard/calendar",
+  ],
+}
+
+function isRolePermitted(role: string, pathname: string): boolean {
+  const allowed = ROLE_ALLOWED[role] ?? ROLE_ALLOWED.STUDENT
+  if (allowed.includes("*")) return true
+  if (pathname === "/dashboard") return true
+  return allowed.some((route) => pathname === route || pathname.startsWith(route + "/"))
+}
+
 export default auth(async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone()
   const hostname = req.headers.get("host") || ""
-
-  // Strip port for local dev
   const host = hostname.replace(/:.*/, "")
 
-  // Determine if this is a school subdomain
   const isRootDomain =
     host === ROOT_DOMAIN ||
     host === `www.${ROOT_DOMAIN}` ||
     host === "localhost" ||
-    host.endsWith(".vercel.app") // Vercel preview / production URLs treated as root
+    host.endsWith(".vercel.app")
+
   const subdomain = isRootDomain ? null : host.replace(`.${ROOT_DOMAIN}`, "")
+  const session = (req as any).auth
+  const pathname = url.pathname
 
-  // ─── Root domain routes (marketing + auth) ───
+  // ── Root domain ──────────────────────────────────────────────────────
   if (isRootDomain) {
-    const isPublic = PUBLIC_PATHS.some((p) => url.pathname === p || url.pathname.startsWith("/api/"))
-    const session = (req as any).auth
+    const isPublic = PUBLIC_PATHS.some(
+      (p) => pathname === p || pathname.startsWith("/api/") || pathname.startsWith("/_next/")
+    )
 
+    // Not logged in → login page for protected routes
     if (!isPublic && !session) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
+
+    // Logged in + dashboard route → enforce role-based access
+    if (session && pathname.startsWith("/dashboard")) {
+      const role = (session.user as any)?.role ?? "STUDENT"
+      if (!isRolePermitted(role, pathname)) {
+        return NextResponse.redirect(new URL("/dashboard", req.url))
+      }
+    }
+
     return NextResponse.next()
   }
 
-  // ─── School subdomain routes ───
+  // ── School subdomain ─────────────────────────────────────────────────
   if (subdomain) {
-    // Rewrite to /[schoolSlug]/... internally
     url.pathname = `/${subdomain}${url.pathname}`
     return NextResponse.rewrite(url)
   }
