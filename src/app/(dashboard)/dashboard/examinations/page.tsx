@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 import ExamsClient from "./ExamsClient"
 export const dynamic = "force-dynamic"
 
 export default async function ExaminationsPage() {
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const session = await auth()
+  const schoolId = session?.user?.schoolId ?? ""
+  const role = session?.user?.role ?? "STUDENT"
+  const isAdmin = ["ADMIN", "HEADMASTER"].includes(role)
+
   const [exams, classes, subjects] = await Promise.all([
     prisma.exam.findMany({
       where: { schoolId },
@@ -17,5 +21,6 @@ export default async function ExaminationsPage() {
     prisma.class.findMany({ where: { schoolId }, orderBy: { name: "asc" } }),
     prisma.subject.findMany({ where: { schoolId }, orderBy: { title: "asc" } }),
   ])
-  return <ExamsClient exams={exams} classes={classes} subjects={subjects} schoolId={schoolId} />
+
+  return <ExamsClient exams={exams as any} classes={classes} subjects={subjects} schoolId={schoolId} isAdmin={isAdmin} />
 }

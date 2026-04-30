@@ -21,32 +21,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         schoolSlug: { label: "School", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.schoolSlug) {
-          return null
+        if (!credentials?.email || !credentials?.password) return null
+
+        const email = credentials.email as string
+        const password = credentials.password as string
+        const schoolSlug = (credentials.schoolSlug as string) ?? ""
+
+        // ── Super Admin Login ─────────────────────────────────────────────
+        // If slug is blank or "superadmin", look for a SUPER_ADMIN user globally
+        if (!schoolSlug || schoolSlug === "superadmin") {
+          const user = await prisma.user.findFirst({
+            where: { email, role: "SUPER_ADMIN" },
+          })
+          if (!user) return null
+          const ok = await bcrypt.compare(password, user.password)
+          if (!ok) return null
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: "SUPER_ADMIN" as Role,
+            schoolId: user.schoolId,
+            schoolSlug: "superadmin",
+            image: user.avatar ?? null,
+          }
         }
 
-        const school = await prisma.school.findUnique({
-          where: { slug: credentials.schoolSlug as string },
-        })
-
+        // ── Regular School User Login ─────────────────────────────────────
+        const school = await prisma.school.findUnique({ where: { slug: schoolSlug } })
         if (!school || !school.isActive) return null
 
         const user = await prisma.user.findUnique({
-          where: {
-            schoolId_email: {
-              schoolId: school.id,
-              email: credentials.email as string,
-            },
-          },
+          where: { schoolId_email: { schoolId: school.id, email } },
         })
-
         if (!user || !user.isActive) return null
 
-        const passwordMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
-
+        const passwordMatch = await bcrypt.compare(password, user.password)
         if (!passwordMatch) return null
 
         return {
@@ -56,7 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           schoolId: user.schoolId,
           schoolSlug: school.slug,
-          image: user.avatar,
+          image: user.avatar ?? null,
         }
       },
     }),

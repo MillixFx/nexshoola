@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+
+// GET /api/marks?examId=...&classId=...
+export async function GET(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const examId = searchParams.get("examId")
+  const classId = searchParams.get("classId")
+
+  if (!examId || !classId) {
+    return NextResponse.json({ error: "examId and classId are required" }, { status: 400 })
+  }
+
+  const schoolId = session.user.schoolId
+
+  // Get students in this class
+  const students = await prisma.student.findMany({
+    where: { schoolId, classId, isActive: true },
+    include: { user: { select: { name: true } } },
+    orderBy: { user: { name: "asc" } },
+  })
+
+  // Get subjects for this class
+  const classSubjects = await prisma.classSubject.findMany({
+    where: { classId },
+    include: { subject: { select: { id: true, title: true } } },
+  })
+
+  // Get existing marks
+  const marks = await prisma.subjectMark.findMany({
+    where: {
+      examId,
+      studentId: { in: students.map(s => s.id) },
+    },
+  })
+
+  return NextResponse.json({ students, subjects: classSubjects.map(cs => cs.subject), marks })
+}
+
+// POST /api/marks  → upsert a single mark
+export async function POST(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { studentId, subjectId, examId, marks, grade, remark } = await req.json()
+
+  if (!studentId || !subjectId || !examId || marks === undefined) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+  }
+
+  const mark = await prisma.subjectMark.upsert({
+    where: { studentId_subjectId_examId: { studentId, subjectId, examId } },
+    create: { studentId, subjectId, examId, marks: parseFloat(marks), grade: grade || null, remark: remark || null },
+    update: { marks: parseFloat(marks), grade: grade || null, remark: remark || null },
+  })
+
+  return NextResponse.json(mark, { status: 201 })
+}

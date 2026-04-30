@@ -36,6 +36,17 @@ model School {
   planExpiry  DateTime?
   paystackRef String?
 
+  // Paystack subaccount — for direct school payouts
+  paystackSubaccountCode String?
+  paystackBankCode       String?
+  paystackAccountNumber  String?
+  paystackAccountName    String?
+  paystackBusinessName   String?
+
+  // Platform billing
+  subscriptionPaidAt DateTime?
+  subscriptionNotes  String?
+
   // Relations
   users           User[]
   classes         Class[]
@@ -1001,4 +1012,24 @@ model CalendarEvent {
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("calendar_events")
+}
+
+// ─────────────────────────────────────────────
+// PLATFORM / SUPER ADMIN
+// ─────────────────────────────────────────────
+
+// Global platform configuration (singleton — only one row)
+model PlatformConfig {
+  id                    String  @id @default(cuid())
+  paystackSecretKey     String? // Platform Paystack secret key
+  paystackPublicKey     String? // Platform Paystack public key
+  paystackWebhookSecret String?
+  feePerStudentTermly   Float   @default(15)   // GH₵15 per student per term
+  platformFeePercent    Float   @default(0)    // % deducted from each payment (0 = school keeps 100%)
+  currency              String  @default("GHS")
+  siteName              String  @default("NexSchoola")
+  supportEmail          String?
+  updatedAt             DateTime @updatedAt
+
+  @@map("platform_configs")
 }

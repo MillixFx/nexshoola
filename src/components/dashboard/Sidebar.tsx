@@ -9,6 +9,7 @@ import {
   MessageSquare, Calendar, LogOut as LeaveIcon,
   Lightbulb, Settings, ChevronLeft,
   GraduationCap as Logo, UserCheck, X, Banknote,
+  BarChart3,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -80,7 +81,8 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "System",
     items: [
-      { label: "Settings", href: "/dashboard/settings", icon: Settings, roles: ADMIN_ONLY },
+      { label: "Reports",  href: "/dashboard/reports",  icon: BarChart3, roles: ADMIN_ONLY },
+      { label: "Settings", href: "/dashboard/settings", icon: Settings,  roles: ADMIN_ONLY },
     ],
   },
 ]

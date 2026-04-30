@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server"
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "nexschoola.com"
 const PUBLIC_PATHS = ["/", "/pricing", "/features", "/about", "/contact", "/login", "/register"]
+const SUPER_ADMIN_PREFIX = "/super-admin"
 
 // Routes each role is allowed to visit (prefix-matched)
 const ROLE_ALLOWED: Record<string, string[]> = {
@@ -60,6 +61,15 @@ export default auth(async function middleware(req: NextRequest) {
     // Not logged in → login page for protected routes
     if (!isPublic && !session) {
       return NextResponse.redirect(new URL("/login", req.url))
+    }
+
+    // Super admin routes
+    if (pathname.startsWith(SUPER_ADMIN_PREFIX)) {
+      const role = (session?.user as any)?.role
+      if (!session || role !== "SUPER_ADMIN") {
+        return NextResponse.redirect(new URL("/login", req.url))
+      }
+      return NextResponse.next()
     }
 
     // Logged in + dashboard route → enforce role-based access
