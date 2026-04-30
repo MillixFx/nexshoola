@@ -1,165 +1,137 @@
+"use client"
+
 import {
   Users, BookOpen, GraduationCap, ClipboardCheck,
   FileText, DollarSign, Library, BedDouble,
   Bus, Package, Bell, MessageSquare,
-  Calendar, LogOut, Lightbulb, Settings,
-  BarChart3, Shield, Smartphone,
+  Calendar, Lightbulb, Shield, Smartphone,
+  Banknote, UserCheck, BarChart3, LogOut,
 } from "lucide-react"
 
-const features = [
-  {
-    icon: Users,
-    title: "Student Management",
-    desc: "Full student profiles, photo uploads, class assignments, roll numbers, and promotions.",
-    color: "bg-indigo-50 text-indigo-600",
-  },
-  {
-    icon: GraduationCap,
-    title: "Teacher Management",
-    desc: "Manage teacher profiles, subject assignments, qualifications, and attendance records.",
-    color: "bg-emerald-50 text-emerald-600",
-  },
-  {
-    icon: ClipboardCheck,
-    title: "Attendance Tracking",
-    desc: "Daily student, teacher, and employee attendance with percentage reports.",
-    color: "bg-sky-50 text-sky-600",
-  },
-  {
-    icon: FileText,
-    title: "Examinations",
-    desc: "Create exams, schedules, enter marks, generate results, and publish to students/parents.",
-    color: "bg-violet-50 text-violet-600",
-  },
-  {
-    icon: DollarSign,
-    title: "Finance & Fees",
-    desc: "Manage student fees, salary payroll, income/expense tracking — accept Paystack payments.",
-    color: "bg-amber-50 text-amber-600",
-  },
-  {
-    icon: BookOpen,
-    title: "Class & Timetable",
-    desc: "Define classes, sections, subjects, and weekly timetables with teacher assignments.",
-    color: "bg-pink-50 text-pink-600",
-  },
-  {
-    icon: Library,
-    title: "Library System",
-    desc: "Book catalog, categories, member registration, issue/return tracking with fines.",
-    color: "bg-teal-50 text-teal-600",
-  },
-  {
-    icon: BedDouble,
-    title: "Dormitory",
-    desc: "Manage hostels, rooms, and bed allocations for students and staff.",
-    color: "bg-orange-50 text-orange-600",
-  },
-  {
-    icon: Bus,
-    title: "Transport",
-    desc: "Route management, vehicle assignments, and driver information tracking.",
-    color: "bg-cyan-50 text-cyan-600",
-  },
-  {
-    icon: Package,
-    title: "Inventory",
-    desc: "Stock management, vendor tracking, item distribution to students and staff.",
-    color: "bg-lime-50 text-lime-600",
-  },
-  {
-    icon: Bell,
-    title: "Notice Board",
-    desc: "Post school-wide announcements visible to all roles in real time.",
-    color: "bg-rose-50 text-rose-600",
-  },
-  {
-    icon: MessageSquare,
-    title: "Messaging",
-    desc: "Internal messaging system — send to individuals or entire classes.",
-    color: "bg-fuchsia-50 text-fuchsia-600",
-  },
-  {
-    icon: Calendar,
-    title: "Calendar Events",
-    desc: "School event calendar with per-user event management and color coding.",
-    color: "bg-indigo-50 text-indigo-600",
-  },
-  {
-    icon: LogOut,
-    title: "Leave Management",
-    desc: "Staff leave applications, headmaster approval workflow, and status tracking.",
-    color: "bg-emerald-50 text-emerald-600",
-  },
-  {
-    icon: Lightbulb,
-    title: "Suggestion Box",
-    desc: "Anonymous or named suggestions from staff, students, and parents.",
-    color: "bg-yellow-50 text-yellow-600",
-  },
-  {
-    icon: Users,
-    title: "Parent Portal",
-    desc: "Parent accounts linked to students — view grades, fees, attendance, and messages.",
-    color: "bg-sky-50 text-sky-600",
-  },
-  {
-    icon: BarChart3,
-    title: "Reports & Analytics",
-    desc: "Class-wise result sheets, merit lists, fee summaries, and attendance reports.",
-    color: "bg-violet-50 text-violet-600",
-  },
-  {
-    icon: Shield,
-    title: "Role-Based Access",
-    desc: "11 user roles: Admin, Headmaster, Teacher, Student, Parent, Accountant, and more.",
-    color: "bg-amber-50 text-amber-600",
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile Money",
-    desc: "Accept school fees via MTN MoMo, AirtelTigo, Vodafone Cash, and card payments.",
-    color: "bg-green-50 text-green-600",
-  },
+const FEATURES = [
+  { icon: Users,        emoji: "🎓", title: "Student Management",    desc: "Profiles, enrollment, roll numbers & class promotions",        bg: "from-indigo-500 to-indigo-700" },
+  { icon: GraduationCap,emoji: "👨‍🏫", title: "Teacher Management",   desc: "Staff profiles, qualifications & subject assignments",          bg: "from-violet-500 to-violet-700" },
+  { icon: ClipboardCheck,emoji: "✅", title: "Attendance Tracking",   desc: "Daily student & staff attendance with % reports",               bg: "from-sky-500 to-sky-700" },
+  { icon: FileText,     emoji: "📝", title: "Examinations",           desc: "Exams, marks entry, result sheets & date sheets",               bg: "from-purple-500 to-purple-700" },
+  { icon: DollarSign,   emoji: "💰", title: "Finance & Fees",         desc: "Fee collection, income tracking & Paystack payments",           bg: "from-amber-500 to-amber-700" },
+  { icon: Banknote,     emoji: "💵", title: "Salary & Payroll",       desc: "Staff salaries, deductions & custom printable payslips",        bg: "from-emerald-500 to-emerald-700" },
+  { icon: BookOpen,     emoji: "📚", title: "Classes & Timetable",    desc: "Sections, subjects & weekly teacher timetables",                bg: "from-pink-500 to-pink-700" },
+  { icon: Library,      emoji: "📖", title: "Library System",         desc: "Book catalog, issue/return tracking & overdue fines",           bg: "from-teal-500 to-teal-700" },
+  { icon: BedDouble,    emoji: "🏠", title: "Dormitory",              desc: "Hostels, rooms & bed allocations for students & staff",         bg: "from-orange-500 to-orange-700" },
+  { icon: Bus,          emoji: "🚌", title: "Transport",              desc: "Bus routes, vehicle info & driver assignments",                 bg: "from-cyan-500 to-cyan-700" },
+  { icon: Package,      emoji: "📦", title: "Inventory",              desc: "Stock management, low-stock alerts & supplier tracking",        bg: "from-lime-500 to-lime-700" },
+  { icon: Bell,         emoji: "🔔", title: "Notice Board",           desc: "Instant announcements for all roles in real time",              bg: "from-rose-500 to-rose-700" },
+  { icon: MessageSquare,emoji: "💬", title: "Messaging",              desc: "Internal inbox — message individuals or entire classes",        bg: "from-fuchsia-500 to-fuchsia-700" },
+  { icon: Calendar,     emoji: "📅", title: "Calendar & Events",      desc: "School events with per-role visibility & color coding",         bg: "from-indigo-600 to-blue-700" },
+  { icon: LogOut,       emoji: "🏖️", title: "Leave Management",       desc: "Apply, approve & track staff leave with email workflow",        bg: "from-emerald-600 to-teal-700" },
+  { icon: Lightbulb,    emoji: "💡", title: "Suggestion Box",         desc: "Anonymous & named feedback from staff, students & parents",     bg: "from-yellow-500 to-orange-600" },
+  { icon: UserCheck,    emoji: "👪", title: "Parent Portal",          desc: "Linked parent accounts to view grades, fees & attendance",      bg: "from-sky-600 to-indigo-700" },
+  { icon: BarChart3,    emoji: "📊", title: "Reports & Analytics",    desc: "Merit lists, fee summaries & class-wise attendance reports",    bg: "from-violet-600 to-purple-800" },
+  { icon: Shield,       emoji: "🔐", title: "Role-Based Access",      desc: "Admin, Headmaster, Teacher, Student, Parent & more",           bg: "from-gray-600 to-gray-800" },
+  { icon: Smartphone,   emoji: "📱", title: "Mobile Money",           desc: "Accept fees via MTN MoMo, AirtelTigo & card payments",         bg: "from-green-500 to-green-700" },
 ]
+
+// Split into two rows, second row reversed for opposite scroll
+const ROW1 = FEATURES.slice(0, 10)
+const ROW2 = FEATURES.slice(10)
+
+function FeatureCard({ feature }: { feature: typeof FEATURES[0] }) {
+  const Icon = feature.icon
+  return (
+    <div className={`relative flex-shrink-0 w-56 h-64 rounded-2xl bg-gradient-to-br ${feature.bg} p-5 flex flex-col justify-between overflow-hidden mx-3 shadow-2xl`}>
+      {/* Background glow */}
+      <div className="absolute inset-0 opacity-20 bg-white rounded-2xl" />
+      {/* Top: large emoji */}
+      <div className="relative">
+        <div className="text-5xl mb-2">{feature.emoji}</div>
+        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+          <Icon className="w-4 h-4 text-white" />
+        </div>
+      </div>
+      {/* Bottom: text */}
+      <div className="relative">
+        <h3 className="font-bold text-white text-sm leading-snug mb-1">{feature.title}</h3>
+        <p className="text-white/70 text-xs leading-relaxed">{feature.desc}</p>
+      </div>
+    </div>
+  )
+}
+
+function MarqueeRow({ items, reverse = false }: { items: typeof FEATURES; reverse?: boolean }) {
+  // Duplicate for seamless loop
+  const doubled = [...items, ...items]
+  return (
+    <div className="overflow-hidden">
+      <div
+        className={`flex ${reverse ? "animate-marquee-reverse" : "animate-marquee"}`}
+        style={{ width: "max-content" }}
+      >
+        {doubled.map((f, i) => (
+          <FeatureCard key={`${f.title}-${i}`} feature={f} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <span className="inline-block text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-4">
-            Everything you need
+    <section id="features" className="py-24 bg-[#0a0a1f] overflow-hidden">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-14">
+        <span className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full mb-6">
+          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse" />
+          Single Stop Solution
+        </span>
+        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
+          Comprehensive Features<br />
+          <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+            for Every School Need
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5">
-            19 Modules. One Platform.
-          </h2>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            From student enrollment to exam results, fee collection to library management —
-            NexSchoola covers every corner of your school.
-          </p>
-        </div>
-
-        {/* Features grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {features.map((feature) => {
-            const Icon = feature.icon
-            return (
-              <div
-                key={feature.title}
-                className="group relative p-5 rounded-2xl border border-gray-100 bg-white hover:shadow-xl hover:shadow-indigo-100/50 hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className={`w-10 h-10 rounded-xl ${feature.color} flex items-center justify-center mb-4`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{feature.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{feature.desc}</p>
-              </div>
-            )
-          })}
-        </div>
+        </h2>
+        <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+          20 powerful modules — from student enrollment to salary payslips,
+          exams to parent portals. Everything your school needs, in one place.
+        </p>
       </div>
+
+      {/* Scrolling rows */}
+      <div className="space-y-4">
+        <MarqueeRow items={ROW1} />
+        <MarqueeRow items={ROW2} reverse />
+      </div>
+
+      {/* Bottom CTA */}
+      <div className="text-center mt-14">
+        <a
+          href="/login"
+          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-indigo-900/50"
+        >
+          Start Free Trial → 1 Month Free
+        </a>
+      </div>
+
+      {/* CSS animations */}
+      <style>{`
+        @keyframes marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes marquee-reverse {
+          0%   { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        .animate-marquee {
+          animation: marquee 35s linear infinite;
+        }
+        .animate-marquee-reverse {
+          animation: marquee-reverse 35s linear infinite;
+        }
+        .animate-marquee:hover,
+        .animate-marquee-reverse:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   )
 }

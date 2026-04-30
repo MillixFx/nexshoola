@@ -8,7 +8,7 @@ import {
   BedDouble, Bus, Package, Bell,
   MessageSquare, Calendar, LogOut as LeaveIcon,
   Lightbulb, Settings, ChevronLeft,
-  GraduationCap as Logo, UserCheck, X,
+  GraduationCap as Logo, UserCheck, X, Banknote,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -60,6 +60,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Resources",
     items: [
       { label: "Finance",    href: "/dashboard/finance",    icon: DollarSign, roles: ["ADMIN", "HEADMASTER", "PARENT"] },
+      { label: "Payroll",    href: "/dashboard/payroll",    icon: Banknote,   roles: ADMIN_ONLY },
       { label: "Library",    href: "/dashboard/library",    icon: Library,    roles: ALL_ROLES },
       { label: "Dormitory",  href: "/dashboard/dormitory",  icon: BedDouble,  roles: ADMIN_ONLY },
       { label: "Transport",  href: "/dashboard/transport",  icon: Bus,        roles: ADMIN_ONLY },

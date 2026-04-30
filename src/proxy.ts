@@ -9,6 +9,7 @@ const PUBLIC_PATHS = ["/", "/pricing", "/features", "/about", "/contact", "/logi
 const ROLE_ALLOWED: Record<string, string[]> = {
   ADMIN:      ["*"],
   HEADMASTER: ["*"],
+  // Payroll is admin-only — intentionally not in TEACHER/STUDENT/PARENT lists
   TEACHER: [
     "/dashboard", "/dashboard/students", "/dashboard/classes", "/dashboard/subjects",
     "/dashboard/attendance", "/dashboard/examinations", "/dashboard/library",

@@ -60,6 +60,7 @@ model School {
   suggestions     Suggestion[]
   weekDays        WeekDay[]
   salaries        SalaryConfig[]
+  payslips        StaffPayslip[]
   configuration   Configuration?
 
   @@map("schools")
@@ -282,6 +283,7 @@ model Teacher {
   school     School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   attendance TeacherAttendance[]
+  payslips   StaffPayslip[]
 
   @@map("teachers")
 }
@@ -633,6 +635,29 @@ model SalarySlip {
   employee Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("salary_slips")
+}
+
+// Staff Payslip - linked directly to Teacher, with customizable allowances/deductions
+model StaffPayslip {
+  id          String    @id @default(cuid())
+  schoolId    String
+  teacherId   String
+  month       Int       // 1-12
+  year        Int
+  basicSalary Float
+  allowances  Json      @default("[]") // [{name: "Housing", amount: 500}]
+  deductions  Json      @default("[]") // [{name: "SSNIT", amount: 100}]
+  netPay      Float
+  notes       String?
+  status      String    @default("DRAFT") // DRAFT | ISSUED | PAID
+  issuedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  school   School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  teacher  Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, month, year])
+  @@map("staff_payslips")
 }
 
 // ─────────────────────────────────────────────
