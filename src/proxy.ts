@@ -15,6 +15,7 @@ const ROLE_ALLOWED: Record<string, string[]> = {
     "/dashboard/attendance", "/dashboard/examinations", "/dashboard/library",
     "/dashboard/notice", "/dashboard/messages", "/dashboard/leave",
     "/dashboard/suggestions", "/dashboard/calendar", "/dashboard/settings",
+    "/dashboard/payroll",
   ],
   STUDENT: [
     "/dashboard", "/dashboard/attendance", "/dashboard/examinations",

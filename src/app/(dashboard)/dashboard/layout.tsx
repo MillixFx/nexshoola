@@ -6,15 +6,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await auth()
   const schoolId = session?.user?.schoolId
 
-  const school = schoolId
-    ? await prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } })
-    : await prisma.school.findFirst({ select: { name: true } })
+  const [school, notices] = await Promise.all([
+    schoolId
+      ? prisma.school.findUnique({ where: { id: schoolId }, select: { name: true } })
+      : prisma.school.findFirst({ select: { name: true, id: true } }),
+    prisma.notice.findMany({
+      where: { schoolId: schoolId ?? undefined },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: { id: true, title: true, content: true, priority: true, createdAt: true },
+    }),
+  ])
 
   return (
     <DashboardShell
       schoolName={school?.name ?? "School"}
       userName={session?.user?.name ?? "Admin"}
       role={session?.user?.role ?? "ADMIN"}
+      notices={notices}
     >
       {children}
     </DashboardShell>

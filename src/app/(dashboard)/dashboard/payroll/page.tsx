@@ -1,14 +1,25 @@
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 import PayrollClient from "./PayrollClient"
 export const dynamic = "force-dynamic"
 
 export default async function PayrollPage() {
+  const session = await auth()
+  const role = (session?.user as any)?.role ?? "ADMIN"
+  const userId = session?.user?.id ?? ""
   const school = await prisma.school.findFirst()
   const schoolId = school?.id ?? ""
 
+  // If TEACHER, find their teacher record to filter their own payslips
+  let myTeacherId: string | null = null
+  if (role === "TEACHER") {
+    const teacher = await prisma.teacher.findUnique({ where: { userId }, select: { id: true } })
+    myTeacherId = teacher?.id ?? null
+  }
+
   const [payslips, teachers] = await Promise.all([
     prisma.staffPayslip.findMany({
-      where: { schoolId },
+      where: myTeacherId ? { schoolId, teacherId: myTeacherId } : { schoolId },
       include: { teacher: { include: { user: { select: { name: true } } } } },
       orderBy: [{ year: "desc" }, { month: "desc" }],
     }),
@@ -30,6 +41,7 @@ export default async function PayrollPage() {
       teachers={teachers.map(t => ({ id: t.id, name: t.user.name, designation: t.designation ?? null, department: t.department ?? null }))}
       schoolId={schoolId}
       schoolName={school?.name ?? "School"}
+      isTeacher={role === "TEACHER"}
     />
   )
 }
