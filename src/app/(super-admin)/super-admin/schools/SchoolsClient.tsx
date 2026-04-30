@@ -240,6 +240,30 @@ export default function SchoolsClient({ schools: initial }: { schools: School[] 
                   <input className="input font-mono text-xs" value={editForm.paystackSubaccountCode} onChange={e => setEditForm(f => ({ ...f, paystackSubaccountCode: e.target.value }))} placeholder="ACCT_xxxxxxxxxxxxxxx" />
                   <p className="text-[10px] text-gray-400 mt-1">Create via Paystack dashboard or use the auto-create button below.</p>
                 </div>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={async () => {
+                    if (!editSchool) return
+                    setSaving(true); setError("")
+                    try {
+                      // First save the bank details
+                      await fetch(`/api/super-admin/schools/${editSchool.id}`, {
+                        method: "PUT", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ paystackBankCode: editForm.paystackBankCode, paystackAccountNumber: editForm.paystackAccountNumber, paystackBusinessName: editForm.paystackBusinessName }),
+                      })
+                      // Then auto-create subaccount
+                      const res = await fetch(`/api/super-admin/schools/${editSchool.id}/subaccount`, { method: "POST" })
+                      const data = await res.json()
+                      if (!res.ok) throw new Error(data.error)
+                      setEditForm(f => ({ ...f, paystackSubaccountCode: data.subaccountCode }))
+                      alert(`Subaccount created! Code: ${data.subaccountCode}`)
+                    } catch (err: any) { setError(err.message) } finally { setSaving(false) }
+                  }}
+                  className="w-full py-2 border border-emerald-200 text-emerald-700 bg-emerald-50 rounded-xl text-xs font-semibold hover:bg-emerald-100 flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "⚡ Auto-Create Paystack Subaccount"}
+                </button>
               </div>
 
               <div className="flex gap-3 pt-1">
