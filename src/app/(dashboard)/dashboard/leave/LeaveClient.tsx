@@ -39,7 +39,8 @@ export default function LeaveClient({ applications: initial, users, schoolId }: 
         <div className="bg-white rounded-2xl border border-gray-100 p-14 flex flex-col items-center text-center shadow-sm"><LogOut className="w-10 h-10 text-indigo-300 mb-3" /><h2 className="font-bold text-gray-800 mb-1">No leave applications</h2><button onClick={() => setOpen(true)} className="text-sm font-semibold text-indigo-600 hover:underline mt-2">+ Apply Now</button></div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead><tr className="border-b border-gray-100 bg-gray-50">
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Staff</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
@@ -68,11 +69,12 @@ export default function LeaveClient({ applications: initial, users, schoolId }: 
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100"><h2 className="text-lg font-bold text-gray-900">Apply for Leave</h2><button onClick={() => setOpen(false)} className="text-gray-400 text-xl">×</button></div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div><label className="label">Staff Member *</label>

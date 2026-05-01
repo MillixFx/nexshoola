@@ -107,7 +107,8 @@ export default function SchoolsClient({ schools: initial }: { schools: School[] 
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[800px]">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
               <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">School</th>
@@ -161,12 +162,13 @@ export default function SchoolsClient({ schools: initial }: { schools: School[] 
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Edit School Modal */}
       {editSchool && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">Edit School</h2>

@@ -208,8 +208,8 @@ export default function ExamsClient({
 
       {/* Create / Edit Exam Modal */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">{editExam ? "Edit Exam" : "Create Exam"}</h2>
               <button onClick={() => { setOpen(false); setEditExam(null) }} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
@@ -243,8 +243,8 @@ export default function ExamsClient({
 
       {/* Marks Entry Modal */}
       {marksExam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-5xl max-h-[92vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
               <div>

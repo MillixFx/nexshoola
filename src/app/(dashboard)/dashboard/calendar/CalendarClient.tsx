@@ -78,8 +78,8 @@ export default function CalendarClient({ events: initial, schoolId }: { events: 
         </div>
       )}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100"><h2 className="text-lg font-bold text-gray-900">Add Event</h2><button onClick={() => setOpen(false)} className="text-gray-400 text-xl">×</button></div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div><label className="label">Event Title *</label><input className="input" required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Inter-School Sports Day" /></div>

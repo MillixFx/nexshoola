@@ -72,8 +72,8 @@ export default function NoticeClient({ notices: initial, schoolId }: { notices: 
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">Post Notice</h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>

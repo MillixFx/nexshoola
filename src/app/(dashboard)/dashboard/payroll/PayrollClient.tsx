@@ -208,8 +208,8 @@ export default function PayrollClient({ payslips: initial, teachers, schoolId, s
 
       {/* Create / Edit Modal */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-bold text-gray-900">{editing ? "Edit Payslip" : "Generate Payslip"}</h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
@@ -303,8 +303,8 @@ export default function PayrollClient({ payslips: initial, teachers, schoolId, s
 
       {/* Payslip Print View */}
       {viewing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 no-print">
               <h2 className="font-bold text-gray-900">Payslip Preview</h2>
               <div className="flex gap-2">
