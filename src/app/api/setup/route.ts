@@ -52,6 +52,19 @@ export async function GET() {
         loginUrl: "/login",
         note: "Admin password printed in server logs. Set SEED_ADMIN_PASSWORD env var to control it.",
       }
+    } else if (process.env.SEED_ADMIN_PASSWORD) {
+      // School exists — update admin credentials if env var is explicitly set
+      const existingAdmin = await prisma.user.findFirst({ where: { schoolId: existing.id, role: "ADMIN" } })
+      if (existingAdmin) {
+        const adminEmail = process.env.SEED_ADMIN_EMAIL ?? existingAdmin.email
+        const adminPassword = process.env.SEED_ADMIN_PASSWORD
+        const hashed = await bcrypt.hash(adminPassword, 12)
+        await prisma.user.update({ where: { id: existingAdmin.id }, data: { email: adminEmail, password: hashed } })
+        console.log("✅ School admin credentials updated from env vars")
+        console.log(`   Admin email    : ${adminEmail}`)
+        console.log(`   Admin password : ${adminPassword}`)
+        results.school = { updated: true, slug: existing.slug, adminEmail, note: "Credentials synced from env vars." }
+      }
     } else {
       results.school = { created: false, message: "Demo school already exists", slug: existing.slug }
     }

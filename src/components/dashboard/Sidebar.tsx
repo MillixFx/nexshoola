@@ -9,7 +9,7 @@ import {
   MessageSquare, Calendar, LogOut as LeaveIcon,
   Lightbulb, Settings, ChevronLeft,
   GraduationCap as Logo, UserCheck, X, Banknote,
-  BarChart3, ShieldCheck,
+  BarChart3, ShieldCheck, ExternalLink,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -200,6 +200,17 @@ export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADM
         <nav className="flex-1 overflow-y-auto py-4 px-2">
           <NavList pathname={pathname} collapsed={false} role={userRole} onLinkClick={onMobileClose} />
         </nav>
+        {/* Back to Site */}
+        <div className="shrink-0 px-3 py-3 border-t border-gray-100">
+          <Link
+            href="/"
+            onClick={onMobileClose}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+          >
+            <ExternalLink className="w-4 h-4 shrink-0" />
+            <span>Back to Site</span>
+          </Link>
+        </div>
       </aside>
 
       {/* ── Desktop sidebar ── */}
@@ -238,6 +249,20 @@ export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADM
         <nav className="flex-1 overflow-y-auto py-4 px-2">
           <NavList pathname={pathname} collapsed={collapsed} role={userRole} />
         </nav>
+        {/* Back to Site */}
+        <div className={cn("shrink-0 border-t border-gray-100 px-2 py-3", collapsed && "flex justify-center")}>
+          <Link
+            href="/"
+            title="Back to Site"
+            className={cn(
+              "flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors",
+              collapsed && "justify-center px-2"
+            )}
+          >
+            <ExternalLink className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Back to Site</span>}
+          </Link>
+        </div>
       </aside>
     </>
   )

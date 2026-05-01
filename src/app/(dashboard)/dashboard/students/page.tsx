@@ -13,7 +13,9 @@ export default async function StudentsPage() {
   const [students, classes] = await Promise.all([
     prisma.student.findMany({
       where: { schoolId },
-      include: {
+      select: {
+        id: true, rollNumber: true, studentId: true, gender: true,
+        admissionDate: true, isActive: true, photo: true,
         user: { select: { name: true, email: true, phone: true, isActive: true } },
         class: { select: { name: true, section: true } },
       },

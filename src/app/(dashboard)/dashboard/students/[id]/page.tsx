@@ -18,6 +18,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
       where: { id },
       include: {
         user: { select: { name: true, email: true, phone: true, isActive: true, avatar: true } },
+        // photo is on the student model itself (fetched by default via findUnique)
         class: { select: { id: true, name: true, section: true } },
         parents: {
           include: {
@@ -89,6 +90,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         nationality: student.nationality,
         admissionDate: student.admissionDate.toISOString(),
         isActive: student.isActive,
+        photo: (student as any).photo ?? null,
         user: student.user,
         class: student.class,
         parents: student.parents.map((sp: any) => ({

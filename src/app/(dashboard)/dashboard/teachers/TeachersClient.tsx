@@ -107,24 +107,24 @@ export default function TeachersClient({ teachers: initial, schoolId }: { teache
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">{editing ? "Edit Teacher" : "Add Teacher"}</h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2"><label className="label">Full Name *</label><input className="input" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Mr. Kofi Mensah" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2"><label className="label">Full Name *</label><input className="input" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Mr. Kofi Mensah" /></div>
                 <div><label className="label">Email *</label><input className="input" type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
                 <div><label className="label">Phone</label><input className="input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
-                {!editing && <div className="col-span-2"><label className="label">Password (default: changeme123)</label><input className="input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} /></div>}
+                {!editing && <div className="sm:col-span-2"><label className="label">Password <span className="text-gray-400 font-normal">(default: changeme123)</span></label><input className="input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} /></div>}
                 <div><label className="label">Teacher ID</label><input className="input" value={form.teacherId} onChange={e => setForm(f => ({ ...f, teacherId: e.target.value }))} placeholder="TCH-001" /></div>
                 <div><label className="label">Gender</label><select className="input" value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}><option value="">— Select —</option><option value="MALE">Male</option><option value="FEMALE">Female</option></select></div>
                 <div><label className="label">Designation</label><input className="input" value={form.designation} onChange={e => setForm(f => ({ ...f, designation: e.target.value }))} placeholder="Senior Teacher" /></div>
                 <div><label className="label">Department</label><input className="input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} placeholder="Science" /></div>
-                <div className="col-span-2"><label className="label">Qualification</label><input className="input" value={form.qualification} onChange={e => setForm(f => ({ ...f, qualification: e.target.value }))} placeholder="B.Ed. Mathematics" /></div>
+                <div className="sm:col-span-2"><label className="label">Qualification</label><input className="input" value={form.qualification} onChange={e => setForm(f => ({ ...f, qualification: e.target.value }))} placeholder="B.Ed. Mathematics" /></div>
                 <div><label className="label">Joining Date</label><input className="input" type="date" value={form.joiningDate} onChange={e => setForm(f => ({ ...f, joiningDate: e.target.value }))} /></div>
                 <div><label className="label">Address</label><input className="input" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} /></div>
               </div>

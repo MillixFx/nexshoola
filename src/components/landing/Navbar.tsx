@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Menu, X, GraduationCap } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { Menu, X, GraduationCap, LayoutDashboard } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
@@ -15,6 +16,8 @@ const navLinks = [
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { data: session, status } = useSession()
+  const isLoggedIn = status === "authenticated" && !!session?.user
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -58,18 +61,30 @@ export default function Navbar() {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/login"
-            className={cn("text-sm font-medium transition-colors px-4 py-2", scrolled ? "text-gray-700 hover:text-indigo-600" : "text-white/80 hover:text-white")}
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className="text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200"
-          >
-            Get Started Free
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={cn("text-sm font-medium transition-colors px-4 py-2", scrolled ? "text-gray-700 hover:text-indigo-600" : "text-white/80 hover:text-white")}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200"
+              >
+                Get Started Free
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -97,18 +112,31 @@ export default function Navbar() {
               </a>
             ))}
             <div className="pt-3 mt-2 border-t border-gray-100 flex flex-col gap-2">
-              <Link
-                href="/login"
-                className="py-2.5 px-3 rounded-lg text-sm font-medium text-center text-gray-700 hover:bg-gray-50"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="py-2.5 px-3 rounded-full text-sm font-semibold text-center bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                Get Started Free
-              </Link>
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="py-2.5 px-3 rounded-full text-sm font-semibold text-center bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-2"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="py-2.5 px-3 rounded-lg text-sm font-medium text-center text-gray-700 hover:bg-gray-50"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="py-2.5 px-3 rounded-full text-sm font-semibold text-center bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    Get Started Free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

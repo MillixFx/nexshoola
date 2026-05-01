@@ -28,6 +28,7 @@ type Student = {
   id: string; rollNumber: string | null; studentId: string | null; gender: string | null
   dateOfBirth: string | null; address: string | null; bloodGroup: string | null
   religion: string | null; nationality: string | null; admissionDate: string; isActive: boolean
+  photo?: string | null
   user: { name: string; email: string; phone: string | null; isActive: boolean; avatar: string | null }
   class: { id: string; name: string; section: string | null } | null
   parents: Parent[]; attendance: AttendanceRecord[]; marks: Mark[]; fees: Fee[]
@@ -101,10 +102,18 @@ export default function StudentProfileClient({
       {/* Profile header card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          {/* Avatar */}
-          <div className="w-20 h-20 rounded-2xl bg-indigo-600 text-white text-2xl font-extrabold flex items-center justify-center shrink-0 shadow-sm">
-            {initials}
-          </div>
+          {/* Avatar — real photo or initials fallback */}
+          {student.photo ? (
+            <img
+              src={student.photo}
+              alt={student.user.name}
+              className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow border-2 border-indigo-100"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-indigo-600 text-white text-2xl font-extrabold flex items-center justify-center shrink-0 shadow-sm">
+              {initials}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">

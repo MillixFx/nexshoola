@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const schoolId = session.user.schoolId
+    const userId = session.user.id
     const reference = generateReference(type.toUpperCase())
 
     // Determine if this is a platform subscription payment or a school fee payment
@@ -43,6 +44,14 @@ export async function POST(req: NextRequest) {
       subaccount = school?.paystackSubaccountCode ?? undefined
     }
 
+    // For fee payments: stamp the FeeSlip with this reference so webhook can find it
+    if (!isSubscriptionPayment && metadata?.feeSlipId) {
+      await prisma.feeSlip.update({
+        where: { id: metadata.feeSlipId },
+        data: { paystackRef: reference, status: "UNPAID" },
+      }).catch(() => {}) // non-blocking — don't fail the whole request
+    }
+
     const result = await initializePayment({
       email: session.user.email!,
       amount, // already in pesewas from client
@@ -50,7 +59,7 @@ export async function POST(req: NextRequest) {
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/paystack/verify?reference=${reference}`,
       metadata: {
         schoolId,
-        userId: session.user.id,
+        userId,
         type,
         ...metadata,
       },

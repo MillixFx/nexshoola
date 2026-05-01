@@ -6,7 +6,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params
     const body = await req.json()
-    const { name, email, phone, classId, rollNumber, studentId, dateOfBirth, gender, address, bloodGroup, religion, nationality, isActive } = body
+    const { name, email, phone, classId, rollNumber, studentId, dateOfBirth, gender, address, bloodGroup, religion, nationality, isActive, photo } = body
 
     const student = await prisma.student.findUnique({ where: { id }, include: { user: true } })
     if (!student) return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -29,6 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         religion,
         nationality,
         isActive,
+        ...(photo !== undefined ? { photo: photo || null } : {}),
       },
       include: {
         user: { select: { name: true, email: true, phone: true, isActive: true } },

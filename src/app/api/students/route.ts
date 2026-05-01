@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       schoolId, name, email, password, phone,
       classId, rollNumber, studentId,
       dateOfBirth, gender, address, bloodGroup,
-      religion, nationality,
+      religion, nationality, photo,
     } = body
 
     const hashed = await bcrypt.hash(password || "changeme123", 10)
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
             bloodGroup,
             religion,
             nationality,
+            photo: photo || null,
           },
         },
       },
