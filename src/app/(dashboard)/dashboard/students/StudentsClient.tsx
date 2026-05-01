@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Pencil, Trash2, Users } from "lucide-react"
+import Link from "next/link"
+import { Plus, Pencil, Trash2, Users, Eye } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import { formatDate } from "@/lib/utils"
@@ -111,15 +112,15 @@ export default function StudentsClient({ students: initial, classes, schoolId }:
       key: "user",
       label: "Student",
       render: (s) => (
-        <div className="flex items-center gap-3">
+        <Link href={`/dashboard/students/${s.id}`} className="flex items-center gap-3 group">
           <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-xs shrink-0">
             {s.user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
           </div>
           <div>
-            <p className="font-medium text-gray-900">{s.user.name}</p>
+            <p className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">{s.user.name}</p>
             <p className="text-xs text-gray-400">{s.user.email}</p>
           </div>
-        </div>
+        </Link>
       ),
     },
     {
@@ -186,6 +187,13 @@ export default function StudentsClient({ students: initial, classes, schoolId }:
           emptyMessage="No students match your search."
           actions={(s) => (
             <div className="flex items-center gap-1 justify-end">
+              <Link
+                href={`/dashboard/students/${s.id}`}
+                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                title="View Profile"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </Link>
               <button
                 onClick={() => openEdit(s)}
                 className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

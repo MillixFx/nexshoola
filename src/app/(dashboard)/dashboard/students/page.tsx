@@ -1,12 +1,14 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import StudentsClient from "./StudentsClient"
 
 export const dynamic = "force-dynamic"
 
 export default async function StudentsPage() {
-  // Use first school for now (single-tenant mode until subdomain routing is wired)
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const session = await auth()
+  const schoolId = session?.user?.schoolId
+  if (!schoolId) redirect("/login")
 
   const [students, classes] = await Promise.all([
     prisma.student.findMany({
