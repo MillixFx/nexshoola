@@ -100,7 +100,7 @@ export default function RegisterPage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-2xl shadow-black/30 p-8">
+          <div className="bg-white rounded-2xl shadow-2xl shadow-black/30 p-6 sm:p-8">
             <h1 className="text-xl font-bold text-gray-900 mb-1">Register your school</h1>
             <p className="text-sm text-gray-500 mb-6">1 month free · no card required</p>
 

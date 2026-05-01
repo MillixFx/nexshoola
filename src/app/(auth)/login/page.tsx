@@ -70,7 +70,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className={`bg-white rounded-2xl shadow-2xl shadow-black/30 p-8 ${isSuperAdmin ? "ring-2 ring-amber-400" : ""}`}>
+        <div className={`bg-white rounded-2xl shadow-2xl shadow-black/30 p-6 sm:p-8 ${isSuperAdmin ? "ring-2 ring-amber-400" : ""}`}>
           {isSuperAdmin && (
             <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">
               <Shield className="w-4 h-4 text-amber-600 shrink-0" />

@@ -83,7 +83,7 @@ export default function Features() {
           <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse" />
           Single Stop Solution
         </span>
-        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
+        <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight break-words">
           Comprehensive Features<br />
           <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
             for Every School Need

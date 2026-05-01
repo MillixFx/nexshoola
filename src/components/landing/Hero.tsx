@@ -34,14 +34,14 @@ export default function Hero() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
+          <h1 className="text-[2rem] leading-[1.15] sm:text-5xl lg:text-6xl xl:text-7xl sm:leading-[1.1] font-extrabold text-white tracking-tight mb-6 break-words">
             The Modern School{" "}
-            <span className="relative">
+            <span className="relative inline-block">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
                 Management System
               </span>
               <svg
-                className="absolute -bottom-2 left-0 right-0 w-full"
+                className="absolute -bottom-2 left-0 right-0 w-full hidden sm:block"
                 viewBox="0 0 300 12"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -82,17 +82,17 @@ export default function Hero() {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center w-full max-w-md sm:max-w-none mx-auto">
             <Link
               href="/register"
-              className="group flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-full text-base hover:bg-indigo-50 transition-all shadow-2xl shadow-indigo-900/50"
+              className="group flex items-center justify-center gap-2 bg-white text-indigo-700 font-bold px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm sm:text-base hover:bg-indigo-50 transition-all shadow-2xl shadow-indigo-900/50 whitespace-nowrap"
             >
               Start Free — No Credit Card
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <a
               href="#how-it-works"
-              className="flex items-center gap-2 text-white/80 hover:text-white font-medium px-6 py-4 rounded-full border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all text-base"
+              className="flex items-center justify-center gap-2 text-white/80 hover:text-white font-medium px-6 py-3.5 sm:py-4 rounded-full border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all text-sm sm:text-base"
             >
               See how it works
             </a>
@@ -134,8 +134,8 @@ export default function Hero() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
                 <div className="w-3 h-3 rounded-full bg-green-500" />
               </div>
-              <div className="flex-1 bg-gray-800 rounded-md h-6 mx-4 flex items-center px-3">
-                <span className="text-xs text-gray-400">greenhill.nexschoola.com/dashboard</span>
+              <div className="flex-1 bg-gray-800 rounded-md h-6 mx-2 sm:mx-4 flex items-center px-3 min-w-0">
+                <span className="text-[10px] sm:text-xs text-gray-400 truncate">greenhill.nexschoola.com/dashboard</span>
               </div>
             </div>
             {/* Mock dashboard */}
