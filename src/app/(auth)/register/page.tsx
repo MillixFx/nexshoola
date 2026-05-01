@@ -138,12 +138,12 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
                   <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))}>
-                    <option value="GH">🇬🇭 Ghana</option>
-                    <option value="NG">🇳🇬 Nigeria</option>
-                    <option value="KE">🇰🇪 Kenya</option>
-                    <option value="ZA">🇿🇦 South Africa</option>
-                    <option value="GB">🇬🇧 UK</option>
-                    <option value="US">🇺🇸 USA</option>
+                    <option value="GH">Ghana</option>
+                    <option value="NG">Nigeria</option>
+                    <option value="KE">Kenya</option>
+                    <option value="ZA">South Africa</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="US">United States</option>
                   </select>
                 </div>
                 <div>

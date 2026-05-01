@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { GraduationCap, Mail, Phone } from "lucide-react"
+import { GraduationCap, Mail, Phone, Heart } from "lucide-react"
 
 const links = {
   Product: ["Features", "Pricing", "Changelog", "Roadmap"],
@@ -59,8 +59,10 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-sm">
-            © {new Date().getFullYear()} NexSchoola. Made with ❤️ for Ghanaian schools 🇬🇭
+          <p className="text-sm flex items-center gap-1.5 flex-wrap">
+            © {new Date().getFullYear()} NexSchoola. Made with
+            <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+            for Ghanaian schools
           </p>
           <div className="flex items-center gap-2 text-sm">
             <span>Payments by</span>

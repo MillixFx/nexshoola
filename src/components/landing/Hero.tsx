@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, CheckCircle2, Star } from "lucide-react"
 
 const highlights = [
@@ -10,7 +11,24 @@ const highlights = [
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-800 pt-16">
-      {/* Background grid */}
+      {/* ── Background photo: Ghanaian school children in a classroom ── */}
+      {/* Source: Unsplash — free for commercial use, no attribution required */}
+      <div className="absolute inset-0 pointer-events-none">
+        <Image
+          src="https://images.unsplash.com/photo-1497486751825-1233686d5d80?auto=format&fit=crop&w=2400&q=70"
+          alt="Ghanaian school children in classroom"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-25 mix-blend-luminosity"
+        />
+        {/* Indigo wash on top so the photo blends seamlessly with the gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/85 via-indigo-900/80 to-indigo-800/70" />
+        {/* Vignette to push focus to the centered text */}
+        <div className="absolute inset-0 bg-radial-fade" />
+      </div>
+
+      {/* Background grid (sits on top of the photo) */}
       <div
         className="absolute inset-0 opacity-10"
         style={{
@@ -22,6 +40,12 @@ export default function Hero() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
+      <style>{`
+        .bg-radial-fade {
+          background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(30,27,75,0.55) 100%);
+        }
+      `}</style>
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         <div className="text-center max-w-4xl mx-auto">
 
@@ -29,7 +53,7 @@ export default function Hero() {
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-sm font-medium text-white/90">
-              Built for Ghanaian Schools 🇬🇭
+              Built for Ghanaian Schools
             </span>
           </div>
 

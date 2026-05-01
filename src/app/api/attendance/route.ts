@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { AttendanceStatus } from "@prisma/client"
+import { sendNotification, SmsTemplates } from "@/lib/sms"
 
 // GET /api/attendance?schoolId=&classId=&date=
 export async function GET(req: NextRequest) {
@@ -47,6 +48,32 @@ export async function POST(req: NextRequest) {
         })
       )
     )
+
+    // ── SMS absence alerts to parents (best-effort, non-blocking) ──
+    const absentIds = (records as { studentId: string; status: string }[])
+      .filter(r => r.status === "ABSENT")
+      .map(r => r.studentId)
+
+    if (absentIds.length > 0) {
+      const absent = await prisma.student.findMany({
+        where: { id: { in: absentIds } },
+        include: {
+          user: { select: { name: true } },
+          parents: { include: { parent: { include: { user: true } } } },
+        },
+      })
+      const dateStr = d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
+      for (const s of absent) {
+        for (const sp of s.parents) {
+          const parent = sp.parent.user
+          if (parent.phone) {
+            const msg = SmsTemplates.absenceAlert(parent.name, s.user.name, dateStr)
+            sendNotification({ to: parent.phone, message: msg, channel: "SMS" }).catch(() => {})
+          }
+        }
+      }
+    }
+
     return NextResponse.json(results, { status: 201 })
   } catch (e) {
     console.error(e)

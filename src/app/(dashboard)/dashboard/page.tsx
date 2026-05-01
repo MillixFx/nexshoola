@@ -6,6 +6,22 @@ import {
   ArrowRight, FileText, Library, Lightbulb,
 } from "lucide-react"
 import Link from "next/link"
+import { Suspense } from "react"
+import AnalyticsCharts from "@/components/dashboard/AnalyticsCharts"
+
+function ChartSkeleton() {
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-64 animate-pulse">
+          <div className="h-3 bg-gray-200 rounded w-24 mb-3" />
+          <div className="h-8 bg-gray-200 rounded w-32 mb-6" />
+          <div className="h-32 bg-gray-100 rounded-xl" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export const dynamic = "force-dynamic"
 
@@ -136,7 +152,7 @@ export default async function DashboardPage() {
       {/* Greeting */}
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-          Good {getTimeOfDay()}, {firstName} 👋
+          Good {getTimeOfDay()}, {firstName}
         </h1>
         <p className="text-sm text-gray-500 mt-1">
           {school?.name ?? "Your School"} · {new Date().toLocaleDateString("en-GH", { weekday: "long", day: "numeric", month: "long" })}
@@ -166,6 +182,13 @@ export default async function DashboardPage() {
           )
         })}
       </div>
+
+      {/* Analytics charts (admin / headmaster only) — streamed so the rest of the page renders first */}
+      {(role === "ADMIN" || role === "HEADMASTER") && schoolId && (
+        <Suspense fallback={<ChartSkeleton />}>
+          <AnalyticsCharts schoolId={schoolId} />
+        </Suspense>
+      )}
 
       {/* Quick links */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

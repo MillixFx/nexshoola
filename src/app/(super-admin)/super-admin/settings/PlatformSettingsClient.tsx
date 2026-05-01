@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Key, Save, Check, Eye, EyeOff, DollarSign, Globe, Loader2 } from "lucide-react"
+import { Key, Save, Check, Eye, EyeOff, DollarSign, Globe, Loader2, AlertTriangle } from "lucide-react"
 
 type PlatformConfig = {
   id?: string
@@ -86,7 +86,9 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
                   {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-[10px] text-red-400 mt-1">⚠ Never share this key — keep it server-side only</p>
+              <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" /> Never share this key — keep it server-side only
+              </p>
             </div>
             <div>
               <label className="label">Webhook Secret</label>

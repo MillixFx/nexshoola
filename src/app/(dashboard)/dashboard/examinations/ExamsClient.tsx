@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, Plus, Calendar, ClipboardList, Loader2, Pencil, Trash2, X, ChevronDown } from "lucide-react"
+import { FileText, Plus, Calendar, ClipboardList, Loader2, Pencil, Trash2, X, ChevronDown, Lightbulb } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatDate, cn } from "@/lib/utils"
 
@@ -373,8 +373,9 @@ export default function ExamsClient({
                       })}
                     </tbody>
                   </table>
-                  <p className="text-xs text-gray-400 mt-3">
-                    💡 Marks are saved automatically when you click out of each cell. Red = below 50%, Green = 80%+.
+                  <p className="text-xs text-gray-400 mt-3 flex items-start gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <span>Marks are saved automatically when you click out of each cell. Red = below 50%, Green = 80%+.</span>
                   </p>
                 </div>
               )}

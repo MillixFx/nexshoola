@@ -199,7 +199,7 @@ export default function Pricing() {
         {/* Bottom note */}
         <p className="text-center text-sm text-gray-400 mt-10">
           1 month free trial on all plans · No credit card required · Cancel anytime ·{" "}
-          <span className="font-semibold text-gray-500">Payments powered by Paystack 🇬🇭</span>
+          <span className="font-semibold text-gray-500">Payments powered by Paystack</span>
         </p>
       </div>
     </section>

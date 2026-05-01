@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   ClipboardCheck, FileText, DollarSign, Library,
   BedDouble, Bus, Package, Bell,
-  MessageSquare, Calendar, LogOut as LeaveIcon,
+  MessageSquare, MessagesSquare, Calendar, LogOut as LeaveIcon, Send,
   Lightbulb, Settings, ChevronLeft,
   GraduationCap as Logo, UserCheck, X, Banknote,
   BarChart3, ShieldCheck, ExternalLink,
@@ -55,6 +55,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Subjects",     href: "/dashboard/subjects",     icon: BookOpen,      roles: STAFF },
       { label: "Attendance",   href: "/dashboard/attendance",   icon: ClipboardCheck,roles: ALL_ROLES },
       { label: "Examinations", href: "/dashboard/examinations", icon: FileText,      roles: ["ADMIN", "HEADMASTER", "TEACHER", "STUDENT"] },
+      { label: "Report Cards", href: "/dashboard/report-cards", icon: FileText,      roles: ADMIN_ONLY },
     ],
   },
   {
@@ -72,7 +73,9 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Communication",
     items: [
       { label: "Notice Board", href: "/dashboard/notice",      icon: Bell,         roles: GENERAL },
+      { label: "Chat",         href: "/dashboard/chat",        icon: MessagesSquare,roles: GENERAL },
       { label: "Messages",     href: "/dashboard/messages",    icon: MessageSquare,roles: GENERAL },
+      { label: "SMS Broadcast",href: "/dashboard/notifications",icon: Send,        roles: ADMIN_ONLY },
       { label: "Leave",        href: "/dashboard/leave",       icon: LeaveIcon,    roles: STAFF },
       { label: "Suggestions",  href: "/dashboard/suggestions", icon: Lightbulb,    roles: GENERAL },
       { label: "Calendar",     href: "/dashboard/calendar",    icon: Calendar,     roles: GENERAL },

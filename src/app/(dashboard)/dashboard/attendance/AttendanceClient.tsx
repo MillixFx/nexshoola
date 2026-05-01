@@ -184,7 +184,7 @@ export default function AttendanceClient({ classes, recentAttendance, schoolId }
                   disabled={saving}
                   className={cn("px-5 py-2 rounded-xl text-sm font-bold transition-colors", saved ? "bg-emerald-600 text-white" : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60")}
                 >
-                  {saving ? "Saving…" : saved ? "✓ Saved!" : "Save Attendance"}
+                  {saving ? "Saving…" : saved ? "Saved!" : "Save Attendance"}
                 </button>
               </div>
             </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Building2, Users, CheckCircle2, XCircle, Loader2, ChevronDown, X } from "lucide-react"
+import { Search, Building2, Users, CheckCircle2, XCircle, Loader2, ChevronDown, X, Zap } from "lucide-react"
 import { formatDate, cn } from "@/lib/utils"
 
 type School = {
@@ -264,7 +264,7 @@ export default function SchoolsClient({ schools: initial }: { schools: School[] 
                   }}
                   className="w-full py-2 border border-emerald-200 text-emerald-700 bg-emerald-50 rounded-xl text-xs font-semibold hover:bg-emerald-100 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
-                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "⚡ Auto-Create Paystack Subaccount"}
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Zap className="w-3.5 h-3.5" /> Auto-Create Paystack Subaccount</>}
                 </button>
               </div>
 

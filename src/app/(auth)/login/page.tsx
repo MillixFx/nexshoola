@@ -1,15 +1,32 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { GraduationCap, Loader2, Eye, EyeOff, Shield } from "lucide-react"
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-indigo-900 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-white" /></div>}>
+      <LoginInner />
+    </Suspense>
+  )
+}
+
+function LoginInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const prefilledSlug = searchParams.get("slug") ?? ""
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [form, setForm] = useState({ schoolSlug: "", email: "", password: "" })
+  const [form, setForm] = useState({ schoolSlug: prefilledSlug, email: "", password: "" })
+
+  // If a subdomain slug was passed (e.g. /login?slug=gis), lock the field
+  const slugLocked = !!prefilledSlug
+
+  useEffect(() => {
+    if (prefilledSlug) setForm(f => ({ ...f, schoolSlug: prefilledSlug }))
+  }, [prefilledSlug])
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -98,7 +115,8 @@ export default function LoginPage() {
                     value={form.schoolSlug}
                     onChange={e => setForm(f => ({ ...f, schoolSlug: e.target.value }))}
                     required={!isSuperAdmin}
-                    className="flex-1 px-4 py-3 text-sm outline-none"
+                    disabled={slugLocked}
+                    className="flex-1 px-4 py-3 text-sm outline-none disabled:bg-gray-50 disabled:text-gray-500"
                   />
                   <span className="bg-gray-50 px-3 py-3 text-xs text-gray-400 border-l border-gray-200 shrink-0">
                     .nexschoola.com

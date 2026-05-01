@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createHmac } from "crypto"
 import { prisma } from "@/lib/prisma"
+import { sendNotification, SmsTemplates } from "@/lib/sms"
 
 /**
  * POST /api/paystack/webhook
@@ -89,6 +90,34 @@ export async function POST(req: NextRequest) {
           })
         }
       }
+
+      // ── SMS confirmation to parent ─────────────────────────────
+      // Best-effort — don't block the webhook on SMS failures
+      try {
+        const slip = await prisma.feeSlip.findFirst({
+          where: { paystackRef: reference },
+          include: {
+            student: {
+              include: {
+                user: { select: { name: true } },
+                parents: { include: { parent: { include: { user: true } } } },
+              },
+            },
+            feeItem: { select: { term: true } },
+          },
+        })
+        if (slip?.student) {
+          const studentName = slip.student.user.name
+          const term = slip.feeItem?.term ?? "current term"
+          for (const sp of slip.student.parents) {
+            const parent = sp.parent.user
+            if (parent.phone) {
+              const msg = SmsTemplates.paymentConfirmation(parent.name, studentName, amountPaid, term)
+              sendNotification({ to: parent.phone, message: msg, channel: "SMS" }).catch(() => {})
+            }
+          }
+        }
+      } catch (e) { console.warn("SMS confirmation failed:", e) }
 
     } else if (type === "SUBSCRIPTION" || type === "PLATFORM_FEE") {
       // ── Platform subscription payment ──────────────────────────

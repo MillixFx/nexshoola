@@ -9,26 +9,26 @@ import {
 } from "lucide-react"
 
 const FEATURES = [
-  { icon: Users,        emoji: "🎓", title: "Student Management",    desc: "Profiles, enrollment, roll numbers & class promotions",        bg: "from-indigo-500 to-indigo-700" },
-  { icon: GraduationCap,emoji: "👨‍🏫", title: "Teacher Management",   desc: "Staff profiles, qualifications & subject assignments",          bg: "from-violet-500 to-violet-700" },
-  { icon: ClipboardCheck,emoji: "✅", title: "Attendance Tracking",   desc: "Daily student & staff attendance with % reports",               bg: "from-sky-500 to-sky-700" },
-  { icon: FileText,     emoji: "📝", title: "Examinations",           desc: "Exams, marks entry, result sheets & date sheets",               bg: "from-purple-500 to-purple-700" },
-  { icon: DollarSign,   emoji: "💰", title: "Finance & Fees",         desc: "Fee collection, income tracking & Paystack payments",           bg: "from-amber-500 to-amber-700" },
-  { icon: Banknote,     emoji: "💵", title: "Salary & Payroll",       desc: "Staff salaries, deductions & custom printable payslips",        bg: "from-emerald-500 to-emerald-700" },
-  { icon: BookOpen,     emoji: "📚", title: "Classes & Timetable",    desc: "Sections, subjects & weekly teacher timetables",                bg: "from-pink-500 to-pink-700" },
-  { icon: Library,      emoji: "📖", title: "Library System",         desc: "Book catalog, issue/return tracking & overdue fines",           bg: "from-teal-500 to-teal-700" },
-  { icon: BedDouble,    emoji: "🏠", title: "Dormitory",              desc: "Hostels, rooms & bed allocations for students & staff",         bg: "from-orange-500 to-orange-700" },
-  { icon: Bus,          emoji: "🚌", title: "Transport",              desc: "Bus routes, vehicle info & driver assignments",                 bg: "from-cyan-500 to-cyan-700" },
-  { icon: Package,      emoji: "📦", title: "Inventory",              desc: "Stock management, low-stock alerts & supplier tracking",        bg: "from-lime-500 to-lime-700" },
-  { icon: Bell,         emoji: "🔔", title: "Notice Board",           desc: "Instant announcements for all roles in real time",              bg: "from-rose-500 to-rose-700" },
-  { icon: MessageSquare,emoji: "💬", title: "Messaging",              desc: "Internal inbox — message individuals or entire classes",        bg: "from-fuchsia-500 to-fuchsia-700" },
-  { icon: Calendar,     emoji: "📅", title: "Calendar & Events",      desc: "School events with per-role visibility & color coding",         bg: "from-indigo-600 to-blue-700" },
-  { icon: LogOut,       emoji: "🏖️", title: "Leave Management",       desc: "Apply, approve & track staff leave with email workflow",        bg: "from-emerald-600 to-teal-700" },
-  { icon: Lightbulb,    emoji: "💡", title: "Suggestion Box",         desc: "Anonymous & named feedback from staff, students & parents",     bg: "from-yellow-500 to-orange-600" },
-  { icon: UserCheck,    emoji: "👪", title: "Parent Portal",          desc: "Linked parent accounts to view grades, fees & attendance",      bg: "from-sky-600 to-indigo-700" },
-  { icon: BarChart3,    emoji: "📊", title: "Reports & Analytics",    desc: "Merit lists, fee summaries & class-wise attendance reports",    bg: "from-violet-600 to-purple-800" },
-  { icon: Shield,       emoji: "🔐", title: "Role-Based Access",      desc: "Admin, Headmaster, Teacher, Student, Parent & more",           bg: "from-gray-600 to-gray-800" },
-  { icon: Smartphone,   emoji: "📱", title: "Mobile Money",           desc: "Accept fees via MTN MoMo, AirtelTigo & card payments",         bg: "from-green-500 to-green-700" },
+  { icon: Users,         title: "Student Management",    desc: "Profiles, enrollment, roll numbers & class promotions",        bg: "from-indigo-500 to-indigo-700" },
+  { icon: GraduationCap, title: "Teacher Management",    desc: "Staff profiles, qualifications & subject assignments",          bg: "from-violet-500 to-violet-700" },
+  { icon: ClipboardCheck,title: "Attendance Tracking",   desc: "Daily student & staff attendance with % reports",               bg: "from-sky-500 to-sky-700" },
+  { icon: FileText,      title: "Examinations",          desc: "Exams, marks entry, result sheets & date sheets",               bg: "from-purple-500 to-purple-700" },
+  { icon: DollarSign,    title: "Finance & Fees",        desc: "Fee collection, income tracking & Paystack payments",           bg: "from-amber-500 to-amber-700" },
+  { icon: Banknote,      title: "Salary & Payroll",      desc: "Staff salaries, deductions & custom printable payslips",        bg: "from-emerald-500 to-emerald-700" },
+  { icon: BookOpen,      title: "Classes & Timetable",   desc: "Sections, subjects & weekly teacher timetables",                bg: "from-pink-500 to-pink-700" },
+  { icon: Library,       title: "Library System",        desc: "Book catalog, issue/return tracking & overdue fines",           bg: "from-teal-500 to-teal-700" },
+  { icon: BedDouble,     title: "Dormitory",             desc: "Hostels, rooms & bed allocations for students & staff",         bg: "from-orange-500 to-orange-700" },
+  { icon: Bus,           title: "Transport",             desc: "Bus routes, vehicle info & driver assignments",                 bg: "from-cyan-500 to-cyan-700" },
+  { icon: Package,       title: "Inventory",             desc: "Stock management, low-stock alerts & supplier tracking",        bg: "from-lime-500 to-lime-700" },
+  { icon: Bell,          title: "Notice Board",          desc: "Instant announcements for all roles in real time",              bg: "from-rose-500 to-rose-700" },
+  { icon: MessageSquare, title: "Messaging",             desc: "Internal inbox — message individuals or entire classes",        bg: "from-fuchsia-500 to-fuchsia-700" },
+  { icon: Calendar,      title: "Calendar & Events",     desc: "School events with per-role visibility & color coding",         bg: "from-indigo-600 to-blue-700" },
+  { icon: LogOut,        title: "Leave Management",      desc: "Apply, approve & track staff leave with email workflow",        bg: "from-emerald-600 to-teal-700" },
+  { icon: Lightbulb,     title: "Suggestion Box",        desc: "Anonymous & named feedback from staff, students & parents",     bg: "from-yellow-500 to-orange-600" },
+  { icon: UserCheck,     title: "Parent Portal",         desc: "Linked parent accounts to view grades, fees & attendance",      bg: "from-sky-600 to-indigo-700" },
+  { icon: BarChart3,     title: "Reports & Analytics",   desc: "Merit lists, fee summaries & class-wise attendance reports",    bg: "from-violet-600 to-purple-800" },
+  { icon: Shield,        title: "Role-Based Access",     desc: "Admin, Headmaster, Teacher, Student, Parent & more",           bg: "from-gray-600 to-gray-800" },
+  { icon: Smartphone,    title: "Mobile Money",          desc: "Accept fees via MTN MoMo, AirtelTigo & card payments",         bg: "from-green-500 to-green-700" },
 ]
 
 // Split into two rows, second row reversed for opposite scroll
@@ -39,16 +39,12 @@ function FeatureCard({ feature }: { feature: typeof FEATURES[0] }) {
   const Icon = feature.icon
   return (
     <div className={`relative flex-shrink-0 w-56 h-64 rounded-2xl bg-gradient-to-br ${feature.bg} p-5 flex flex-col justify-between overflow-hidden mx-3 shadow-2xl`}>
-      {/* Background glow */}
       <div className="absolute inset-0 opacity-20 bg-white rounded-2xl" />
-      {/* Top: large emoji */}
       <div className="relative">
-        <div className="text-5xl mb-2">{feature.emoji}</div>
-        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-          <Icon className="w-4 h-4 text-white" />
+        <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mb-3 backdrop-blur-sm border border-white/10">
+          <Icon className="w-8 h-8 text-white" strokeWidth={1.75} />
         </div>
       </div>
-      {/* Bottom: text */}
       <div className="relative">
         <h3 className="font-bold text-white text-sm leading-snug mb-1">{feature.title}</h3>
         <p className="text-white/70 text-xs leading-relaxed">{feature.desc}</p>
@@ -77,7 +73,6 @@ function MarqueeRow({ items, reverse = false }: { items: typeof FEATURES; revers
 export default function Features() {
   return (
     <section id="features" className="py-24 bg-[#0a0a1f] overflow-hidden">
-      {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-14">
         <span className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full mb-6">
           <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse" />
@@ -95,42 +90,22 @@ export default function Features() {
         </p>
       </div>
 
-      {/* Scrolling rows */}
       <div className="space-y-4">
         <MarqueeRow items={ROW1} />
         <MarqueeRow items={ROW2} reverse />
       </div>
 
-      {/* Bottom CTA */}
-      <div className="text-center mt-14">
-        <a
-          href="/login"
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-indigo-900/50"
-        >
-          Start Free Trial → 1 Month Free
-        </a>
-      </div>
-
-      {/* CSS animations */}
-      <style>{`
+      <style jsx global>{`
         @keyframes marquee {
-          0%   { transform: translateX(0); }
+          0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
         @keyframes marquee-reverse {
-          0%   { transform: translateX(-50%); }
+          0% { transform: translateX(-50%); }
           100% { transform: translateX(0); }
         }
-        .animate-marquee {
-          animation: marquee 35s linear infinite;
-        }
-        .animate-marquee-reverse {
-          animation: marquee-reverse 35s linear infinite;
-        }
-        .animate-marquee:hover,
-        .animate-marquee-reverse:hover {
-          animation-play-state: paused;
-        }
+        .animate-marquee { animation: marquee 60s linear infinite; }
+        .animate-marquee-reverse { animation: marquee-reverse 60s linear infinite; }
       `}</style>
     </section>
   )

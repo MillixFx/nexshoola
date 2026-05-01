@@ -115,7 +115,9 @@ export default async function SuperAdminOverview() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     {school.paystackSubaccountCode ? (
-                      <span className="text-xs text-emerald-600 font-semibold">✓ Connected</span>
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold">
+                        <CheckCircle2 className="w-3 h-3" /> Connected
+                      </span>
                     ) : (
                       <span className="text-xs text-gray-400">—</span>
                     )}

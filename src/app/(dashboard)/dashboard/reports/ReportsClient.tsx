@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Printer, Users, ClipboardCheck, DollarSign, Banknote, FileBarChart } from "lucide-react"
+import { Printer, Users, ClipboardCheck, DollarSign, Banknote, FileBarChart, Lightbulb } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
 
@@ -212,9 +212,12 @@ export default function ReportsClient({ students, todayAttendance, transactions,
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mt-4">
-            <p className="text-sm text-amber-800 font-medium">
-              💡 Tip: For detailed attendance reports by class and date range, use the{" "}
-              <a href="/dashboard/attendance" className="underline font-bold">Attendance module</a>.
+            <p className="text-sm text-amber-800 font-medium flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                Tip: For detailed attendance reports by class and date range, use the{" "}
+                <a href="/dashboard/attendance" className="underline font-bold">Attendance module</a>.
+              </span>
             </p>
           </div>
         </div>
