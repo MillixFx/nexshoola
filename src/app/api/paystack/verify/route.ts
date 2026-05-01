@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
       const { metadata } = result.data
       const { schoolId, userId, type } = metadata
 
-      // Handle different payment types
-      if (type === "FEE") {
+      if (type === "FEE" || type === "SCHOOL_FEE") {
+        // School fee payment — record the transaction
         await prisma.feeSlip.updateMany({
           where: { paystackRef: reference },
           data: {
@@ -26,27 +26,34 @@ export async function GET(req: NextRequest) {
             paidAmount: result.data.amount / 100,
           },
         })
-      } else if (type === "SUBSCRIPTION") {
-        // Update school plan
+        return NextResponse.redirect(new URL("/dashboard/finance?success=payment_confirmed", req.url))
+
+      } else if (type === "SUBSCRIPTION" || type === "PLATFORM_FEE") {
+        // Platform subscription payment — money came to platform owner
+        // Update school's subscription status: paid for 90 days (one term)
+        const termExpiry = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
         await prisma.school.update({
           where: { id: schoolId },
           data: {
+            subscriptionPaidAt: new Date(),
+            subscriptionNotes: `Paid via Paystack — ref: ${reference} — amount: GH₵${(result.data.amount / 100).toFixed(2)}`,
+            planExpiry: termExpiry,
             paystackRef: reference,
-            plan: metadata.plan ?? "BASIC",
-            planExpiry: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days (1 term)
+            // Upgrade to BASIC if still on FREE
+            ...(metadata.currentPlan === "FREE" && { plan: "BASIC" }),
           },
         })
+        return NextResponse.redirect(new URL("/dashboard/subscription?success=paid", req.url))
+
       } else if (type === "SALARY") {
         await prisma.salarySlip.updateMany({
           where: { paystackRef: reference },
-          data: {
-            status: "PAID",
-            paidAt: new Date(),
-          },
+          data: { status: "PAID", paidAt: new Date() },
         })
+        return NextResponse.redirect(new URL("/dashboard/payroll?success=salary_paid", req.url))
       }
 
-      return NextResponse.redirect(new URL("/dashboard/finance?success=payment_confirmed", req.url))
+      return NextResponse.redirect(new URL("/dashboard?success=payment_confirmed", req.url))
     }
 
     return NextResponse.redirect(new URL("/dashboard/finance?error=payment_failed", req.url))

@@ -3,6 +3,18 @@ import { initializePayment, generateReference } from "@/lib/paystack"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+/**
+ * Payment routing rules:
+ *
+ *  type = "SCHOOL_FEE" | "FEE"
+ *    → money goes to SCHOOL's Paystack subaccount (school keeps 100%)
+ *    → platform takes nothing from these payments
+ *
+ *  type = "SUBSCRIPTION" | "PLATFORM_FEE"
+ *    → money goes DIRECTLY to platform owner (no subaccount)
+ *    → this is the 15 GHS/student/term platform fee
+ *    → platform keeps 100%, school pays us to use NexSchoola
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth()
@@ -17,22 +29,19 @@ export async function POST(req: NextRequest) {
     const schoolId = session.user.schoolId
     const reference = generateReference(type.toUpperCase())
 
-    // Look up school's Paystack subaccount for direct payouts
-    let subaccount: string | undefined
-    let platformConfig = null
+    // Determine if this is a platform subscription payment or a school fee payment
+    const isSubscriptionPayment = ["SUBSCRIPTION", "PLATFORM_FEE"].includes(type.toUpperCase())
 
-    if (schoolId) {
-      const [school, config] = await Promise.all([
-        prisma.school.findUnique({ where: { id: schoolId }, select: { paystackSubaccountCode: true } }),
-        prisma.platformConfig.findFirst({ select: { platformFeePercent: true, paystackSecretKey: true } }),
-      ])
+    // For school fee payments only: look up school's Paystack subaccount
+    let subaccount: string | undefined = undefined
+
+    if (!isSubscriptionPayment && schoolId) {
+      const school = await prisma.school.findUnique({
+        where: { id: schoolId },
+        select: { paystackSubaccountCode: true },
+      })
       subaccount = school?.paystackSubaccountCode ?? undefined
-      platformConfig = config
     }
-
-    // Calculate platform fee (in pesewas)
-    const feePercent = platformConfig?.platformFeePercent ?? 0
-    const transaction_charge = feePercent > 0 ? Math.round(amount * (feePercent / 100)) : undefined
 
     const result = await initializePayment({
       email: session.user.email!,
@@ -45,9 +54,13 @@ export async function POST(req: NextRequest) {
         type,
         ...metadata,
       },
-      // If school has a subaccount, route money there; platform keeps transaction_charge
-      ...(subaccount && { subaccount, bearer: "subaccount" as const }),
-      ...(transaction_charge && { transaction_charge }),
+      // School fee payments → route to school's subaccount (school keeps 100%)
+      // Subscription payments → no subaccount (goes directly to platform owner)
+      ...(!isSubscriptionPayment && subaccount && {
+        subaccount,
+        bearer: "subaccount" as const,
+        // Platform takes 0% cut from school fees — school keeps everything
+      }),
     })
 
     return NextResponse.json(result)

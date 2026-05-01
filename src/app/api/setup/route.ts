@@ -56,15 +56,15 @@ export async function GET() {
       results.school = { created: false, message: "Demo school already exists", slug: existing.slug }
     }
 
-    // ── Create super admin if none exist ──────────────────────────────
+    // ── Create or update super admin ─────────────────────────────────
     const existingSuperAdmin = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } })
+    const superEmail = process.env.SEED_SUPER_ADMIN_EMAIL ?? "owner@nexschoola.com"
+    const superPassword = process.env.SEED_SUPER_ADMIN_PASSWORD ?? generatePassword()
+    const superAdminPw = await bcrypt.hash(superPassword, 12)
+
     if (!existingSuperAdmin) {
       const school = existing ?? await prisma.school.findFirst()
       if (school) {
-        const superEmail = process.env.SEED_SUPER_ADMIN_EMAIL ?? "owner@nexschoola.com"
-        const superPassword = process.env.SEED_SUPER_ADMIN_PASSWORD ?? generatePassword()
-        const superAdminPw = await bcrypt.hash(superPassword, 12)
-
         await prisma.user.create({
           data: {
             schoolId: school.id,
@@ -75,22 +75,32 @@ export async function GET() {
             isActive: true,
           },
         })
-
-        // Log to server console only
         console.log("✅ Super admin created")
         console.log(`   Super admin email    : ${superEmail}`)
         console.log(`   Super admin password : ${superPassword}`)
-        console.log("   (Set SEED_SUPER_ADMIN_EMAIL / SEED_SUPER_ADMIN_PASSWORD env vars to customise)")
-
         results.superAdmin = {
           created: true,
           email: superEmail,
           loginUrl: "/login (use Super Admin tab)",
-          note: "Super admin password printed in server logs. Set SEED_SUPER_ADMIN_PASSWORD env var to control it.",
         }
       }
+    } else if (process.env.SEED_SUPER_ADMIN_PASSWORD) {
+      // If env var is explicitly set, update the password so you can always reset it via /api/setup
+      await prisma.user.update({
+        where: { id: existingSuperAdmin.id },
+        data: { password: superAdminPw, email: superEmail },
+      })
+      console.log("✅ Super admin password updated from SEED_SUPER_ADMIN_PASSWORD env var")
+      console.log(`   Super admin email    : ${superEmail}`)
+      console.log(`   Super admin password : ${superPassword}`)
+      results.superAdmin = {
+        updated: true,
+        email: superEmail,
+        loginUrl: "/login (use Super Admin tab)",
+        note: "Password synced from SEED_SUPER_ADMIN_PASSWORD env var.",
+      }
     } else {
-      results.superAdmin = { created: false, message: "Super admin already exists" }
+      results.superAdmin = { created: false, message: "Super admin already exists. Set SEED_SUPER_ADMIN_PASSWORD in .env.local and revisit /api/setup to reset the password." }
     }
 
     return NextResponse.json({ ok: true, ...results })
