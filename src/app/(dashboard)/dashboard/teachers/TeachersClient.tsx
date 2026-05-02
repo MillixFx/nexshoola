@@ -29,10 +29,34 @@ interface Props {
   school?: SchoolInfo | null
 }
 
+// Human-readable labels for system roles
+const ROLE_OPTIONS = [
+  { value: "TEACHER",        label: "Teacher"         },
+  { value: "ADMIN",          label: "Administrator"   },
+  { value: "HEADMASTER",     label: "Headmaster"      },
+  { value: "ACCOUNTANT",     label: "Accountant"      },
+  { value: "LIBRARIAN",      label: "Librarian"       },
+  { value: "HOSTEL_MANAGER", label: "Hostel Manager"  },
+  { value: "HR",             label: "HR Officer"      },
+  { value: "DRIVER",         label: "Driver"          },
+]
+
+const ROLE_COLORS: Record<string, string> = {
+  ADMIN:          "bg-red-50 text-red-700 border-red-200",
+  HEADMASTER:     "bg-purple-50 text-purple-700 border-purple-200",
+  TEACHER:        "bg-indigo-50 text-indigo-700 border-indigo-200",
+  ACCOUNTANT:     "bg-emerald-50 text-emerald-700 border-emerald-200",
+  LIBRARIAN:      "bg-sky-50 text-sky-700 border-sky-200",
+  HOSTEL_MANAGER: "bg-orange-50 text-orange-700 border-orange-200",
+  HR:             "bg-pink-50 text-pink-700 border-pink-200",
+  DRIVER:         "bg-yellow-50 text-yellow-700 border-yellow-200",
+}
+
 const emptyForm = {
   name: "", email: "", phone: "", password: "",
   teacherId: "", qualification: "", designation: "",
   department: "", joiningDate: "", gender: "", address: "",
+  role: "TEACHER",
 }
 
 export default function TeachersClient({ teachers: initial, schoolId, school }: Props) {
@@ -54,6 +78,7 @@ export default function TeachersClient({ teachers: initial, schoolId, school }: 
       password: "", teacherId: t.teacherId ?? "", qualification: t.qualification ?? "",
       designation: t.designation ?? "", department: t.department ?? "",
       joiningDate: "", gender: t.gender ?? "", address: "",
+      role: t.user.role ?? "TEACHER",
     })
     setError(""); setOpen(true)
   }
@@ -110,10 +135,20 @@ export default function TeachersClient({ teachers: initial, schoolId, school }: 
         </div>
       )
     },
-    { key: "designation", label: "Designation", render: t => t.designation ?? "—" },
-    { key: "department", label: "Department", render: t => t.department ?? "—" },
-    { key: "qualification", label: "Qualification", render: t => t.qualification ?? "—" },
-    { key: "phone", label: "Phone", render: t => t.user.phone ?? "—" },
+    {
+      key: "role", label: "Access Level", render: t => {
+        const roleLabel = ROLE_OPTIONS.find(r => r.value === t.user.role)?.label ?? t.user.role
+        const color = ROLE_COLORS[t.user.role] ?? "bg-gray-50 text-gray-700 border-gray-200"
+        return (
+          <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full border ${color}`}>
+            {roleLabel}
+          </span>
+        )
+      }
+    },
+    { key: "designation", label: "Job Title", render: t => t.designation ?? "—" },
+    { key: "department",  label: "Department", render: t => t.department ?? "—" },
+    { key: "phone",       label: "Phone",      render: t => t.user.phone ?? "—" },
     {
       key: "isActive", label: "Status", render: t => (
         <span className={cn("inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full",
@@ -207,8 +242,19 @@ export default function TeachersClient({ teachers: initial, schoolId, school }: 
                     <input className="input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
                   </div>
                 )}
+                <div className="sm:col-span-2">
+                  <label className="label">System Access Level</label>
+                  <select className="input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                    {ROLE_OPTIONS.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1.5 text-xs text-gray-400">
+                    Controls which pages and features this staff member can access.
+                  </p>
+                </div>
                 <div>
-                  <label className="label">Teacher ID</label>
+                  <label className="label">Staff / Teacher ID</label>
                   <input className="input" value={form.teacherId} onChange={e => setForm(f => ({ ...f, teacherId: e.target.value }))} placeholder="TCH-001" />
                 </div>
                 <div>
