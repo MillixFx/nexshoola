@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Plus, Pencil, Trash2, BookOpen, UserCheck, X, Loader2 } from "lucide-react"
+import { Plus, Pencil, Trash2, BookOpen, UserCheck, X, Loader2, ListChecks, Save } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import ConfirmModal from "@/components/dashboard/ConfirmModal"
+import { cn } from "@/lib/utils"
 
 type Teacher = { id: string; user: { name: string } }
+type Subject = { id: string; title: string; code: string | null; group: string | null; isOptional: boolean }
 
 type ClassWithDetails = {
   id: string
@@ -21,14 +22,22 @@ type ClassWithDetails = {
 
 const emptyForm = { name: "", section: "", code: "", capacity: "" }
 
+// Row returned by GET /api/class-subjects
+type ClassSubjectRow = {
+  id: string
+  subjectId: string
+  teacherId: string | null
+  subject: Subject
+}
+
 interface Props {
   classes: ClassWithDetails[]
   teachers: Teacher[]
+  subjects: Subject[]
   schoolId: string
 }
 
-export default function ClassesClient({ classes: initial, teachers, schoolId }: Props) {
-  const router = useRouter()
+export default function ClassesClient({ classes: initial, teachers, subjects, schoolId }: Props) {
   const [classes, setClasses] = useState(initial)
 
   // Add/Edit class modal
@@ -46,6 +55,16 @@ export default function ClassesClient({ classes: initial, teachers, schoolId }: 
   const [assignError, setAssignError] = useState("")
 
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+
+  // Subject assignments modal
+  const [subjectOpen, setSubjectOpen]           = useState(false)
+  const [subjectClass, setSubjectClass]         = useState<ClassWithDetails | null>(null)
+  const [classSubjects, setClassSubjects]       = useState<ClassSubjectRow[]>([])
+  const [loadingSubjects, setLoadingSubjects]   = useState(false)
+  // Local editing state: subjectId → teacherId | null | undefined (undefined = not assigned to class)
+  const [assignments, setAssignments]           = useState<Record<string, string | null>>({})
+  const [savingSubjects, setSavingSubjects]     = useState(false)
+  const [subjectError, setSubjectError]         = useState("")
 
   // ── Add / Edit ─────────────────────────────────────────────────────────────
   function openAdd() { setEditing(null); setForm(emptyForm); setError(""); setOpen(true) }
@@ -108,6 +127,71 @@ export default function ClassesClient({ classes: initial, teachers, schoolId }: 
       setClasses(prev => prev.map(c => c.id === updated.id ? updated : c))
       setAssignOpen(false)
     } catch (err: any) { setAssignError(err.message) } finally { setAssigning(false) }
+  }
+
+  // ── Subject assignments ───────────────────────────────────────────────────
+  function openSubjects(c: ClassWithDetails) {
+    setSubjectClass(c)
+    setSubjectError("")
+    setSubjectOpen(true)
+    setLoadingSubjects(true)
+    fetch(`/api/class-subjects?classId=${c.id}`)
+      .then(r => r.json())
+      .then((rows: ClassSubjectRow[]) => {
+        setClassSubjects(rows)
+        // Build assignment map from existing rows
+        const map: Record<string, string | null> = {}
+        rows.forEach(r => { map[r.subjectId] = r.teacherId })
+        setAssignments(map)
+      })
+      .finally(() => setLoadingSubjects(false))
+  }
+
+  function toggleSubject(subjectId: string, checked: boolean) {
+    setAssignments(prev => {
+      const next = { ...prev }
+      if (checked) {
+        // Add to class, default to class master if available
+        next[subjectId] = subjectClass?.classTeacher?.id ?? null
+      } else {
+        delete next[subjectId]
+      }
+      return next
+    })
+  }
+
+  function setTeacher(subjectId: string, teacherId: string) {
+    setAssignments(prev => ({ ...prev, [subjectId]: teacherId || null }))
+  }
+
+  function assignAllToClassMaster() {
+    if (!subjectClass?.classTeacher) return
+    setAssignments(prev => {
+      const next = { ...prev }
+      Object.keys(next).forEach(sid => { next[sid] = subjectClass.classTeacher!.id })
+      return next
+    })
+  }
+
+  async function saveSubjects() {
+    if (!subjectClass) return
+    setSavingSubjects(true); setSubjectError("")
+    try {
+      const res = await fetch("/api/class-subjects", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          classId: subjectClass.id,
+          assignments: Object.entries(assignments).map(([subjectId, teacherId]) => ({
+            subjectId, teacherId: teacherId || null,
+          })),
+        }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      const updated: ClassSubjectRow[] = await res.json()
+      setClassSubjects(updated)
+      setSubjectOpen(false)
+    } catch (err: any) { setSubjectError(err.message) } finally { setSavingSubjects(false) }
   }
 
   // ── Table columns ─────────────────────────────────────────────────────────
@@ -187,6 +271,13 @@ export default function ClassesClient({ classes: initial, teachers, schoolId }: 
           searchKeys={["name", "code"]}
           actions={(c) => (
             <div className="flex gap-1 justify-end">
+              <button
+                onClick={() => openSubjects(c)}
+                className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                title="Manage Subjects & Teachers"
+              >
+                <ListChecks className="w-3.5 h-3.5" />
+              </button>
               <button
                 onClick={() => openAssign(c)}
                 className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -294,6 +385,154 @@ export default function ClassesClient({ classes: initial, teachers, schoolId }: 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Manage Subjects & Teachers Modal ─────────────────────────────── */}
+      {subjectOpen && subjectClass && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">
+                  Subjects & Teachers
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {subjectClass.name}{subjectClass.section ? ` — ${subjectClass.section}` : ""}
+                  {subjectClass.classTeacher && (
+                    <span className="ml-2 text-emerald-600 font-medium">
+                      · Class Master: {subjectClass.classTeacher.user.name}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <button onClick={() => setSubjectOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-5">
+              {subjectError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{subjectError}</div>
+              )}
+
+              {loadingSubjects ? (
+                <div className="flex items-center justify-center py-12 gap-2 text-gray-400 text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+                </div>
+              ) : subjects.length === 0 ? (
+                <div className="py-12 text-center text-sm text-gray-400">
+                  No subjects created yet. Add subjects first from the Subjects page.
+                </div>
+              ) : (
+                <>
+                  {/* Quick-assign helper */}
+                  {subjectClass.classTeacher && Object.keys(assignments).length > 0 && (
+                    <div className="mb-4 flex items-center justify-between bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5">
+                      <p className="text-xs text-emerald-700 font-medium">
+                        Assign all subjects to the class master ({subjectClass.classTeacher.user.name})?
+                      </p>
+                      <button
+                        onClick={assignAllToClassMaster}
+                        className="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Assign All
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Subject list */}
+                  <div className="space-y-2">
+                    {subjects.map(subject => {
+                      const isAssigned = subject.id in assignments
+                      const teacherId  = assignments[subject.id] ?? ""
+                      return (
+                        <div
+                          key={subject.id}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl border transition-colors",
+                            isAssigned ? "bg-indigo-50/60 border-indigo-100" : "bg-gray-50 border-gray-100"
+                          )}
+                        >
+                          {/* Toggle checkbox */}
+                          <input
+                            type="checkbox"
+                            checked={isAssigned}
+                            onChange={e => toggleSubject(subject.id, e.target.checked)}
+                            className="w-4 h-4 rounded accent-indigo-600 cursor-pointer shrink-0"
+                          />
+
+                          {/* Subject info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={cn("text-sm font-semibold", isAssigned ? "text-gray-900" : "text-gray-400")}>
+                                {subject.title}
+                              </span>
+                              {subject.code && (
+                                <span className="text-[10px] font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+                                  {subject.code}
+                                </span>
+                              )}
+                              {subject.isOptional && (
+                                <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">
+                                  Elective
+                                </span>
+                              )}
+                              {subject.group && (
+                                <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">
+                                  {subject.group}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Teacher dropdown — only shown when subject is assigned to class */}
+                          {isAssigned && (
+                            <select
+                              value={teacherId}
+                              onChange={e => setTeacher(subject.id, e.target.value)}
+                              className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-400 bg-white min-w-[160px] shrink-0"
+                            >
+                              <option value="">— No teacher assigned —</option>
+                              {teachers.map(t => (
+                                <option key={t.id} value={t.id}>{t.user.name}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <p className="mt-3 text-xs text-gray-400">
+                    {Object.keys(assignments).length} of {subjects.length} subjects assigned to this class.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="shrink-0 flex gap-3 p-5 border-t border-gray-100">
+              <button
+                onClick={() => setSubjectOpen(false)}
+                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveSubjects}
+                disabled={savingSubjects}
+                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {savingSubjects
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
+                  : <><Save className="w-4 h-4" /> Save Assignments</>
+                }
+              </button>
+            </div>
           </div>
         </div>
       )}

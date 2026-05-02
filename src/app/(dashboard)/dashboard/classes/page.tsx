@@ -7,7 +7,7 @@ export default async function ClassesPage() {
   const school = await prisma.school.findFirst()
   const schoolId = school?.id ?? ""
 
-  const [classes, teachers] = await Promise.all([
+  const [classes, teachers, subjects] = await Promise.all([
     prisma.class.findMany({
       where: { schoolId },
       include: {
@@ -21,7 +21,12 @@ export default async function ClassesPage() {
       select: { id: true, user: { select: { name: true } } },
       orderBy: { user: { name: "asc" } },
     }),
+    prisma.subject.findMany({
+      where: { schoolId },
+      select: { id: true, title: true, code: true, group: true, isOptional: true },
+      orderBy: { title: "asc" },
+    }),
   ])
 
-  return <ClassesClient classes={classes} teachers={teachers} schoolId={schoolId} />
+  return <ClassesClient classes={classes} teachers={teachers} subjects={subjects} schoolId={schoolId} />
 }
