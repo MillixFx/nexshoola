@@ -4,6 +4,7 @@ import { useState } from "react"
 import { FileText, Plus, Calendar, ClipboardList, Loader2, Pencil, Trash2, X, ChevronDown, Lightbulb } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatDate, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Exam = {
   id: string; title: string; term: string | null; academicYear: string | null
@@ -56,6 +57,7 @@ export default function ExamsClient({
   const [marks, setMarks] = useState<Record<string, Record<string, string>>>({}) // {studentId: {subjectId: marks}}
   const [loadingMarks, setLoadingMarks] = useState(false)
   const [savingMark, setSavingMark] = useState<string | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError("")
@@ -74,10 +76,14 @@ export default function ExamsClient({
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
-  async function deleteExam(id: string) {
-    if (!confirm("Delete this exam and all its data?")) return
-    await fetch(`/api/exams/${id}`, { method: "DELETE" }).catch(() => {})
-    setExams(prev => prev.filter(e => e.id !== id))
+  function deleteExam(id: string) {
+    setConfirmModal({
+      message: "Delete this exam and all its data?",
+      onConfirm: async () => {
+        await fetch(`/api/exams/${id}`, { method: "DELETE" }).catch(() => {})
+        setExams(prev => prev.filter(e => e.id !== id))
+      }
+    })
   }
 
   function openEdit(exam: Exam) {
@@ -393,6 +399,13 @@ export default function ExamsClient({
         .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
       `}</style>
+
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

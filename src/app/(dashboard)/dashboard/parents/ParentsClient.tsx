@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, UserCheck } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import { cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Parent = {
   id: string; occupation: string | null; relation: string | null; address: string | null
@@ -23,6 +24,7 @@ export default function ParentsClient({ parents: initial, schoolId }: { parents:
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setError(""); setOpen(true) }
 
@@ -35,10 +37,14 @@ export default function ParentsClient({ parents: initial, schoolId }: { parents:
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this parent?")) return
-    await fetch(`/api/parents/${id}`, { method: "DELETE" }).catch(() => {})
-    setParents(prev => prev.filter(p => p.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this parent?",
+      onConfirm: async () => {
+        await fetch(`/api/parents/${id}`, { method: "DELETE" }).catch(() => {})
+        setParents(prev => prev.filter(p => p.id !== id))
+      }
+    })
   }
 
   const columns: Column<Parent>[] = [
@@ -103,6 +109,12 @@ export default function ParentsClient({ parents: initial, schoolId }: { parents:
         .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
       `}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

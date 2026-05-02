@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, BookOpen } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import { cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Subject = { id: string; title: string; code: string | null; isOptional: boolean; group: string | null; bookTitle: string | null; bookWriter: string | null }
 const GROUPS = ["SCIENCE", "BUSINESS", "ARTS", "GENERAL"]
@@ -17,6 +18,7 @@ export default function SubjectsClient({ subjects: initial, schoolId }: { subjec
   const [form, setForm] = useState<typeof emptyForm>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setError(""); setOpen(true) }
   function openEdit(s: Subject) { setEditing(s); setForm({ title: s.title, code: s.code ?? "", isOptional: s.isOptional, group: s.group ?? "", bookTitle: s.bookTitle ?? "", bookWriter: s.bookWriter ?? "" }); setError(""); setOpen(true) }
@@ -39,10 +41,14 @@ export default function SubjectsClient({ subjects: initial, schoolId }: { subjec
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this subject?")) return
-    await fetch(`/api/subjects/${id}`, { method: "DELETE" })
-    setSubjects(prev => prev.filter(s => s.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this subject?",
+      onConfirm: async () => {
+        await fetch(`/api/subjects/${id}`, { method: "DELETE" })
+        setSubjects(prev => prev.filter(s => s.id !== id))
+      }
+    })
   }
 
   const columns: Column<Subject>[] = [
@@ -105,6 +111,12 @@ export default function SubjectsClient({ subjects: initial, schoolId }: { subjec
         .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
       `}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

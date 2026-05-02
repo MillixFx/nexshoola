@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Package, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatCurrency, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Item = { id: string; name: string; category: string | null; quantity: number; unit: string | null; unitPrice: number | null; supplier: string | null }
 const emptyForm = { name: "", category: "", quantity: "", unit: "pcs", unitPrice: "", supplier: "" }
@@ -16,6 +17,7 @@ export default function InventoryClient({ items: initial, schoolId }: { items: I
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState("")
   const [filterLow, setFilterLow] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setOpen(true) }
   function openEdit(i: Item) {
@@ -40,10 +42,14 @@ export default function InventoryClient({ items: initial, schoolId }: { items: I
     } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this item?")) return
-    await fetch(`/api/inventory/${id}`, { method: "DELETE" })
-    setItems(prev => prev.filter(i => i.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this item?",
+      onConfirm: async () => {
+        await fetch(`/api/inventory/${id}`, { method: "DELETE" })
+        setItems(prev => prev.filter(i => i.id !== id))
+      }
+    })
   }
 
   const LOW_STOCK = 5
@@ -181,6 +187,12 @@ export default function InventoryClient({ items: initial, schoolId }: { items: I
         </div>
       )}
       <style jsx global>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.375rem}.input{width:100%;border:1px solid #e5e7eb;border-radius:.75rem;padding:.625rem .875rem;font-size:.875rem;outline:none}.input:focus{outline:2px solid #6366f1;border-color:#6366f1}`}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

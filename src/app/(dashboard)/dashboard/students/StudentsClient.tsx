@@ -8,6 +8,7 @@ import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import { formatDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Student = {
   id: string
@@ -71,6 +72,7 @@ export default function StudentsClient({ students: initial, classes, schoolId }:
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   // Photo state (separate because File objects can't go in plain state)
   const [photoPreview, setPhotoPreview] = useState<string>("")
@@ -150,15 +152,19 @@ export default function StudentsClient({ students: initial, classes, schoolId }:
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this student? This cannot be undone.")) return
-    setDeleting(id)
-    try {
-      await fetch(`/api/students/${id}`, { method: "DELETE" })
-      setStudents(prev => prev.filter(s => s.id !== id))
-    } finally {
-      setDeleting(null)
-    }
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this student? This cannot be undone.",
+      onConfirm: async () => {
+        setDeleting(id)
+        try {
+          await fetch(`/api/students/${id}`, { method: "DELETE" })
+          setStudents(prev => prev.filter(s => s.id !== id))
+        } finally {
+          setDeleting(null)
+        }
+      }
+    })
   }
 
   const columns: Column<Student>[] = [
@@ -415,6 +421,12 @@ export default function StudentsClient({ students: initial, classes, schoolId }:
         .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; background: white; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
       `}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

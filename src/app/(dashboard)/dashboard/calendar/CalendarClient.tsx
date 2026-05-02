@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Calendar, Plus, Trash2 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatDate, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Event = { id: string; title: string; description: string | null; startDate: string | Date; endDate: string | Date | null; type: string | null; color: string | null }
 const EVENT_TYPES = ["HOLIDAY", "EXAM", "SPORTS", "CULTURAL", "ACADEMIC", "MEETING", "OTHER"]
@@ -15,6 +16,7 @@ export default function CalendarClient({ events: initial, schoolId }: { events: 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true)
@@ -24,10 +26,14 @@ export default function CalendarClient({ events: initial, schoolId }: { events: 
     setOpen(false); setForm(emptyForm); setSaving(false)
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this event?")) return
-    await fetch(`/api/calendar?id=${id}`, { method: "DELETE" })
-    setEvents(prev => prev.filter(e => e.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this event?",
+      onConfirm: async () => {
+        await fetch(`/api/calendar?id=${id}`, { method: "DELETE" })
+        setEvents(prev => prev.filter(e => e.id !== id))
+      }
+    })
   }
 
   const upcoming = events.filter(e => new Date(e.startDate) >= new Date())
@@ -102,6 +108,13 @@ export default function CalendarClient({ events: initial, schoolId }: { events: 
         </div>
       )}
       <style jsx global>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.375rem}.input{width:100%;border:1px solid #e5e7eb;border-radius:.75rem;padding:.625rem .875rem;font-size:.875rem;outline:none}.input:focus{outline:2px solid #6366f1;border-color:#6366f1}`}</style>
+
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

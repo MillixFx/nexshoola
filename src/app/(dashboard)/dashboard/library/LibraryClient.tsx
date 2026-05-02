@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Library, Plus, Pencil, Trash2 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Book = { id: string; title: string; author: string | null; isbn: string | null; category: string | null; quantity: number; availableQty: number; shelfNo: string | null }
 const emptyForm = { title: "", author: "", isbn: "", category: "", quantity: "1", shelfNo: "" }
@@ -20,6 +21,7 @@ export default function LibraryClient({ books: initial, schoolId }: { books: Boo
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [search, setSearch] = useState("")
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setError(""); setOpen(true) }
   function openEdit(b: Book) {
@@ -46,10 +48,14 @@ export default function LibraryClient({ books: initial, schoolId }: { books: Boo
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Remove this book?")) return
-    await fetch(`/api/library/${id}`, { method: "DELETE" })
-    setBooks(prev => prev.filter(b => b.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Remove this book?",
+      onConfirm: async () => {
+        await fetch(`/api/library/${id}`, { method: "DELETE" })
+        setBooks(prev => prev.filter(b => b.id !== id))
+      }
+    })
   }
 
   const filtered = books.filter(b =>
@@ -175,6 +181,12 @@ export default function LibraryClient({ books: initial, schoolId }: { books: Boo
         </div>
       )}
       <style jsx global>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.375rem}.input{width:100%;border:1px solid #e5e7eb;border-radius:.75rem;padding:.625rem .875rem;font-size:.875rem;outline:none}.input:focus{outline:2px solid #6366f1;border-color:#6366f1}`}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

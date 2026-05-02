@@ -4,6 +4,7 @@ import { useState } from "react"
 import { BedDouble, Plus, Pencil, Trash2, Users } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Dorm = { id: string; name: string; type: string; capacity: number; warden: string | null; _count: { rooms: number } }
 
@@ -21,6 +22,7 @@ export default function DormitoryClient({ dorms: initial, schoolId }: { dorms: D
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setOpen(true) }
   function openEdit(d: Dorm) {
@@ -45,12 +47,16 @@ export default function DormitoryClient({ dorms: initial, schoolId }: { dorms: D
     } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this hostel? This will also delete all rooms inside.")) return
-    setDeleting(id)
-    await fetch(`/api/dormitory/${id}`, { method: "DELETE" })
-    setDorms(prev => prev.filter(d => d.id !== id))
-    setDeleting(null)
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this hostel? This will also delete all rooms inside.",
+      onConfirm: async () => {
+        setDeleting(id)
+        await fetch(`/api/dormitory/${id}`, { method: "DELETE" })
+        setDorms(prev => prev.filter(d => d.id !== id))
+        setDeleting(null)
+      }
+    })
   }
 
   const totalCapacity = dorms.reduce((s, d) => s + d.capacity, 0)
@@ -167,6 +173,12 @@ export default function DormitoryClient({ dorms: initial, schoolId }: { dorms: D
         </div>
       )}
       <style jsx global>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.375rem}.input{width:100%;border:1px solid #e5e7eb;border-radius:.75rem;padding:.625rem .875rem;font-size:.875rem;outline:none}.input:focus{outline:2px solid #6366f1;border-color:#6366f1}`}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus, Pencil, Trash2, BookOpen } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type ClassWithCount = {
   id: string
@@ -25,6 +26,7 @@ export default function ClassesClient({ classes: initial, schoolId }: { classes:
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setError(""); setOpen(true) }
   function openEdit(c: ClassWithCount) {
@@ -51,10 +53,14 @@ export default function ClassesClient({ classes: initial, schoolId }: { classes:
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this class?")) return
-    await fetch(`/api/classes/${id}`, { method: "DELETE" })
-    setClasses(prev => prev.filter(c => c.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this class?",
+      onConfirm: async () => {
+        await fetch(`/api/classes/${id}`, { method: "DELETE" })
+        setClasses(prev => prev.filter(c => c.id !== id))
+      }
+    })
   }
 
   const columns: Column<ClassWithCount>[] = [
@@ -129,6 +135,12 @@ export default function ClassesClient({ classes: initial, schoolId }: { classes:
         .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
       `}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

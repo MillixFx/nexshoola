@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Banknote, Plus, Pencil, Trash2, Printer, Check, X, Eye } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatCurrency, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type LineItem = { name: string; amount: number }
 type Payslip = {
@@ -39,6 +40,7 @@ export default function PayrollClient({ payslips: initial, teachers, schoolId, s
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [filterYear, setFilterYear] = useState(String(now.getFullYear()))
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm()); setError(""); setOpen(true) }
   function openEdit(p: Payslip) {
@@ -94,10 +96,14 @@ export default function PayrollClient({ payslips: initial, teachers, schoolId, s
     setPayslips(prev => prev.map(p => p.id === id ? mapPayslip(updated) : p))
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this payslip?")) return
-    await fetch(`/api/payroll/${id}`, { method: "DELETE" })
-    setPayslips(prev => prev.filter(p => p.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this payslip?",
+      onConfirm: async () => {
+        await fetch(`/api/payroll/${id}`, { method: "DELETE" })
+        setPayslips(prev => prev.filter(p => p.id !== id))
+      }
+    })
   }
 
   function mapPayslip(raw: any): Payslip {
@@ -428,6 +434,12 @@ export default function PayrollClient({ payslips: initial, teachers, schoolId, s
           .no-print { display: none !important; }
         }
       `}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

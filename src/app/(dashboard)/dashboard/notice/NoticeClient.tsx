@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Bell, Plus, Trash2 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatDate, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Notice = { id: string; title: string; content: string; audience: string | null; priority: string; createdAt: string | Date; expiresAt: string | Date | null }
 const AUDIENCES = ["ALL", "STUDENTS", "TEACHERS", "PARENTS", "STAFF"]
@@ -17,6 +18,7 @@ export default function NoticeClient({ notices: initial, schoolId }: { notices: 
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError("")
@@ -29,10 +31,14 @@ export default function NoticeClient({ notices: initial, schoolId }: { notices: 
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this notice?")) return
-    await fetch(`/api/notices/${id}`, { method: "DELETE" })
-    setNotices(prev => prev.filter(n => n.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this notice?",
+      onConfirm: async () => {
+        await fetch(`/api/notices/${id}`, { method: "DELETE" })
+        setNotices(prev => prev.filter(n => n.id !== id))
+      }
+    })
   }
 
   return (
@@ -100,6 +106,12 @@ export default function NoticeClient({ notices: initial, schoolId }: { notices: 
         .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
       `}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }

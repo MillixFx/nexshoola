@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Bus, Plus, Pencil, Trash2 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { formatCurrency, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type Route = { id: string; routeName: string | null; vehicleNo: string | null; vehicleModel: string | null; driverName: string | null; driverPhone: string | null; capacity: number | null; fare: number | null }
 const emptyForm = { routeName: "", vehicleNo: "", vehicleModel: "", driverName: "", driverPhone: "", capacity: "", fare: "" }
@@ -15,6 +16,7 @@ export default function TransportClient({ routes: initial, schoolId }: { routes:
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState("")
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   function openAdd() { setEditing(null); setForm(emptyForm); setOpen(true) }
   function openEdit(r: Route) {
@@ -39,10 +41,14 @@ export default function TransportClient({ routes: initial, schoolId }: { routes:
     } finally { setSaving(false) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this route?")) return
-    await fetch(`/api/transport/${id}`, { method: "DELETE" })
-    setRoutes(prev => prev.filter(r => r.id !== id))
+  function handleDelete(id: string) {
+    setConfirmModal({
+      message: "Delete this route?",
+      onConfirm: async () => {
+        await fetch(`/api/transport/${id}`, { method: "DELETE" })
+        setRoutes(prev => prev.filter(r => r.id !== id))
+      }
+    })
   }
 
   const filtered = routes.filter(r =>
@@ -154,6 +160,12 @@ export default function TransportClient({ routes: initial, schoolId }: { routes:
         </div>
       )}
       <style jsx global>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.375rem}.input{width:100%;border:1px solid #e5e7eb;border-radius:.75rem;padding:.625rem .875rem;font-size:.875rem;outline:none}.input:focus{outline:2px solid #6366f1;border-color:#6366f1}`}</style>
+      <ConfirmModal
+        open={!!confirmModal}
+        message={confirmModal?.message ?? ""}
+        onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
+        onCancel={() => setConfirmModal(null)}
+      />
     </div>
   )
 }
