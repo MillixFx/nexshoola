@@ -10,9 +10,31 @@ export default async function StudentsPage() {
   const schoolId = session?.user?.schoolId
   if (!schoolId) redirect("/login")
 
+  const isParent = session?.user?.role === "PARENT"
+
+  let studentFilter: object = { schoolId }
+
+  if (isParent) {
+    // Find the parent record linked to this user
+    const parentRecord = await prisma.parent.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    })
+
+    if (parentRecord) {
+      studentFilter = {
+        schoolId,
+        parents: { some: { parentId: parentRecord.id } },
+      }
+    } else {
+      // Parent record not found — show no students
+      studentFilter = { schoolId, id: "__none__" }
+    }
+  }
+
   const [students, classes] = await Promise.all([
     prisma.student.findMany({
-      where: { schoolId },
+      where: studentFilter,
       select: {
         id: true, rollNumber: true, studentId: true, gender: true,
         admissionDate: true, isActive: true, photo: true,
@@ -27,5 +49,5 @@ export default async function StudentsPage() {
     }),
   ])
 
-  return <StudentsClient students={students} classes={classes} schoolId={schoolId} />
+  return <StudentsClient students={students} classes={classes} schoolId={schoolId} isParent={isParent} />
 }

@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { Role } from "@prisma/client"
+
+const STAFF_ROLES: Role[] = ["ADMIN", "HEADMASTER", "TEACHER", "ACCOUNTANT", "LIBRARIAN"]
 
 /**
  * GET /api/chat/users
- * Returns all users in the same school (excluding self) the current user can chat with.
+ * Returns users in the same school (excluding self) the current user can chat with.
  *
- * Visibility rules (kept permissive for school-wide communication):
- *  - All staff (Admin, Headmaster, Teacher, Accountant, Librarian, etc.) see everyone
- *  - Parents see all staff + parents of classmates of their children, and their own children
- *  - Students see all staff + classmates
- *
- * For simplicity in this build, we return all active school users — schools can
- * tighten via UI filters later. PII is limited to name + role + avatar.
+ * Role-based visibility:
+ *  PARENT  → staff only (ADMIN, HEADMASTER, TEACHER, ACCOUNTANT, LIBRARIAN)
+ *  STUDENT → staff + other STUDENTs
+ *  Others  → everyone in the school
  */
 export async function GET() {
   const session = await auth()
@@ -20,11 +20,23 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  const role = session.user.role as Role
+
+  let roleFilter: Role[] | undefined
+
+  if (role === "PARENT") {
+    roleFilter = STAFF_ROLES
+  } else if (role === "STUDENT") {
+    roleFilter = [...STAFF_ROLES, "STUDENT"]
+  }
+  // otherwise (staff): no role filter — see everyone
+
   const users = await prisma.user.findMany({
     where: {
       schoolId: session.user.schoolId,
       isActive: true,
       id: { not: session.user.id },
+      ...(roleFilter ? { role: { in: roleFilter } } : {}),
     },
     select: { id: true, name: true, email: true, role: true, avatar: true },
     orderBy: [{ role: "asc" }, { name: "asc" }],

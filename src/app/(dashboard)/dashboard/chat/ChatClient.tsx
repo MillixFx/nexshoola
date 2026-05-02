@@ -384,7 +384,15 @@ export default function ChatClient({
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white">
-              <h2 className="text-lg font-bold text-gray-900">New Conversation</h2>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">New Conversation</h2>
+                {currentUserRole === "PARENT" && (
+                  <p className="text-xs text-gray-400 mt-0.5">You can message school staff only</p>
+                )}
+                {currentUserRole === "STUDENT" && (
+                  <p className="text-xs text-gray-400 mt-0.5">Message staff or fellow students</p>
+                )}
+              </div>
               <button onClick={() => { setShowNew(false); setNewSearch("") }} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
@@ -396,7 +404,13 @@ export default function ChatClient({
                   autoFocus
                   value={newSearch}
                   onChange={e => setNewSearch(e.target.value)}
-                  placeholder="Search by name, email, or role…"
+                  placeholder={
+                    currentUserRole === "PARENT"
+                      ? "Search staff by name…"
+                      : currentUserRole === "STUDENT"
+                      ? "Search staff or students…"
+                      : "Search by name, email, or role…"
+                  }
                   className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:bg-white focus:border-indigo-300"
                 />
               </div>
