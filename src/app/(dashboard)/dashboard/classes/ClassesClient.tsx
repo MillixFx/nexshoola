@@ -66,8 +66,29 @@ export default function ClassesClient({ classes: initial, schoolId }: { classes:
   const columns: Column<ClassWithCount>[] = [
     { key: "name", label: "Class Name", render: c => <span className="font-medium text-gray-900">{c.name}{c.section ? ` — ${c.section}` : ""}</span> },
     { key: "code", label: "Code", render: c => c.code ?? "—" },
-    { key: "students", label: "Students", render: c => <span className="font-semibold text-indigo-600">{c._count.students}</span> },
-    { key: "capacity", label: "Capacity", render: c => c.capacity ?? "—" },
+    {
+      key: "students",
+      label: "Enrollment",
+      render: c => {
+        const count = c._count.students
+        const cap = c.capacity
+        if (!cap) return <span className="font-semibold text-indigo-600">{count} enrolled</span>
+        const pct = Math.min(100, Math.round((count / cap) * 100))
+        const color = pct >= 100 ? "bg-red-500" : pct >= 85 ? "bg-amber-400" : "bg-emerald-500"
+        const textColor = pct >= 100 ? "text-red-600" : pct >= 85 ? "text-amber-600" : "text-emerald-600"
+        return (
+          <div className="min-w-[120px]">
+            <div className="flex items-center justify-between mb-1">
+              <span className={`text-xs font-bold ${textColor}`}>{count} / {cap}</span>
+              <span className="text-[10px] text-gray-400">{pct}%</span>
+            </div>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        )
+      },
+    },
   ]
 
   return (

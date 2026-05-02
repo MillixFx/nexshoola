@@ -35,6 +35,21 @@ export async function POST(req: NextRequest) {
       religion, nationality, photo,
     } = body
 
+    // ── Capacity check before adding student to a class ──────────────────
+    if (classId) {
+      const cls = await prisma.class.findUnique({
+        where: { id: classId },
+        select: { capacity: true, name: true, section: true, _count: { select: { students: true } } },
+      })
+      if (cls?.capacity && cls._count.students >= cls.capacity) {
+        const label = `${cls.name}${cls.section ? ` ${cls.section}` : ""}`
+        return NextResponse.json(
+          { error: `${label} is at full capacity (${cls._count.students}/${cls.capacity}). Please select a different class or increase the capacity.` },
+          { status: 409 }
+        )
+      }
+    }
+
     const hashed = await bcrypt.hash(password || "changeme123", 10)
 
     const user = await prisma.user.create({

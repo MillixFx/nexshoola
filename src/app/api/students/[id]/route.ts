@@ -11,6 +11,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const student = await prisma.student.findUnique({ where: { id }, include: { user: true } })
     if (!student) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
+    // ── Capacity check — only when class is being changed ─────────────────
+    const newClassId = classId || null
+    if (newClassId && newClassId !== student.classId) {
+      const cls = await prisma.class.findUnique({
+        where: { id: newClassId },
+        select: { capacity: true, name: true, section: true, _count: { select: { students: true } } },
+      })
+      if (cls?.capacity && cls._count.students >= cls.capacity) {
+        const label = `${cls.name}${cls.section ? ` ${cls.section}` : ""}`
+        return NextResponse.json(
+          { error: `${label} is at full capacity (${cls._count.students}/${cls.capacity}). Increase capacity or choose another class.` },
+          { status: 409 }
+        )
+      }
+    }
+
     await prisma.user.update({
       where: { id: student.userId },
       data: { name, email, phone, isActive },
