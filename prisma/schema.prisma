@@ -114,9 +114,10 @@ model User {
   leaveApps        LeaveApplication[]
   sessions         Session[]
   events           CalendarEvent[]
-  chatParticipants ConversationParticipant[]
-  chatMessages     ChatMessage[] @relation("SentChatMessages")
-  createdChats     Conversation[] @relation("CreatedConversations")
+  chatParticipants    ConversationParticipant[]
+  chatMessages        ChatMessage[] @relation("SentChatMessages")
+  createdChats        Conversation[] @relation("CreatedConversations")
+  substitutesAssigned ClassSubstitute[] @relation("SubstituteAssignedBy")
 
   @@unique([schoolId, email])
   @@map("users")
@@ -150,22 +151,25 @@ model Session {
 // ─────────────────────────────────────────────
 
 model Class {
-  id          String   @id @default(cuid())
-  schoolId    String
-  name        String
-  section     String?
-  code        String?
-  capacity    Int?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  schoolId       String
+  name           String
+  section        String?
+  code           String?
+  capacity       Int?
+  classTeacherId String?  // the class master
+  createdAt      DateTime @default(now())
 
-  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  students    Student[]
-  subjects    ClassSubject[]
-  routines    ClassRoutine[]
-  attendance  DailyAttendance[]
-  examRoutines ExamRoutine[]
-  fees        FeeItem[]
-  promotions  Promotion[]
+  school         School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classTeacher   Teacher?      @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  students       Student[]
+  subjects       ClassSubject[]
+  routines       ClassRoutine[]
+  attendance     DailyAttendance[]
+  examRoutines   ExamRoutine[]
+  fees           FeeItem[]
+  promotions     Promotion[]
+  substitutes    ClassSubstitute[]
 
   @@unique([schoolId, name, section])
   @@map("classes")
@@ -237,6 +241,26 @@ enum DayOfWeek {
   SUNDAY
 }
 
+// Class master substitution — who covers attendance when the class master is away
+model ClassSubstitute {
+  id           String    @id @default(cuid())
+  schoolId     String
+  classId      String
+  substituteId String    // Teacher covering the class
+  assignedById String    // User who assigned (class master or admin)
+  startDate    DateTime  @db.Date
+  endDate      DateTime? @db.Date   // null = open-ended (until further notice)
+  note         String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  class       Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  substitute  Teacher @relation("SubstituteTeacher", fields: [substituteId], references: [id])
+  assignedBy  User    @relation("SubstituteAssignedBy", fields: [assignedById], references: [id])
+
+  @@map("class_substitutes")
+}
+
 // ─────────────────────────────────────────────
 // PEOPLE
 // ─────────────────────────────────────────────
@@ -295,10 +319,12 @@ model Teacher {
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
 
-  school     School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attendance TeacherAttendance[]
-  payslips   StaffPayslip[]
+  school          School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendance      TeacherAttendance[]
+  payslips        StaffPayslip[]
+  classesManaged  Class[]    @relation("ClassTeacher")
+  substituting    ClassSubstitute[] @relation("SubstituteTeacher")
 
   @@map("teachers")
 }

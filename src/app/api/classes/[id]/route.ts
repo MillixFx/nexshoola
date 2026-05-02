@@ -1,15 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+const classInclude = {
+  _count: { select: { students: true } },
+  classTeacher: {
+    select: { id: true, user: { select: { name: true } } },
+  },
+} as const
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const body = await req.json()
-    const { name, section, code, capacity } = body
+    const { name, section, code, capacity, classTeacherId } = body
     const cls = await prisma.class.update({
       where: { id },
-      data: { name, section, code, capacity: capacity ? Number(capacity) : null },
-      include: { _count: { select: { students: true } } },
+      data: {
+        name,
+        section,
+        code,
+        capacity: capacity ? Number(capacity) : null,
+        // classTeacherId: empty string → null (unassign), string → assign, undefined → leave unchanged
+        ...(classTeacherId !== undefined
+          ? { classTeacherId: classTeacherId || null }
+          : {}),
+      },
+      include: classInclude,
     })
     return NextResponse.json(cls)
   } catch (e) {
