@@ -16,6 +16,8 @@ export default async function ReportCardPage({
 
   const session = await auth()
   const schoolId = session?.user?.schoolId
+  const userId   = session?.user?.id
+  const role     = session?.user?.role ?? ""
   if (!schoolId) redirect("/login")
 
   // Fetch student
@@ -32,6 +34,22 @@ export default async function ReportCardPage({
   })
 
   if (!student || student.schoolId !== schoolId) notFound()
+
+  // Role-based access:
+  // ADMIN/HEADMASTER/TEACHER → full access
+  // STUDENT → only their own
+  // PARENT → only their children
+  if (role === "STUDENT") {
+    const myStudent = await prisma.student.findUnique({ where: { userId }, select: { id: true } })
+    if (!myStudent || myStudent.id !== id) notFound()
+  } else if (role === "PARENT") {
+    const parentRecord = await prisma.parent.findUnique({ where: { userId }, select: { id: true } })
+    if (!parentRecord) notFound()
+    const isMyChild = await prisma.studentParent.findUnique({
+      where: { studentId_parentId: { studentId: id, parentId: parentRecord.id } },
+    })
+    if (!isMyChild) notFound()
+  }
 
   // Fetch all exams for this school (for the exam selector)
   const exams = await prisma.exam.findMany({

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { auth } from "@/lib/auth"
+
+const ADMIT_PERMISSION = "ADMIT_STUDENTS"
 
 // GET /api/students?schoolId=xxx
 export async function GET(req: NextRequest) {
@@ -24,9 +27,26 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/students
+// POST /api/students  — requires ADMIN, HEADMASTER, or ADMIT_STUDENTS delegation
 export async function POST(req: NextRequest) {
   try {
+    // ── Admissions access control ────────────────────────────────────────
+    const session = await auth()
+    if (session) {
+      const role = session.user.role
+      const canAdmitByRole = role === "ADMIN" || role === "HEADMASTER"
+      if (!canAdmitByRole) {
+        // Check delegation
+        const schoolId = session.user.schoolId
+        const hasPerm = await prisma.userPermission.findUnique({
+          where: { schoolId_userId_permission: { schoolId, userId: session.user.id, permission: ADMIT_PERMISSION } },
+        })
+        if (!hasPerm) {
+          return NextResponse.json({ error: "You do not have permission to register students." }, { status: 403 })
+        }
+      }
+    }
+
     const body = await req.json()
     const {
       schoolId, name, email, password, phone,

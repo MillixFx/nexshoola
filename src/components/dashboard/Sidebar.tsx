@@ -9,7 +9,7 @@ import {
   MessageSquare, MessagesSquare, Calendar, LogOut as LeaveIcon, Send,
   Lightbulb, Settings, ChevronLeft,
   GraduationCap as Logo, UserCheck, X, Banknote,
-  BarChart3, ShieldCheck, ExternalLink,
+  BarChart3, ShieldCheck, ExternalLink, CalendarDays, LayoutGrid,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -53,10 +53,17 @@ const NAV: NavSection[] = [
     items: [
       { label: "Classes",      href: "/dashboard/classes",      icon: BookOpen,       roles: ACADEMIC },
       { label: "Subjects",     href: "/dashboard/subjects",     icon: BookOpen,       roles: ACADEMIC },
+      { label: "Timetable",    href: "/dashboard/timetable",    icon: CalendarDays,   roles: [...ACADEMIC, "STUDENT", "PARENT"] as Role[] },
       { label: "Attendance",   href: "/dashboard/attendance",   icon: ClipboardCheck, roles: ACADEMIC },
       { label: "Examinations", href: "/dashboard/examinations", icon: FileText,
         roles: ["ADMIN","HEADMASTER","TEACHER","STUDENT"] },
       { label: "Report Cards", href: "/dashboard/report-cards", icon: FileText, roles: MGMT },
+    ],
+  },
+  {
+    title: "My Portal",
+    items: [
+      { label: "My Portal",    href: "/dashboard/portal",       icon: LayoutGrid,     roles: ["STUDENT", "PARENT"] },
     ],
   },
   {

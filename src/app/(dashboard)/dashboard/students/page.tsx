@@ -10,7 +10,18 @@ export default async function StudentsPage() {
   const schoolId = session?.user?.schoolId
   if (!schoolId) redirect("/login")
 
-  const isParent = session?.user?.role === "PARENT"
+  const role     = session?.user?.role ?? ""
+  const userId   = session?.user?.id ?? ""
+  const isParent = role === "PARENT"
+
+  // Admissions access: ADMIN/HEADMASTER always; others need explicit delegation
+  let canAdmit = role === "ADMIN" || role === "HEADMASTER"
+  if (!canAdmit && userId) {
+    const perm = await prisma.userPermission.findUnique({
+      where: { schoolId_userId_permission: { schoolId, userId, permission: "ADMIT_STUDENTS" } },
+    })
+    if (perm) canAdmit = true
+  }
 
   let studentFilter: object = { schoolId }
 
@@ -54,5 +65,5 @@ export default async function StudentsPage() {
     }),
   ])
 
-  return <StudentsClient students={students} classes={classes} schoolId={schoolId} isParent={isParent} school={school} />
+  return <StudentsClient students={students} classes={classes} schoolId={schoolId} isParent={isParent} school={school} canAdmit={canAdmit} />
 }

@@ -74,6 +74,7 @@ model School {
   payslips        StaffPayslip[]
   configuration   Configuration?
   conversations   Conversation[]
+  permissions     UserPermission[]
 
   @@map("schools")
 }
@@ -118,6 +119,7 @@ model User {
   chatMessages        ChatMessage[] @relation("SentChatMessages")
   createdChats        Conversation[] @relation("CreatedConversations")
   substitutesAssigned ClassSubstitute[] @relation("SubstituteAssignedBy")
+  permissions         UserPermission[] @relation("GrantedPermissions")
 
   @@unique([schoolId, email])
   @@map("users")
@@ -1093,6 +1095,26 @@ model CalendarEvent {
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("calendar_events")
+}
+
+// ─────────────────────────────────────────────
+// PERMISSIONS / DELEGATION
+// ─────────────────────────────────────────────
+
+// Grants a specific user a named permission (e.g. ADMIT_STUDENTS)
+model UserPermission {
+  id         String   @id @default(cuid())
+  schoolId   String
+  userId     String
+  permission String   // e.g. "ADMIT_STUDENTS"
+  grantedBy  String   // userId of admin who granted it
+  createdAt  DateTime @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User   @relation("GrantedPermissions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, userId, permission])
+  @@map("user_permissions")
 }
 
 // ─────────────────────────────────────────────

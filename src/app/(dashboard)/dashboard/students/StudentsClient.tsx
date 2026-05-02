@@ -41,6 +41,7 @@ interface Props {
   schoolId: string
   isParent?: boolean
   school?: SchoolInfo | null
+  canAdmit?: boolean
 }
 
 const GENDERS = ["MALE", "FEMALE", "OTHER"]
@@ -80,7 +81,7 @@ function StudentAvatar({ name, photo, size = "sm" }: { name: string; photo?: str
   )
 }
 
-export default function StudentsClient({ students: initial, classes, schoolId, isParent = false, school }: Props) {
+export default function StudentsClient({ students: initial, classes, schoolId, isParent = false, school, canAdmit = false }: Props) {
   const router = useRouter()
   const [students, setStudents] = useState(initial)
   const [open, setOpen] = useState(false)
@@ -341,7 +342,7 @@ export default function StudentsClient({ students: initial, classes, schoolId, i
         title="Students"
         description={`${students.length} student${students.length !== 1 ? "s" : ""} enrolled`}
         action={
-          !isParent ? (
+          canAdmit ? (
             <button
               onClick={openAdd}
               className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
@@ -362,7 +363,7 @@ export default function StudentsClient({ students: initial, classes, schoolId, i
           <p className="text-sm text-gray-500 mb-4">
             {isParent ? "No wards linked to your account yet." : "Add your first student to get started."}
           </p>
-          {!isParent && (
+          {canAdmit && (
             <button onClick={openAdd} className="text-sm font-semibold text-indigo-600 hover:underline">
               + Add Student
             </button>
