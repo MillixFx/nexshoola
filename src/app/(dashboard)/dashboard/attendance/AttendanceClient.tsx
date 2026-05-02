@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   ClipboardCheck, Check, X, Clock, Minus,
-  UserCheck, UserX, AlertTriangle, Loader2, UserCog, CalendarX,
+  UserCheck, AlertTriangle, Loader2, UserCog, CalendarX,
+  BarChart3, Printer, ChevronLeft, ChevronRight,
 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { cn, formatDate } from "@/lib/utils"
@@ -65,7 +66,7 @@ export default function AttendanceClient({
 }: Props) {
   const today = new Date().toISOString().split("T")[0]
 
-  const [tab, setTab]                     = useState<"mark" | "history">("mark")
+  const [tab, setTab]                     = useState<"mark" | "history" | "report">("mark")
   const [selectedClass, setSelectedClass] = useState("")
   const [date, setDate]                   = useState(today)
   const [students, setStudents]           = useState<StudentRow[]>([])
@@ -81,6 +82,42 @@ export default function AttendanceClient({
   const [subSaving, setSubSaving]         = useState(false)
   const [subError, setSubError]           = useState("")
   const [confirmModal, setConfirmModal]   = useState<{ message: string; onConfirm: () => void } | null>(null)
+
+  // ── Report state ───────────────────────────────────────────────────────────
+  const nowDate = new Date()
+  const [rptClass,   setRptClass]   = useState("")
+  const [rptMonth,   setRptMonth]   = useState(nowDate.getMonth() + 1)   // 1-12
+  const [rptYear,    setRptYear]    = useState(nowDate.getFullYear())
+  const [rptView,    setRptView]    = useState<"register" | "summary">("register")
+  const [rptLoading, setRptLoading] = useState(false)
+  const [rptData,    setRptData]    = useState<{
+    schoolDays: string[]
+    students: { id: string; name: string; photo: string | null; rollNumber: string | null; records: Record<string, string> }[]
+  } | null>(null)
+
+  const loadReport = useCallback(async (cId: string, m: number, y: number) => {
+    if (!cId) return
+    setRptLoading(true); setRptData(null)
+    try {
+      const res = await fetch(`/api/attendance/report?classId=${cId}&month=${m}&year=${y}`)
+      if (res.ok) setRptData(await res.json())
+    } finally { setRptLoading(false) }
+  }, [])
+
+  useEffect(() => {
+    if (tab === "report" && rptClass) loadReport(rptClass, rptMonth, rptYear)
+  }, [tab, rptClass, rptMonth, rptYear, loadReport])
+
+  function prevMonth() {
+    if (rptMonth === 1) { setRptMonth(12); setRptYear(y => y - 1) }
+    else setRptMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (rptMonth === 12) { setRptMonth(1); setRptYear(y => y + 1) }
+    else setRptMonth(m => m + 1)
+  }
+
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
   const selectedClassInfo = classes.find(c => c.id === selectedClass) ?? null
   const isAdmin = ADMIN_ROLES.includes(currentRole)
@@ -287,13 +324,17 @@ export default function AttendanceClient({
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-        {(["mark", "history"] as const).map(t => (
+        {([
+          { key: "mark",    label: "Mark Attendance" },
+          { key: "history", label: "History"         },
+          { key: "report",  label: "Reports"         },
+        ] as const).map(t => (
           <button
-            key={t} onClick={() => setTab(t)}
+            key={t.key} onClick={() => setTab(t.key)}
             className={cn("px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors",
-              tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700")}
+              tab === t.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700")}
           >
-            {t === "mark" ? "Mark Attendance" : "View History"}
+            {t.label}
           </button>
         ))}
       </div>
@@ -476,6 +517,294 @@ export default function AttendanceClient({
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Reports tab ──────────────────────────────────────────────────────── */}
+      {tab === "report" && (
+        <div className="space-y-4">
+          {/* Controls */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex flex-wrap gap-4 items-end justify-between">
+              <div className="flex flex-wrap gap-4 items-end">
+                {/* Class */}
+                <div>
+                  <label className="label">Class *</label>
+                  <select
+                    className="input w-52"
+                    value={rptClass}
+                    onChange={e => setRptClass(e.target.value)}
+                  >
+                    <option value="">— Select class —</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}{c.section ? ` ${c.section}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Month navigator */}
+                <div>
+                  <label className="label">Month</label>
+                  <div className="flex items-center gap-1">
+                    <button onClick={prevMonth} className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50">
+                      <ChevronLeft className="w-4 h-4 text-gray-500" />
+                    </button>
+                    <div className="border border-gray-200 rounded-xl px-4 py-2 text-sm font-semibold text-gray-800 min-w-[120px] text-center">
+                      {MONTH_NAMES[rptMonth - 1]} {rptYear}
+                    </div>
+                    <button onClick={nextMonth} className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50">
+                      <ChevronRight className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* View toggle */}
+                <div>
+                  <label className="label">View</label>
+                  <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+                    {(["register", "summary"] as const).map(v => (
+                      <button key={v} onClick={() => setRptView(v)}
+                        className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors",
+                          rptView === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700")}
+                      >
+                        {v === "register" ? "Monthly Register" : "Summary"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Print */}
+              {rptData && rptData.schoolDays.length > 0 && (
+                <button onClick={() => window.print()}
+                  className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 print:hidden">
+                  <Printer className="w-4 h-4" /> Print
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Loading */}
+          {rptLoading && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-14 flex items-center justify-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+              <span className="text-sm text-gray-400">Loading report…</span>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!rptLoading && !rptClass && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+              <BarChart3 className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+              <p className="text-sm text-gray-400">Select a class to generate the report</p>
+            </div>
+          )}
+
+          {!rptLoading && rptClass && rptData && rptData.schoolDays.length === 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-14 text-center">
+              <p className="text-sm text-gray-400">No attendance recorded for this class in {MONTH_NAMES[rptMonth - 1]} {rptYear}.</p>
+            </div>
+          )}
+
+          {/* ── Monthly Register ─────────────────────────────────────────────── */}
+          {!rptLoading && rptData && rptData.schoolDays.length > 0 && rptView === "register" && (() => {
+            const { schoolDays, students: rptStudents } = rptData
+            const STATUS_CELL: Record<string, { label: string; cls: string }> = {
+              PRESENT: { label: "P",  cls: "bg-emerald-100 text-emerald-700 font-bold" },
+              ABSENT:  { label: "A",  cls: "bg-red-100 text-red-600 font-bold" },
+              LATE:    { label: "L",  cls: "bg-amber-100 text-amber-700 font-bold" },
+              EXCUSED: { label: "E",  cls: "bg-gray-100 text-gray-500 font-medium" },
+            }
+
+            return (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <p className="text-sm font-bold text-gray-800">
+                    {classes.find(c => c.id === rptClass)?.name} — {MONTH_NAMES[rptMonth - 1]} {rptYear}
+                  </p>
+                  <div className="flex gap-3 text-xs text-gray-500">
+                    {Object.entries(STATUS_CELL).map(([k, v]) => (
+                      <span key={k} className="flex items-center gap-1">
+                        <span className={cn("w-5 h-5 rounded flex items-center justify-center text-[10px]", v.cls)}>{v.label}</span>
+                        {k.charAt(0) + k.slice(1).toLowerCase()}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs border-collapse min-w-max">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-100">
+                        <th className="sticky left-0 bg-gray-50 px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wide min-w-[180px] border-r border-gray-100">
+                          Student
+                        </th>
+                        {schoolDays.map(d => {
+                          const dt = new Date(d + "T00:00:00")
+                          return (
+                            <th key={d} className="px-1 py-3 text-center font-semibold text-gray-500 min-w-[36px]">
+                              <div>{dt.getDate()}</div>
+                              <div className="text-[9px] text-gray-400 uppercase">{["Su","Mo","Tu","We","Th","Fr","Sa"][dt.getDay()]}</div>
+                            </th>
+                          )
+                        })}
+                        <th className="px-3 py-3 text-center font-semibold text-indigo-600 uppercase tracking-wide border-l border-gray-100 min-w-[50px]">P%</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {rptStudents.map((st, idx) => {
+                        const total   = schoolDays.filter(d => st.records[d]).length
+                        const present = schoolDays.filter(d => st.records[d] === "PRESENT").length
+                        const pct     = total > 0 ? Math.round((present / total) * 100) : null
+
+                        return (
+                          <tr key={st.id} className={cn("hover:bg-indigo-50/20", idx % 2 === 0 ? "bg-white" : "bg-gray-50/30")}>
+                            <td className="sticky left-0 bg-inherit px-4 py-2.5 font-medium text-gray-900 border-r border-gray-100">
+                              <div className="flex items-center gap-2 min-w-0">
+                                {st.photo
+                                  ? <img src={st.photo} alt={st.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                                  : <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-[9px] font-bold flex items-center justify-center shrink-0">
+                                      {st.name.split(" ").map((n:string) => n[0]).join("").toUpperCase().slice(0,2)}
+                                    </div>
+                                }
+                                <span className="truncate text-xs">{st.name}</span>
+                              </div>
+                            </td>
+                            {schoolDays.map(d => {
+                              const status = st.records[d]
+                              const cell   = STATUS_CELL[status]
+                              return (
+                                <td key={d} className="px-1 py-2.5 text-center">
+                                  {cell
+                                    ? <span className={cn("inline-flex items-center justify-center w-6 h-6 rounded text-[10px]", cell.cls)}>{cell.label}</span>
+                                    : <span className="text-gray-200">·</span>
+                                  }
+                                </td>
+                              )
+                            })}
+                            <td className="px-3 py-2.5 text-center border-l border-gray-100">
+                              {pct != null ? (
+                                <span className={cn("text-xs font-extrabold",
+                                  pct >= 80 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-red-600"
+                                )}>{pct}%</span>
+                              ) : <span className="text-gray-300">—</span>}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* ── Summary Report ───────────────────────────────────────────────── */}
+          {!rptLoading && rptData && rptData.schoolDays.length > 0 && rptView === "summary" && (() => {
+            const { schoolDays, students: rptStudents } = rptData
+            const totalDays = schoolDays.length
+
+            const rows = rptStudents.map(st => {
+              const recorded = schoolDays.filter(d => st.records[d]).length
+              const present  = schoolDays.filter(d => st.records[d] === "PRESENT").length
+              const absent   = schoolDays.filter(d => st.records[d] === "ABSENT").length
+              const late     = schoolDays.filter(d => st.records[d] === "LATE").length
+              const excused  = schoolDays.filter(d => st.records[d] === "EXCUSED").length
+              const pct      = recorded > 0 ? (present / recorded) * 100 : null
+              return { ...st, present, absent, late, excused, recorded, pct }
+            }).sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1))
+
+            // Class averages
+            const avgPct = rows.filter(r => r.pct != null).reduce((s, r) => s + r.pct!, 0)
+              / (rows.filter(r => r.pct != null).length || 1)
+
+            return (
+              <div className="space-y-4">
+                {/* Class summary cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "School Days",      value: totalDays,                                       cls: "text-indigo-700" },
+                    { label: "Avg Attendance",   value: `${Math.round(avgPct)}%`,                        cls: avgPct >= 80 ? "text-emerald-600" : avgPct >= 60 ? "text-amber-600" : "text-red-600" },
+                    { label: "Perfect Attendance",value: rows.filter(r => r.absent === 0 && r.recorded > 0).length, cls: "text-emerald-600" },
+                    { label: "Below 75%",         value: rows.filter(r => r.pct != null && r.pct < 75).length,  cls: "text-red-600" },
+                  ].map(s => (
+                    <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+                      <p className={cn("text-2xl font-extrabold", s.cls)}>{s.value}</p>
+                      <p className="text-xs text-gray-400 font-medium mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Per-student table */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3 border-b border-gray-100">
+                    <p className="text-sm font-bold text-gray-800">
+                      {classes.find(c => c.id === rptClass)?.name} · {MONTH_NAMES[rptMonth - 1]} {rptYear} · {rptStudents.length} students
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[540px]">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-emerald-600 uppercase">Present</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-red-500 uppercase">Absent</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-amber-600 uppercase">Late</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase">Excused</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-indigo-600 uppercase">Attendance %</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {rows.map((st, i) => (
+                          <tr key={st.id} className="hover:bg-gray-50/60">
+                            <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                {st.photo
+                                  ? <img src={st.photo} alt={st.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                                  : <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                      {st.name.split(" ").map((n:string) => n[0]).join("").toUpperCase().slice(0,2)}
+                                    </div>
+                                }
+                                <div>
+                                  <p className="font-medium text-gray-900 text-sm">{st.name}</p>
+                                  {st.rollNumber && <p className="text-[10px] text-gray-400">#{st.rollNumber}</p>}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-emerald-600">{st.present}</td>
+                            <td className="px-4 py-3 text-center font-bold text-red-500">{st.absent}</td>
+                            <td className="px-4 py-3 text-center font-bold text-amber-600">{st.late}</td>
+                            <td className="px-4 py-3 text-center text-gray-400">{st.excused}</td>
+                            <td className="px-4 py-3 text-center">
+                              {st.pct != null ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className={cn("text-sm font-extrabold",
+                                    st.pct >= 80 ? "text-emerald-600" : st.pct >= 60 ? "text-amber-600" : "text-red-600"
+                                  )}>{Math.round(st.pct)}%</span>
+                                  {/* Mini bar */}
+                                  <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                      className={cn("h-full rounded-full",
+                                        st.pct >= 80 ? "bg-emerald-500" : st.pct >= 60 ? "bg-amber-400" : "bg-red-400"
+                                      )}
+                                      style={{ width: `${Math.round(st.pct)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
