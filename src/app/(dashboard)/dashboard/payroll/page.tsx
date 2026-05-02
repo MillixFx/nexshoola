@@ -7,8 +7,10 @@ export default async function PayrollPage() {
   const session = await auth()
   const role = (session?.user as any)?.role ?? "ADMIN"
   const userId = session?.user?.id ?? ""
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const schoolId = session?.user?.schoolId ?? ""
+  const school = schoolId
+    ? await prisma.school.findUnique({ where: { id: schoolId } })
+    : null
 
   // If TEACHER, find their teacher record to filter their own payslips
   let myTeacherId: string | null = null

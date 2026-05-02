@@ -1,11 +1,14 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import ClassesClient from "./ClassesClient"
 
 export const dynamic = "force-dynamic"
 
 export default async function ClassesPage() {
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const session = await auth()
+  const schoolId = session?.user?.schoolId
+  if (!schoolId) redirect("/login")
 
   const [classes, teachers, subjects] = await Promise.all([
     prisma.class.findMany({

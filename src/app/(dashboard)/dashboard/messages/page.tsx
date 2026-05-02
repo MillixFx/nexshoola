@@ -1,10 +1,13 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import MessagesClient from "./MessagesClient"
 export const dynamic = "force-dynamic"
 
 export default async function MessagesPage() {
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const session = await auth()
+  const schoolId = session?.user?.schoolId
+  if (!schoolId) redirect("/login")
   const messages = await prisma.message.findMany({
     where: { schoolId },
     include: { sender: { select: { name: true, role: true } } },

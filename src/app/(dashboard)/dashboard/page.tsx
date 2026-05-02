@@ -30,8 +30,10 @@ export default async function DashboardPage() {
   const role = (session?.user as any)?.role ?? "ADMIN"
   const firstName = (session?.user?.name ?? "User").split(" ")[0]
 
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const schoolId = session?.user?.schoolId ?? ""
+  const school = schoolId
+    ? await prisma.school.findUnique({ where: { id: schoolId } })
+    : null
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 

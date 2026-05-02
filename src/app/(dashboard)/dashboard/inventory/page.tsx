@@ -1,10 +1,13 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import InventoryClient from "./InventoryClient"
 export const dynamic = "force-dynamic"
 
 export default async function InventoryPage() {
-  const school = await prisma.school.findFirst()
-  const schoolId = school?.id ?? ""
+  const session = await auth()
+  const schoolId = session?.user?.schoolId
+  if (!schoolId) redirect("/login")
   const raw = await prisma.inventoryItem.findMany({
     where: { schoolId },
     include: { category: { select: { name: true } } },

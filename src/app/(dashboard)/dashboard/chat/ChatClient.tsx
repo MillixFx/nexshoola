@@ -63,6 +63,8 @@ export default function ChatClient({
   const [users, setUsers] = useState<ChatUser[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
+  const [startingConv, setStartingConv] = useState<string | null>(null)
+  const [convError, setConvError] = useState("")
 
   const messageRef = useRef<HTMLDivElement>(null)
   const lastSinceRef = useRef<string>("")
@@ -154,17 +156,24 @@ export default function ChatClient({
   }
 
   async function startConversation(userId: string) {
-    const res = await fetch("/api/chat/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userIds: [userId] }),
-    })
-    if (res.ok) {
-      const conv = await res.json()
+    setStartingConv(userId)
+    setConvError("")
+    try {
+      const res = await fetch("/api/chat/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds: [userId] }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to start conversation")
       setShowNew(false)
       setNewSearch("")
-      setActiveId(conv.id)
-      fetchConversations()
+      setActiveId(data.id)
+      await fetchConversations()
+    } catch (err: any) {
+      setConvError(err.message || "Something went wrong")
+    } finally {
+      setStartingConv(null)
     }
   }
 
@@ -393,11 +402,11 @@ export default function ChatClient({
                   <p className="text-xs text-gray-400 mt-0.5">Message staff or fellow students</p>
                 )}
               </div>
-              <button onClick={() => { setShowNew(false); setNewSearch("") }} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setShowNew(false); setNewSearch(""); setConvError("") }} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 border-b border-gray-100">
+            <div className="p-4 border-b border-gray-100 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -414,6 +423,9 @@ export default function ChatClient({
                   className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:bg-white focus:border-indigo-300"
                 />
               </div>
+              {convError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{convError}</p>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto">
               {usersLoading ? (
@@ -426,10 +438,14 @@ export default function ChatClient({
                     <li key={u.id}>
                       <button
                         onClick={() => startConversation(u.id)}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left"
+                        disabled={!!startingConv}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left disabled:opacity-60 transition-opacity"
                       >
                         <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
-                          {initials(u.name)}
+                          {startingConv === u.id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : initials(u.name)
+                          }
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-900 truncate">{u.name}</p>

@@ -13,23 +13,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params
     const body = await req.json()
     const { name, section, code, capacity, classTeacherId } = body
-    const cls = await prisma.class.update({
-      where: { id },
-      data: {
-        name,
-        section,
-        code,
-        capacity: capacity ? Number(capacity) : null,
-        // classTeacherId: empty string → null (unassign), string → assign, undefined → leave unchanged
-        ...(classTeacherId !== undefined
-          ? { classTeacherId: classTeacherId || null }
-          : {}),
-      },
-      include: classInclude,
-    })
+
+    // Build only the fields that were actually provided
+    const data: Record<string, unknown> = {}
+    if (name       !== undefined) data.name       = name
+    if (section    !== undefined) data.section    = section
+    if (code       !== undefined) data.code       = code
+    if (capacity   !== undefined) data.capacity   = capacity ? Number(capacity) : null
+    // classTeacherId: "" → null (unassign), string → assign, undefined → no change
+    if (classTeacherId !== undefined) data.classTeacherId = classTeacherId || null
+
+    const cls = await prisma.class.update({ where: { id }, data, include: classInclude })
     return NextResponse.json(cls)
-  } catch (e) {
-    return NextResponse.json({ error: "Failed to update" }, { status: 500 })
+  } catch (e: any) {
+    console.error("Class update error:", e)
+    if (e.code === "P2002") return NextResponse.json({ error: "Class name already exists." }, { status: 409 })
+    if (e.code === "P2025") return NextResponse.json({ error: "Class not found." }, { status: 404 })
+    return NextResponse.json({ error: e.message || "Failed to update" }, { status: 500 })
   }
 }
 

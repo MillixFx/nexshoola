@@ -94,10 +94,11 @@ export async function POST(
 
     return NextResponse.json({ error: "Invalid type" }, { status: 400 })
   } catch (e: any) {
+    console.error("link-parent error:", e)
     if (e.code === "P2002") {
-      return NextResponse.json({ error: "Email already exists for this school." }, { status: 409 })
+      return NextResponse.json({ error: "A user with this email already exists in this school." }, { status: 409 })
     }
-    return NextResponse.json({ error: "Failed to link parent" }, { status: 500 })
+    return NextResponse.json({ error: e.message || "Failed to link parent" }, { status: 500 })
   }
 }
 
