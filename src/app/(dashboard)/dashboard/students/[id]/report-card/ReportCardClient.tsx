@@ -3,25 +3,10 @@
 import { useRouter } from "next/navigation"
 import { Printer, ArrowLeft, GraduationCap } from "lucide-react"
 import { formatDate, cn } from "@/lib/utils"
+import { ghanaGrade, ghanaGradeColor, ghanaRemark, GHANA_GRADE_KEY } from "@/lib/grading"
 
 type Mark = { subject: string; code: string | null; marks: number; grade: string | null }
 type Exam = { id: string; title: string; term: string | null; academicYear: string | null }
-
-function gradeColor(m: number) {
-  if (m >= 80) return "text-emerald-700"
-  if (m >= 60) return "text-blue-700"
-  if (m >= 50) return "text-amber-700"
-  return "text-red-600"
-}
-
-function gradeRemark(m: number) {
-  if (m >= 80) return "Excellent"
-  if (m >= 75) return "Very Good"
-  if (m >= 65) return "Good"
-  if (m >= 55) return "Average"
-  if (m >= 50) return "Pass"
-  return "Fail"
-}
 
 export default function ReportCardClient({
   student, exam, exams, marks, stats, school,
@@ -41,14 +26,7 @@ export default function ReportCardClient({
     router.push(`/dashboard/students/${student.id}/report-card?examId=${examId}`)
   }
 
-  const overallGrade = stats.average >= 80 ? "A+"
-    : stats.average >= 75 ? "A"
-    : stats.average >= 70 ? "B+"
-    : stats.average >= 65 ? "B"
-    : stats.average >= 60 ? "C+"
-    : stats.average >= 55 ? "C"
-    : stats.average >= 50 ? "D"
-    : "F"
+  const overallGrade = ghanaGrade(stats.average)
 
   return (
     <div>
@@ -149,16 +127,16 @@ export default function ReportCardClient({
                         {m.subject}
                         {m.code && <span className="ml-1.5 text-xs text-gray-400 font-mono">{m.code}</span>}
                       </td>
-                      <td className={cn("px-4 py-2.5 text-center font-extrabold text-lg", gradeColor(m.marks))}>
+                      <td className={cn("px-4 py-2.5 text-center font-extrabold text-lg", ghanaGradeColor(m.marks))}>
                         {m.marks}
                       </td>
                       <td className="px-4 py-2.5 text-center">
-                        <span className={cn("text-sm font-extrabold", gradeColor(m.marks))}>
-                          {m.grade ?? (m.marks >= 80 ? "A+" : m.marks >= 75 ? "A" : m.marks >= 70 ? "B+" : m.marks >= 65 ? "B" : m.marks >= 60 ? "C+" : m.marks >= 55 ? "C" : m.marks >= 50 ? "D" : "F")}
+                        <span className={cn("text-sm font-extrabold", ghanaGradeColor(m.marks))}>
+                          {m.grade ?? ghanaGrade(m.marks)}
                         </span>
                       </td>
-                      <td className={cn("px-4 py-2.5 text-xs font-medium", gradeColor(m.marks))}>
-                        {gradeRemark(m.marks)}
+                      <td className={cn("px-4 py-2.5 text-xs font-medium", ghanaGradeColor(m.marks))}>
+                        {ghanaRemark(m.marks)}
                       </td>
                     </tr>
                   ))}
@@ -173,10 +151,10 @@ export default function ReportCardClient({
                       <span className="text-xs text-gray-400 block">/ 100</span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={cn("text-xl font-extrabold", gradeColor(stats.average))}>{overallGrade}</span>
+                      <span className={cn("text-xl font-extrabold", ghanaGradeColor(stats.average))}>{overallGrade}</span>
                     </td>
-                    <td className={cn("px-4 py-3 text-xs font-bold", gradeColor(stats.average))}>
-                      {gradeRemark(stats.average)}
+                    <td className={cn("px-4 py-3 text-xs font-bold", ghanaGradeColor(stats.average))}>
+                      {ghanaRemark(stats.average)}
                     </td>
                   </tr>
                 </tfoot>
@@ -196,24 +174,17 @@ export default function ReportCardClient({
                 ))}
               </div>
 
-              {/* Grade key */}
+              {/* Grade Key — Ghana BECE numeric scale */}
               <div className="mt-5 border border-gray-100 rounded-xl p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Grade Key</p>
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Grade Key (Ghana BECE Scale)</p>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {[
-                    { range: "80–100", grade: "A+", label: "Excellent" },
-                    { range: "75–79", grade: "A", label: "Very Good" },
-                    { range: "70–74", grade: "B+", label: "Good" },
-                    { range: "65–69", grade: "B", label: "Good" },
-                    { range: "60–64", grade: "C+", label: "Average" },
-                    { range: "55–59", grade: "C", label: "Average" },
-                    { range: "50–54", grade: "D", label: "Pass" },
-                    { range: "0–49", grade: "F", label: "Fail" },
-                  ].map(g => (
+                  {GHANA_GRADE_KEY.map(g => (
                     <div key={g.grade} className="flex items-center gap-1 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1">
                       <span className="font-bold text-gray-700">{g.grade}</span>
                       <span className="text-gray-400">=</span>
                       <span className="text-gray-500">{g.range}</span>
+                      <span className="text-gray-400">·</span>
+                      <span className="text-gray-500">{g.remark}</span>
                     </div>
                   ))}
                 </div>

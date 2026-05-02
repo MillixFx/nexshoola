@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { ghanaGrade, ghanaRemark } from "@/lib/grading"
 
 // GET /api/marks?examId=...&classId=...
 export async function GET(req: NextRequest) {
@@ -46,16 +47,21 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { studentId, subjectId, examId, marks, grade, remark } = await req.json()
+  const { studentId, subjectId, examId, marks } = await req.json()
 
   if (!studentId || !subjectId || !examId || marks === undefined) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
+  const score = parseFloat(marks)
+  // Auto-compute Ghana BECE numeric grade (1–9) and remark
+  const computedGrade  = String(ghanaGrade(score))
+  const computedRemark = ghanaRemark(score)
+
   const mark = await prisma.subjectMark.upsert({
     where: { studentId_subjectId_examId: { studentId, subjectId, examId } },
-    create: { studentId, subjectId, examId, marks: parseFloat(marks), grade: grade || null, remark: remark || null },
-    update: { marks: parseFloat(marks), grade: grade || null, remark: remark || null },
+    create: { studentId, subjectId, examId, marks: score, grade: computedGrade, remark: computedRemark },
+    update: { marks: score, grade: computedGrade, remark: computedRemark },
   })
 
   return NextResponse.json(mark, { status: 201 })

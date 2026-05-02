@@ -65,7 +65,8 @@ export default function FinanceClient({
   const [slipStatusFilter, setSlipStatusFilter] = useState("")
 
   // Forms
-  const [payForm, setPayForm] = useState({ studentId: "", feeItemId: "", amount: "", method: "CASH", reference: "", note: "" })
+  const [payForm, setPayForm] = useState({ studentId: "", feeItemId: "", slipId: "", amount: "", method: "CASH", reference: "", note: "" })
+  const [paySlipBalance, setPaySlipBalance] = useState<{ owed: number; paid: number } | null>(null)
   const [feeForm, setFeeForm] = useState({ title: "", amount: "", classId: "", term: "Term 1", academicYear: new Date().getFullYear().toString() })
   const [paystackForm, setPaystackForm] = useState({ feeItemId: "", amount: "" })
   const [assignForm, setAssignForm] = useState({ feeItemId: "", classId: "", dueDate: "" })
@@ -88,6 +89,19 @@ export default function FinanceClient({
       .finally(() => setSlipsLoading(false))
   }, [tab, slipClassFilter, slipFeeFilter, slipStatusFilter])
 
+  function openPayModal(opts: { studentId?: string; feeItemId?: string; slipId?: string; amount?: number; owed?: number; paid?: number } = {}) {
+    setPayForm({
+      studentId: opts.studentId ?? "",
+      feeItemId: opts.feeItemId ?? "",
+      slipId:    opts.slipId    ?? "",
+      amount:    opts.amount != null ? String(opts.amount) : "",
+      method: "CASH", reference: "", note: "",
+    })
+    setPaySlipBalance(opts.owed != null ? { owed: opts.owed, paid: opts.paid ?? 0 } : null)
+    setError("")
+    setShowPayment(true)
+  }
+
   async function handlePayment(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError("")
     try {
@@ -96,10 +110,15 @@ export default function FinanceClient({
         body: JSON.stringify({ ...payForm, schoolId }),
       })
       if (!res.ok) throw new Error((await res.json()).error)
-      const tx = await res.json()
+      const { transaction: tx, slip } = await res.json()
       setTransactions(prev => [tx, ...prev])
+      // Refresh fee slips list if we're on that tab
+      if (slip) {
+        setFeeSlips(prev => prev.map(s => s.id === slip.id ? { ...s, paidAmount: slip.paidAmount, status: slip.status, paidAt: slip.paidAt } : s))
+      }
       setShowPayment(false)
-      setPayForm({ studentId: "", feeItemId: "", amount: "", method: "CASH", reference: "", note: "" })
+      setPayForm({ studentId: "", feeItemId: "", slipId: "", amount: "", method: "CASH", reference: "", note: "" })
+      setPaySlipBalance(null)
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
@@ -182,7 +201,7 @@ export default function FinanceClient({
                   <FileText className="w-4 h-4" />
                   <span className="hidden sm:inline">Fee Item</span>
                 </button>
-                <button onClick={() => { setShowPayment(true); setError("") }} className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm">
+                <button onClick={() => openPayModal()} className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm">
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Record Payment</span>
                 </button>
@@ -375,40 +394,72 @@ export default function FinanceClient({
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[560px]">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-gray-100 bg-gray-50">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Class</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Fee</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Amount</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Owed</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Paid</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    {isAdmin && <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Action</th>}
                   </tr></thead>
                   <tbody className="divide-y divide-gray-50">
-                    {feeSlips.map(slip => (
-                      <tr key={slip.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-gray-900">{slip.student.user.name}</p>
-                          <p className="text-xs text-gray-400">{slip.student.user.email}</p>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">
-                          {slip.student.class ? `${slip.student.class.name}${slip.student.class.section ? ` ${slip.student.class.section}` : ""}` : "—"}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
-                          <p className="text-xs">{slip.feeItem.title}</p>
-                          {slip.feeItem.term && <p className="text-xs text-gray-400">{slip.feeItem.term}</p>}
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold text-gray-800">{formatCurrency(slip.amount)}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={cn("text-xs font-bold px-2.5 py-0.5 rounded-full", STATUS_COLORS[slip.status] ?? "bg-gray-100 text-gray-600")}>
-                            {slip.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right text-xs text-gray-400 hidden sm:table-cell">
-                          {slip.paidAt ? formatDate(slip.paidAt) : "—"}
-                        </td>
-                      </tr>
-                    ))}
+                    {feeSlips.map(slip => {
+                      const outstanding = slip.amount - slip.paidAmount
+                      return (
+                        <tr key={slip.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-gray-900">{slip.student.user.name}</p>
+                            <p className="text-xs text-gray-400">{slip.student.user.email}</p>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">
+                            {slip.student.class ? `${slip.student.class.name}${slip.student.class.section ? ` ${slip.student.class.section}` : ""}` : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                            <p className="text-xs">{slip.feeItem.title}</p>
+                            {slip.feeItem.term && <p className="text-xs text-gray-400">{slip.feeItem.term}</p>}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <p className="font-semibold text-gray-800">{formatCurrency(slip.amount)}</p>
+                            {outstanding > 0 && outstanding < slip.amount && (
+                              <p className="text-[10px] text-amber-600 font-medium">{formatCurrency(outstanding)} left</p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right hidden sm:table-cell">
+                            {slip.paidAmount > 0 ? (
+                              <span className="text-sm font-semibold text-emerald-600">{formatCurrency(slip.paidAmount)}</span>
+                            ) : <span className="text-xs text-gray-300">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={cn("text-xs font-bold px-2.5 py-0.5 rounded-full", STATUS_COLORS[slip.status] ?? "bg-gray-100 text-gray-600")}>
+                              {slip.status}
+                            </span>
+                          </td>
+                          {isAdmin && (
+                            <td className="px-4 py-3 text-center">
+                              {slip.status !== "PAID" ? (
+                                <button
+                                  onClick={() => openPayModal({
+                                    studentId: slip.student.id,
+                                    feeItemId: slip.feeItem.id,
+                                    slipId:    slip.id,
+                                    amount:    Math.max(0, outstanding),
+                                    owed:      slip.amount,
+                                    paid:      slip.paidAmount,
+                                  })}
+                                  className="text-xs bg-indigo-50 text-indigo-700 font-semibold px-3 py-1 rounded-full hover:bg-indigo-100 whitespace-nowrap"
+                                >
+                                  + Pay
+                                </button>
+                              ) : (
+                                <span className="text-xs text-emerald-500 font-semibold">✓ Done</span>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -482,6 +533,21 @@ export default function FinanceClient({
             </div>
             <form onSubmit={handlePayment} className="p-6 space-y-4">
               {error && <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
+
+              {/* Outstanding balance banner (shown when opened from a fee slip row) */}
+              {paySlipBalance && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">Outstanding Balance</p>
+                    <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paySlipBalance.owed - paySlipBalance.paid)}</p>
+                  </div>
+                  <div className="text-right text-xs text-amber-600">
+                    <p>Total: {formatCurrency(paySlipBalance.owed)}</p>
+                    <p>Paid: {formatCurrency(paySlipBalance.paid)}</p>
+                  </div>
+                </div>
+              )}
+
               <div><label className="label">Student</label>
                 <select className="input" value={payForm.studentId} onChange={e => setPayForm(f => ({ ...f, studentId: e.target.value }))}>
                   <option value="">— Select student —</option>

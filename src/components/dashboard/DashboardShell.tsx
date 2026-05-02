@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Sidebar from "./Sidebar"
 import Header from "./Header"
+import SessionWatcher from "./SessionWatcher"
 
 interface Notice { id: string; title: string; content: string; priority: string; createdAt: string | Date }
 
@@ -32,6 +33,9 @@ export default function DashboardShell({ children, userName, schoolName, role, n
           {children}
         </main>
       </div>
+
+      {/* Session inactivity watcher — shows warning after 25 min, auto-logs out after 30 min */}
+      <SessionWatcher />
     </div>
   )
 }

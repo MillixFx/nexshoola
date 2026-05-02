@@ -7,7 +7,11 @@ import { Role } from "@prisma/client"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge:    60 * 60,      // absolute max: 1 hour
+    updateAge: 5  * 60,     // refresh token every 5 min while active
+  },
   pages: {
     signIn: "/login",
     error: "/login",

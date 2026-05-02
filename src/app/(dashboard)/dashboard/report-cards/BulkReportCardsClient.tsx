@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Printer, FileText, Loader2, GraduationCap } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import { cn } from "@/lib/utils"
+import { ghanaGrade, ghanaGradeColor, ghanaRemark, GHANA_GRADE_KEY } from "@/lib/grading"
 
 type Class = { id: string; name: string; section: string | null }
 type Exam = { id: string; title: string; term: string | null; academicYear: string | null }
@@ -17,31 +18,6 @@ type Report = {
   }
   marks: Mark[]
   stats: { total: number; average: number; rank: number | null; classSize: number | null }
-}
-
-function gradeColor(m: number) {
-  if (m >= 80) return "text-emerald-700"
-  if (m >= 60) return "text-blue-700"
-  if (m >= 50) return "text-amber-700"
-  return "text-red-600"
-}
-function gradeLetter(m: number) {
-  if (m >= 80) return "A+"
-  if (m >= 75) return "A"
-  if (m >= 70) return "B+"
-  if (m >= 65) return "B"
-  if (m >= 60) return "C+"
-  if (m >= 55) return "C"
-  if (m >= 50) return "D"
-  return "F"
-}
-function gradeRemark(m: number) {
-  if (m >= 80) return "Excellent"
-  if (m >= 75) return "Very Good"
-  if (m >= 65) return "Good"
-  if (m >= 55) return "Average"
-  if (m >= 50) return "Pass"
-  return "Fail"
 }
 
 export default function BulkReportCardsClient({
@@ -218,9 +194,13 @@ export default function BulkReportCardsClient({
                           <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                             <td className="px-3 py-2 text-gray-400 text-xs">{i + 1}</td>
                             <td className="px-3 py-2 font-medium text-gray-900">{m.subject}</td>
-                            <td className={cn("px-3 py-2 text-center font-extrabold text-base", gradeColor(m.marks))}>{m.marks}</td>
-                            <td className="px-3 py-2 text-center"><span className={cn("text-sm font-extrabold", gradeColor(m.marks))}>{m.grade ?? gradeLetter(m.marks)}</span></td>
-                            <td className={cn("px-3 py-2 text-xs font-medium", gradeColor(m.marks))}>{gradeRemark(m.marks)}</td>
+                            <td className={cn("px-3 py-2 text-center font-extrabold text-base", ghanaGradeColor(m.marks))}>{m.marks}</td>
+                            <td className="px-3 py-2 text-center">
+                              <span className={cn("text-sm font-extrabold", ghanaGradeColor(m.marks))}>
+                                {m.grade ?? ghanaGrade(m.marks)}
+                              </span>
+                            </td>
+                            <td className={cn("px-3 py-2 text-xs font-medium", ghanaGradeColor(m.marks))}>{ghanaRemark(m.marks)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -228,8 +208,12 @@ export default function BulkReportCardsClient({
                         <tr className="border-t-2 border-indigo-200 bg-indigo-50">
                           <td colSpan={2} className="px-3 py-2.5 font-bold text-gray-900 uppercase text-xs">Total / Average</td>
                           <td className="px-3 py-2.5 text-center"><span className="text-base font-extrabold text-indigo-700">{r.stats.average.toFixed(1)}</span></td>
-                          <td className="px-3 py-2.5 text-center"><span className={cn("text-lg font-extrabold", gradeColor(r.stats.average))}>{gradeLetter(r.stats.average)}</span></td>
-                          <td className={cn("px-3 py-2.5 text-xs font-bold", gradeColor(r.stats.average))}>{gradeRemark(r.stats.average)}</td>
+                          <td className="px-3 py-2.5 text-center">
+                            <span className={cn("text-lg font-extrabold", ghanaGradeColor(r.stats.average))}>
+                              {ghanaGrade(r.stats.average)}
+                            </span>
+                          </td>
+                          <td className={cn("px-3 py-2.5 text-xs font-bold", ghanaGradeColor(r.stats.average))}>{ghanaRemark(r.stats.average)}</td>
                         </tr>
                       </tfoot>
                     </table>
