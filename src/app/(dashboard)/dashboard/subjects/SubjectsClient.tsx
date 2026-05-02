@@ -52,7 +52,7 @@ export default function SubjectsClient({ subjects: initial, schoolId }: { subjec
   }
 
   const columns: Column<Subject>[] = [
-    { key: "title", label: "Subject", render: s => <span className="font-medium text-gray-900">{s.title}</span> },
+    { key: "title", label: "Subject", primary: true, render: s => <span className="font-medium text-gray-900">{s.title}</span> },
     { key: "code", label: "Code", render: s => s.code ?? "—" },
     { key: "group", label: "Group", render: s => s.group ? <span className="text-xs bg-indigo-50 text-indigo-700 font-semibold px-2 py-0.5 rounded-full">{s.group}</span> : "—" },
     { key: "bookTitle", label: "Textbook", render: s => s.bookTitle ? `${s.bookTitle}${s.bookWriter ? ` — ${s.bookWriter}` : ""}` : "—" },
@@ -71,7 +71,7 @@ export default function SubjectsClient({ subjects: initial, schoolId }: { subjec
           <button onClick={openAdd} className="text-sm font-semibold text-indigo-600 hover:underline mt-2">+ Add Subject</button>
         </div>
       ) : (
-        <DataTable columns={columns} data={subjects} keyField="id" searchPlaceholder="Search subjects…" searchKeys={["title", "code"]} actions={(s) => (
+        <DataTable columns={columns} data={subjects} keyField="id" viewKey="subjects" searchPlaceholder="Search subjects…" searchKeys={["title", "code"]} actions={(s) => (
           <div className="flex gap-1 justify-end">
             <button onClick={() => openEdit(s)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"><Pencil className="w-3.5 h-3.5" /></button>
             <button onClick={() => handleDelete(s.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>

@@ -58,6 +58,7 @@ export default function ParentsClient({ parents: initial, schoolId }: { parents:
     {
       key: "user",
       label: "Parent",
+      primary: true,
       render: p => (
         <button
           type="button"
@@ -93,7 +94,7 @@ export default function ParentsClient({ parents: initial, schoolId }: { parents:
           <button onClick={openAdd} className="text-sm font-semibold text-indigo-600 hover:underline mt-2">+ Add Parent</button>
         </div>
       ) : (
-        <DataTable columns={columns} data={parents} keyField="id" searchPlaceholder="Search parents…" searchKeys={["user"] as any} actions={(p) => (
+        <DataTable columns={columns} data={parents} keyField="id" viewKey="parents" searchPlaceholder="Search parents…" searchKeys={["user"] as any} actions={(p) => (
           <div className="flex gap-1 justify-end">
             <button onClick={() => handleDelete(p.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
           </div>

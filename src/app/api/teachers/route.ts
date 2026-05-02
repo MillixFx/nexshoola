@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const {
       schoolId, name, email, password, phone,
       teacherId, qualification, designation, department,
-      joiningDate, gender, address,
+      joiningDate, gender, address, photo,
       role = "TEACHER",
     } = body
 
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
             schoolId, teacherId, qualification, designation, department,
             joiningDate: joiningDate ? new Date(joiningDate) : undefined,
             gender, address,
+            photo: photo || null,
           },
         },
       },

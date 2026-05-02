@@ -197,7 +197,7 @@ export default function ClassesClient({ classes: initial, teachers, subjects, sc
   // ── Table columns ─────────────────────────────────────────────────────────
   const columns: Column<ClassWithDetails>[] = [
     {
-      key: "name", label: "Class Name",
+      key: "name", label: "Class Name", primary: true,
       render: c => (
         <span className="font-medium text-gray-900">
           {c.name}{c.section ? ` — ${c.section}` : ""}
@@ -267,6 +267,7 @@ export default function ClassesClient({ classes: initial, teachers, subjects, sc
           columns={columns}
           data={classes}
           keyField="id"
+          viewKey="classes"
           searchPlaceholder="Search classes…"
           searchKeys={["name", "code"]}
           actions={(c) => (

@@ -299,6 +299,7 @@ export default function StudentsClient({ students: initial, classes, schoolId, i
     {
       key: "user",
       label: "Student",
+      primary: true,
       render: (s) => (
         <Link href={`/dashboard/students/${s.id}`} className="flex items-center gap-3 group">
           <StudentAvatar name={s.user.name} photo={s.photo} size="sm" />
@@ -374,6 +375,9 @@ export default function StudentsClient({ students: initial, classes, schoolId, i
           columns={columns}
           data={students}
           keyField="id"
+          viewKey="students"
+          photoUrl={s => s.photo}
+          initials={s => s.user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
           searchPlaceholder="Search by name or email…"
           searchKeys={["user"] as any}
           emptyMessage="No students match your search."

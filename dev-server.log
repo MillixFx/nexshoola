@@ -1,0 +1,21 @@
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.137.1:3000
+- Environments: .env.local
+✓ Ready in 1596ms
+⚠ Slow filesystem detected. The benchmark took 361ms. If C:\Users\micha.MillixFx\Desktop\nexschoola\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+- Experiments (use with caution):
+  · optimizePackageImports
+
+○ Compiling / ...
+ GET / 200 in 504ms (next.js: 13ms, proxy.ts: 19ms, application-code: 473ms)
+ GET / 200 in 2.1s (next.js: 12ms, proxy.ts: 850ms, application-code: 1257ms)
+ GET /api/auth/session 200 in 7.5s (next.js: 7.4s, proxy.ts: 41ms, application-code: 110ms)
+ GET /api/auth/session 200 in 923ms (next.js: 471ms, proxy.ts: 40ms, application-code: 411ms)
+ GET /api/auth/session 200 in 235ms (next.js: 113ms, proxy.ts: 34ms, application-code: 88ms)
+ GET /api/auth/session 200 in 412ms (next.js: 278ms, proxy.ts: 65ms, application-code: 69ms)
+✓ Compiled in 519ms
+ GET / 200 in 1364ms (next.js: 558ms, proxy.ts: 347ms, application-code: 459ms)
+ GET / 200 in 204ms (next.js: 7ms, proxy.ts: 33ms, application-code: 164ms)
+✓ Compiled in 236ms

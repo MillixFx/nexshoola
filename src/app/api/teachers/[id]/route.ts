@@ -20,7 +20,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const {
       name, email, phone, isActive,
       teacherId, qualification, designation, department,
-      joiningDate, gender, address, role,
+      joiningDate, gender, address, role, photo,
     } = body
 
     const teacher = await prisma.teacher.findUnique({ where: { id } })
@@ -44,6 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         ...(department    !== undefined ? { department }    : {}),
         ...(gender        !== undefined ? { gender }        : {}),
         ...(address       !== undefined ? { address }       : {}),
+        ...(photo         !== undefined ? { photo: photo || null } : {}),
         ...(joiningDate ? { joiningDate: new Date(joiningDate) } : {}),
       },
       select: teacherSelect,
