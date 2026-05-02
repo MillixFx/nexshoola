@@ -3,12 +3,13 @@
 import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, Pencil, Trash2, Users, Eye, Camera, Search, Loader2, X } from "lucide-react"
+import { Plus, Pencil, Trash2, Users, Eye, Camera, Search, Loader2, X, CreditCard } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
 import { formatDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import ConfirmModal from "@/components/dashboard/ConfirmModal"
+import IDCard, { StudentCardData, SchoolInfo } from "@/components/dashboard/IDCard"
 
 type Student = {
   id: string
@@ -16,6 +17,9 @@ type Student = {
   studentId: string | null
   gender: string | null
   admissionDate: string | Date
+  dateOfBirth?: string | Date | null
+  bloodGroup?: string | null
+  nationality?: string | null
   isActive: boolean
   photo?: string | null
   user: { name: string; email: string; phone: string | null; isActive: boolean }
@@ -36,6 +40,7 @@ interface Props {
   classes: Class[]
   schoolId: string
   isParent?: boolean
+  school?: SchoolInfo | null
 }
 
 const GENDERS = ["MALE", "FEMALE", "OTHER"]
@@ -75,11 +80,12 @@ function StudentAvatar({ name, photo, size = "sm" }: { name: string; photo?: str
   )
 }
 
-export default function StudentsClient({ students: initial, classes, schoolId, isParent = false }: Props) {
+export default function StudentsClient({ students: initial, classes, schoolId, isParent = false, school }: Props) {
   const router = useRouter()
   const [students, setStudents] = useState(initial)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Student | null>(null)
+  const [idCardStudent, setIdCardStudent] = useState<Student | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -379,6 +385,13 @@ export default function StudentsClient({ students: initial, classes, schoolId, i
               >
                 <Eye className="w-3.5 h-3.5" />
               </Link>
+              <button
+                onClick={() => setIdCardStudent(s)}
+                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                title="ID Card"
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+              </button>
               {!isParent && (
                 <>
                   <button
@@ -722,6 +735,28 @@ export default function StudentsClient({ students: initial, classes, schoolId, i
         onConfirm={() => { confirmModal?.onConfirm(); setConfirmModal(null) }}
         onCancel={() => setConfirmModal(null)}
       />
+
+      {idCardStudent && school && (
+        <IDCard
+          data={{
+            type: "student",
+            name: idCardStudent.user.name,
+            photo: idCardStudent.photo,
+            className: idCardStudent.class
+              ? `${idCardStudent.class.name}${idCardStudent.class.section ? ` – ${idCardStudent.class.section}` : ""}`
+              : null,
+            studentId: idCardStudent.studentId,
+            rollNumber: idCardStudent.rollNumber,
+            dateOfBirth: idCardStudent.dateOfBirth,
+            gender: idCardStudent.gender,
+            admissionDate: idCardStudent.admissionDate,
+            bloodGroup: idCardStudent.bloodGroup,
+            nationality: idCardStudent.nationality,
+          } satisfies StudentCardData}
+          school={school}
+          onClose={() => setIdCardStudent(null)}
+        />
+      )}
     </div>
   )
 }

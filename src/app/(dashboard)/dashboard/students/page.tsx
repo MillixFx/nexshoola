@@ -32,12 +32,13 @@ export default async function StudentsPage() {
     }
   }
 
-  const [students, classes] = await Promise.all([
+  const [students, classes, school] = await Promise.all([
     prisma.student.findMany({
       where: studentFilter,
       select: {
         id: true, rollNumber: true, studentId: true, gender: true,
         admissionDate: true, isActive: true, photo: true,
+        dateOfBirth: true, bloodGroup: true, nationality: true,
         user: { select: { name: true, email: true, phone: true, isActive: true } },
         class: { select: { name: true, section: true } },
       },
@@ -47,7 +48,11 @@ export default async function StudentsPage() {
       where: { schoolId },
       orderBy: { name: "asc" },
     }),
+    prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { name: true, logo: true, address: true, phone: true, email: true, headmaster: true },
+    }),
   ])
 
-  return <StudentsClient students={students} classes={classes} schoolId={schoolId} isParent={isParent} />
+  return <StudentsClient students={students} classes={classes} schoolId={schoolId} isParent={isParent} school={school} />
 }
