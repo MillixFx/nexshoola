@@ -15,12 +15,12 @@ export default function Hero() {
       {/* Source: Unsplash — free for commercial use, no attribution required */}
       <div className="absolute inset-0 pointer-events-none">
         <Image
-          src="https://images.unsplash.com/photo-1497486751825-1233686d5d80?auto=format&fit=crop&w=2400&q=70"
-          alt="Ghanaian school children in classroom"
+          src="https://images.unsplash.com/photo-1567057419565-4349c49d8a04?auto=format&fit=crop&w=2400&q=70"
+          alt="Children learning inside a classroom"
           fill
           priority
           sizes="100vw"
-          className="object-cover opacity-25 mix-blend-luminosity"
+          className="object-cover opacity-40 mix-blend-luminosity"
         />
         {/* Indigo wash on top so the photo blends seamlessly with the gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/85 via-indigo-900/80 to-indigo-800/70" />
