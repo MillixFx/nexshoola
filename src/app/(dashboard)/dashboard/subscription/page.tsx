@@ -3,42 +3,38 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import SubscriptionClient from "./SubscriptionClient"
 
+export const dynamic = "force-dynamic"
+
 export default async function SubscriptionPage() {
   const session = await auth()
-  const role = session?.user?.role
+  const role    = session?.user?.role
   const schoolId = session?.user?.schoolId
 
-  // Only admins can manage subscription
   if (!["ADMIN", "HEADMASTER"].includes(role ?? "")) redirect("/dashboard")
   if (!schoolId) redirect("/dashboard")
 
-  const [school, studentCount, platformConfig] = await Promise.all([
+  const [school, platformConfig] = await Promise.all([
     prisma.school.findUnique({
       where: { id: schoolId },
       select: {
-        id: true,
-        name: true,
-        plan: true,
-        planExpiry: true,
-        subscriptionPaidAt: true,
-        subscriptionNotes: true,
-        paystackRef: true,
+        id: true, name: true, plan: true,
+        planExpiry: true, subscriptionPaidAt: true,
+        subscriptionNotes: true, paystackRef: true,
       },
     }),
-    prisma.student.count({ where: { schoolId, isActive: true } }),
     prisma.platformConfig.findFirst({
-      select: { feePerStudentTermly: true, currency: true, siteName: true },
+      select: {
+        currency: true,
+        supportEmail: true,
+        planPriceBasic: true,
+        planPricePro: true,
+      },
     }),
   ])
 
   if (!school) redirect("/dashboard")
 
-  const feePerStudent = platformConfig?.feePerStudentTermly ?? 15
-  const totalOwed = feePerStudent * studentCount
-  const currency = platformConfig?.currency ?? "GHS"
-
-  // Subscription status
-  const now = new Date()
+  const now      = new Date()
   const isActive = school.planExpiry ? school.planExpiry > now : false
   const daysLeft = school.planExpiry
     ? Math.max(0, Math.ceil((school.planExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
@@ -55,13 +51,15 @@ export default async function SubscriptionPage() {
         subscriptionNotes: school.subscriptionNotes,
         paystackRef: school.paystackRef,
       }}
-      studentCount={studentCount}
-      feePerStudent={feePerStudent}
-      totalOwed={totalOwed}
-      currency={currency}
+      planPrices={{
+        BASIC: platformConfig?.planPriceBasic ?? 500,
+        PRO:   platformConfig?.planPricePro   ?? 1200,
+      }}
+      currency={platformConfig?.currency ?? "GHS"}
       isActive={isActive}
       daysLeft={daysLeft}
       userEmail={session?.user?.email ?? ""}
+      supportEmail={platformConfig?.supportEmail ?? ""}
     />
   )
 }

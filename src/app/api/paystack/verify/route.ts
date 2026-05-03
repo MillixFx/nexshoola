@@ -29,18 +29,32 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/dashboard/finance?success=payment_confirmed", req.url))
 
       } else if (type === "SUBSCRIPTION" || type === "PLATFORM_FEE") {
-        // Platform subscription payment — money came to platform owner
-        // Update school's subscription status: paid for 90 days (one term)
-        const termExpiry = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+        // Platform subscription payment — yearly flat fee
+        // Extend from current expiry if still active, otherwise from now
+        const currentSchool = await prisma.school.findUnique({
+          where: { id: schoolId },
+          select: { planExpiry: true },
+        })
+        const baseDate =
+          currentSchool?.planExpiry && currentSchool.planExpiry > new Date()
+            ? currentSchool.planExpiry
+            : new Date()
+        const yearExpiry = new Date(baseDate.getTime() + 365 * 24 * 60 * 60 * 1000)
+
+        // Determine which plan was purchased (default to BASIC if not specified)
+        const VALID_PLANS = ["BASIC", "PRO", "ENTERPRISE"]
+        const purchasedPlan = VALID_PLANS.includes(metadata.selectedPlan)
+          ? metadata.selectedPlan
+          : "BASIC"
+
         await prisma.school.update({
           where: { id: schoolId },
           data: {
             subscriptionPaidAt: new Date(),
-            subscriptionNotes: `Paid via Paystack — ref: ${reference} — amount: GH₵${(result.data.amount / 100).toFixed(2)}`,
-            planExpiry: termExpiry,
+            subscriptionNotes: `${purchasedPlan} plan (yearly) — ref: ${reference} — GH₵${(result.data.amount / 100).toFixed(2)}`,
+            planExpiry: yearExpiry,
             paystackRef: reference,
-            // Upgrade to BASIC if still on FREE
-            ...(metadata.currentPlan === "FREE" && { plan: "BASIC" }),
+            plan: purchasedPlan as any,
           },
         })
         return NextResponse.redirect(new URL("/dashboard/subscription?success=paid", req.url))

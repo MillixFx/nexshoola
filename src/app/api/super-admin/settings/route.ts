@@ -17,19 +17,23 @@ export async function POST(req: NextRequest) {
   const {
     paystackSecretKey, paystackPublicKey, paystackWebhookSecret,
     feePerStudentTermly, platformFeePercent, currency, siteName, supportEmail,
+    planPriceBasic, planPricePro, planPriceEnterprise,
   } = body
 
   const existing = await prisma.platformConfig.findFirst()
 
   const data = {
-    paystackSecretKey: paystackSecretKey || null,
-    paystackPublicKey: paystackPublicKey || null,
+    paystackSecretKey:    paystackSecretKey    || null,
+    paystackPublicKey:    paystackPublicKey    || null,
     paystackWebhookSecret: paystackWebhookSecret || null,
-    feePerStudentTermly: parseFloat(feePerStudentTermly) || 15,
-    platformFeePercent: parseFloat(platformFeePercent) || 0,
-    currency: currency || "GHS",
-    siteName: siteName || "NexSchoola",
-    supportEmail: supportEmail || null,
+    feePerStudentTermly:  parseFloat(feePerStudentTermly)  || 15,
+    platformFeePercent:   parseFloat(platformFeePercent)   || 0,
+    currency:             currency             || "GHS",
+    siteName:             siteName             || "NexSchoola",
+    supportEmail:         supportEmail         || null,
+    planPriceBasic:       parseFloat(planPriceBasic)       || 500,
+    planPricePro:         parseFloat(planPricePro)         || 1200,
+    planPriceEnterprise:  parseFloat(planPriceEnterprise)  || 2500,
   }
 
   const config = existing

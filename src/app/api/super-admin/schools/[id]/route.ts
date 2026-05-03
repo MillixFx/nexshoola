@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json()
 
   const {
-    plan, isActive, subscriptionPaidAt, subscriptionNotes,
+    plan, isActive, subscriptionPaidAt, subscriptionNotes, planExpiry,
     paystackSubaccountCode, paystackBankCode, paystackAccountNumber,
     paystackAccountName, paystackBusinessName,
   } = body
@@ -19,6 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (plan !== undefined) data.plan = plan
   if (isActive !== undefined) data.isActive = isActive
   if (subscriptionPaidAt !== undefined) data.subscriptionPaidAt = subscriptionPaidAt ? new Date(subscriptionPaidAt) : null
+  if (planExpiry !== undefined) data.planExpiry = planExpiry ? new Date(planExpiry) : null
   if (subscriptionNotes !== undefined) data.subscriptionNotes = subscriptionNotes || null
   if (paystackSubaccountCode !== undefined) data.paystackSubaccountCode = paystackSubaccountCode || null
   if (paystackBankCode !== undefined) data.paystackBankCode = paystackBankCode || null

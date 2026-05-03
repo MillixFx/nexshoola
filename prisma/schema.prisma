@@ -105,10 +105,11 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   school        School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  student       Student?
-  teacher       Teacher?
-  parent        Parent?
-  employee      Employee?
+  student        Student?
+  teacher        Teacher?
+  parent         Parent?
+  employee       Employee?
+  libraryMember  LibraryMember?
   sentMessages     Message[]  @relation("SentMessages")
   receivedMessages MessageRecipient[]
   suggestions      Suggestion[]
@@ -747,6 +748,7 @@ model LibraryMember {
   userId   String  @unique
   memberId String?
 
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   issues BookIssue[]
 
   @@map("library_members")
@@ -1127,11 +1129,15 @@ model PlatformConfig {
   paystackSecretKey     String? // Platform Paystack secret key
   paystackPublicKey     String? // Platform Paystack public key
   paystackWebhookSecret String?
-  feePerStudentTermly   Float   @default(15)   // GH₵15 per student per term
+  feePerStudentTermly   Float   @default(15)   // Legacy: GH₵15 per student per term (kept for reference)
   platformFeePercent    Float   @default(0)    // % deducted from each payment (0 = school keeps 100%)
   currency              String  @default("GHS")
   siteName              String  @default("NexSchoola")
   supportEmail          String?
+  // Yearly flat plan prices (set by super admin)
+  planPriceBasic        Float   @default(500)   // GH₵500/year
+  planPricePro          Float   @default(1200)  // GH₵1200/year
+  planPriceEnterprise   Float   @default(2500)  // GH₵2500/year
   updatedAt             DateTime @updatedAt
 
   @@map("platform_configs")

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Key, Save, Check, Eye, EyeOff, DollarSign, Globe, Loader2, AlertTriangle } from "lucide-react"
+import { Key, Save, Check, Eye, EyeOff, DollarSign, Globe, Loader2, AlertTriangle, Tag } from "lucide-react"
 
 type PlatformConfig = {
   id?: string
@@ -13,24 +13,30 @@ type PlatformConfig = {
   currency?: string | null
   siteName?: string | null
   supportEmail?: string | null
+  planPriceBasic?: number | null
+  planPricePro?: number | null
+  planPriceEnterprise?: number | null
 } | null
 
 export default function PlatformSettingsClient({ config }: { config: PlatformConfig }) {
   const [form, setForm] = useState({
-    paystackSecretKey: config?.paystackSecretKey ?? "",
-    paystackPublicKey: config?.paystackPublicKey ?? "",
+    paystackSecretKey:    config?.paystackSecretKey    ?? "",
+    paystackPublicKey:    config?.paystackPublicKey    ?? "",
     paystackWebhookSecret: config?.paystackWebhookSecret ?? "",
-    feePerStudentTermly: config?.feePerStudentTermly ?? 15,
-    platformFeePercent: config?.platformFeePercent ?? 0,
-    currency: config?.currency ?? "GHS",
-    siteName: config?.siteName ?? "NexSchoola",
-    supportEmail: config?.supportEmail ?? "",
+    feePerStudentTermly:  config?.feePerStudentTermly  ?? 15,
+    platformFeePercent:   config?.platformFeePercent   ?? 0,
+    currency:             config?.currency             ?? "GHS",
+    siteName:             config?.siteName             ?? "NexSchoola",
+    supportEmail:         config?.supportEmail         ?? "",
+    planPriceBasic:       config?.planPriceBasic       ?? 500,
+    planPricePro:         config?.planPricePro         ?? 1200,
+    planPriceEnterprise:  config?.planPriceEnterprise  ?? 2500,
   })
-  const [showSecret, setShowSecret] = useState(false)
+  const [showSecret, setShowSecret]   = useState(false)
   const [showWebhook, setShowWebhook] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState("")
+  const [saving, setSaving]           = useState(false)
+  const [saved, setSaved]             = useState(false)
+  const [error, setError]             = useState("")
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError(""); setSaved(false)
@@ -45,16 +51,19 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
     } catch (err: any) { setError(err.message) } finally { setSaving(false) }
   }
 
+  const curr = form.currency === "GHS" ? "GH₵" : form.currency
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-gray-900">Platform Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Configure global API keys, fees, and platform settings</p>
+        <p className="text-sm text-gray-500 mt-1">Configure global API keys, plan pricing, and platform settings</p>
       </div>
 
       {error && <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700">{error}</div>}
 
       <form onSubmit={handleSave} className="space-y-6">
+
         {/* Paystack Keys */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-center gap-3 mb-5">
@@ -63,26 +72,26 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
             </div>
             <div>
               <h2 className="font-bold text-gray-900">Paystack API Keys</h2>
-              <p className="text-xs text-gray-400">Platform-wide Paystack keys used for all school fee collections</p>
+              <p className="text-xs text-gray-400">Platform-wide Paystack keys used for subscription payments</p>
             </div>
           </div>
           <div className="space-y-4">
             <div>
               <label className="label">Public Key</label>
-              <input className="input font-mono text-xs" value={form.paystackPublicKey} onChange={e => setForm(f => ({ ...f, paystackPublicKey: e.target.value }))} placeholder="pk_test_xxxxxxxxxxxxxxxxxxxx" />
+              <input className="input font-mono text-xs" value={form.paystackPublicKey}
+                onChange={e => setForm(f => ({ ...f, paystackPublicKey: e.target.value }))}
+                placeholder="pk_test_xxxxxxxxxxxxxxxxxxxx" />
               <p className="text-[10px] text-gray-400 mt-1">Used in frontend — safe to expose</p>
             </div>
             <div>
               <label className="label">Secret Key</label>
               <div className="relative">
-                <input
-                  type={showSecret ? "text" : "password"}
-                  className="input font-mono text-xs pr-10"
+                <input type={showSecret ? "text" : "password"} className="input font-mono text-xs pr-10"
                   value={form.paystackSecretKey}
                   onChange={e => setForm(f => ({ ...f, paystackSecretKey: e.target.value }))}
-                  placeholder="sk_test_xxxxxxxxxxxxxxxxxxxx"
-                />
-                <button type="button" onClick={() => setShowSecret(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  placeholder="sk_test_xxxxxxxxxxxxxxxxxxxx" />
+                <button type="button" onClick={() => setShowSecret(s => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -93,14 +102,12 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
             <div>
               <label className="label">Webhook Secret</label>
               <div className="relative">
-                <input
-                  type={showWebhook ? "text" : "password"}
-                  className="input font-mono text-xs pr-10"
+                <input type={showWebhook ? "text" : "password"} className="input font-mono text-xs pr-10"
                   value={form.paystackWebhookSecret}
                   onChange={e => setForm(f => ({ ...f, paystackWebhookSecret: e.target.value }))}
-                  placeholder="whsk_xxxxxxxxxxxxxxxx"
-                />
-                <button type="button" onClick={() => setShowWebhook(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  placeholder="whsk_xxxxxxxxxxxxxxxx" />
+                <button type="button" onClick={() => setShowWebhook(s => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showWebhook ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -109,31 +116,59 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
           </div>
         </div>
 
-        {/* Fee Structure */}
+        {/* Yearly Plan Prices */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-indigo-600" />
+              <Tag className="w-4 h-4 text-indigo-600" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900">Fee Structure</h2>
-              <p className="text-xs text-gray-400">Platform subscription pricing charged to each school</p>
+              <h2 className="font-bold text-gray-900">Yearly Plan Prices</h2>
+              <p className="text-xs text-gray-400">
+                Flat annual fees charged to schools. Changes apply immediately to new payments.
+                Enterprise pricing is custom — schools contact sales directly.
+              </p>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="label">Fee Per Student Per Term (GHS)</label>
-              <input
-                type="number" min="0" step="0.5" className="input"
-                value={form.feePerStudentTermly}
-                onChange={e => setForm(f => ({ ...f, feePerStudentTermly: parseFloat(e.target.value) || 0 }))}
+              <label className="label">Basic Plan ({curr}/year)</label>
+              <input type="number" min="0" step="1" className="input"
+                value={form.planPriceBasic}
+                onChange={e => setForm(f => ({ ...f, planPriceBasic: parseFloat(e.target.value) || 0 }))}
               />
-              <p className="text-[10px] text-gray-400 mt-1">Amount each school pays per enrolled student per term</p>
+              <p className="text-[10px] text-gray-400 mt-1">Up to 500 students · core modules</p>
             </div>
             <div>
-              <label className="label">Platform Fee % (on payments)</label>
-              <input
-                type="number" min="0" max="100" step="0.1" className="input"
+              <label className="label">Pro Plan ({curr}/year)</label>
+              <input type="number" min="0" step="1" className="input"
+                value={form.planPricePro}
+                onChange={e => setForm(f => ({ ...f, planPricePro: parseFloat(e.target.value) || 0 }))}
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Unlimited students · parent portal · priority support</p>
+            </div>
+          </div>
+          <p className="text-[11px] text-amber-600 mt-4 flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center text-[10px] font-bold">!</span>
+            Enterprise is contact-sales only — schools with a custom website request a quote from your sales team.
+          </p>
+        </div>
+
+        {/* Fee Structure (legacy / platform %) */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
+              <DollarSign className="w-4 h-4 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900">School Fee Processing</h2>
+              <p className="text-xs text-gray-400">% cut taken from student fee payments (set to 0 to pass full amount to school)</p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Platform Fee % (on student payments)</label>
+              <input type="number" min="0" max="100" step="0.1" className="input"
                 value={form.platformFeePercent}
                 onChange={e => setForm(f => ({ ...f, platformFeePercent: parseFloat(e.target.value) || 0 }))}
               />
@@ -148,18 +183,18 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
             <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
               <Globe className="w-4 h-4 text-gray-600" />
             </div>
-            <div>
-              <h2 className="font-bold text-gray-900">General</h2>
-            </div>
+            <h2 className="font-bold text-gray-900">General</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="label">Platform Name</label>
-              <input className="input" value={form.siteName} onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} placeholder="NexSchoola" />
+              <input className="input" value={form.siteName}
+                onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} placeholder="NexSchoola" />
             </div>
             <div>
               <label className="label">Support Email</label>
-              <input type="email" className="input" value={form.supportEmail} onChange={e => setForm(f => ({ ...f, supportEmail: e.target.value }))} placeholder="support@nexschoola.com" />
+              <input type="email" className="input" value={form.supportEmail}
+                onChange={e => setForm(f => ({ ...f, supportEmail: e.target.value }))} placeholder="support@nexschoola.com" />
             </div>
             <div>
               <label className="label">Default Currency</label>
@@ -178,7 +213,9 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
           <button
             type="submit"
             disabled={saving}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-colors ${saved ? "bg-emerald-600 text-white" : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-colors ${
+              saved ? "bg-emerald-600 text-white" : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+            }`}
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
             {saving ? "Saving…" : saved ? "Saved!" : "Save Settings"}

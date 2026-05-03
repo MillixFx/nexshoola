@@ -14,18 +14,57 @@ export default async function SubscriptionsPage() {
       include: { _count: { select: { students: true } } },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.platformConfig.findFirst(),
+    prisma.platformConfig.findFirst({
+      select: {
+        planPriceBasic: true,
+        planPricePro: true,
+        planPriceEnterprise: true,
+        currency: true,
+      },
+    }),
   ])
 
-  const feePerStudent = platformConfig?.feePerStudentTermly ?? 15
+  const planPrices = {
+    BASIC:      platformConfig?.planPriceBasic      ?? 500,
+    PRO:        platformConfig?.planPricePro        ?? 1200,
+    ENTERPRISE: platformConfig?.planPriceEnterprise ?? 2500,
+  }
 
-  const enriched = schools.map(s => ({
-    ...s,
-    studentCount: s._count.students,
-    amountDue: s._count.students * feePerStudent,
-    isPaid: !!(s.subscriptionPaidAt && new Date(s.subscriptionPaidAt) > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)),
-    isOverdue: s.plan !== "FREE" && (!s.subscriptionPaidAt || new Date(s.subscriptionPaidAt) < new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)),
-  }))
+  const now = new Date()
 
-  return <SubscriptionsClient schools={enriched as any} feePerStudent={feePerStudent} />
+  const enriched = schools.map(s => {
+    const isPaid = !!(s.planExpiry && s.planExpiry > now)
+    const isOverdue = s.plan !== "FREE" && !isPaid
+    const planPrice = s.plan === "ENTERPRISE"
+      ? planPrices.ENTERPRISE
+      : s.plan === "PRO"
+        ? planPrices.PRO
+        : s.plan === "BASIC"
+          ? planPrices.BASIC
+          : 0
+
+    return {
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      plan: s.plan,
+      isActive: s.isActive,
+      createdAt: s.createdAt,
+      subscriptionPaidAt: s.subscriptionPaidAt,
+      subscriptionNotes: s.subscriptionNotes,
+      planExpiry: s.planExpiry,
+      studentCount: s._count.students,
+      planPrice,
+      isPaid,
+      isOverdue,
+    }
+  })
+
+  return (
+    <SubscriptionsClient
+      schools={enriched as any}
+      planPrices={planPrices}
+      currency={platformConfig?.currency ?? "GHS"}
+    />
+  )
 }

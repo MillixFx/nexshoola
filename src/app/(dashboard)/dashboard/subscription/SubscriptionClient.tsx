@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { CheckCircle2, AlertTriangle, XCircle, Users, CreditCard, Calendar, Loader2, ExternalLink, ShieldCheck, Clock } from "lucide-react"
+import {
+  CheckCircle2, AlertTriangle, XCircle, CreditCard, Calendar,
+  Loader2, ExternalLink, Clock, Zap, Crown, Sparkles, Mail, Phone,
+} from "lucide-react"
 import { formatDate, cn } from "@/lib/utils"
 
 type School = {
@@ -13,70 +16,135 @@ type School = {
 
 interface Props {
   school: School
-  studentCount: number
-  feePerStudent: number
-  totalOwed: number
+  planPrices: { BASIC: number; PRO: number }
   currency: string
   isActive: boolean
   daysLeft: number
   userEmail: string
+  supportEmail: string
 }
 
-const PLAN_COLOR: Record<string, string> = {
-  FREE:       "bg-gray-100 text-gray-700",
+// ─── Plan metadata ────────────────────────────────────────────────────────────
+const PLANS = [
+  {
+    key: "BASIC" as const,
+    label: "Basic",
+    icon: Zap,
+    accent: "blue",
+    borderClass: "border-blue-200",
+    badgeClass: "bg-blue-100 text-blue-700",
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-600",
+    features: [
+      "Up to 500 students",
+      "Student & class management",
+      "Attendance tracking",
+      "Exams & report cards",
+      "HR & payroll",
+      "Notice board & calendar",
+      "Email support",
+    ],
+    popular: false,
+  },
+  {
+    key: "PRO" as const,
+    label: "Pro",
+    icon: Sparkles,
+    accent: "indigo",
+    borderClass: "border-indigo-400",
+    badgeClass: "bg-indigo-100 text-indigo-700",
+    iconBg: "bg-indigo-50",
+    iconColor: "text-indigo-600",
+    features: [
+      "Unlimited students",
+      "Everything in Basic",
+      "Parent portal access",
+      "Library borrow & return",
+      "Dormitory management",
+      "SMS notifications",
+      "Priority support",
+      "Advanced analytics",
+    ],
+    popular: true,
+  },
+  {
+    key: "ENTERPRISE" as const,
+    label: "Enterprise",
+    icon: Crown,
+    accent: "purple",
+    borderClass: "border-purple-300",
+    badgeClass: "bg-purple-100 text-purple-700",
+    iconBg: "bg-purple-50",
+    iconColor: "text-purple-600",
+    features: [
+      "Everything in Pro",
+      "Custom-branded website",
+      "Your own domain name",
+      "Dedicated account manager",
+      "Custom integrations",
+      "SLA guarantee",
+      "On-site training",
+      "White-label option",
+    ],
+    popular: false,
+  },
+]
+
+const STATUS_BADGE: Record<string, string> = {
+  FREE:       "bg-gray-100 text-gray-600",
   BASIC:      "bg-blue-50 text-blue-700",
   PRO:        "bg-indigo-50 text-indigo-700",
   ENTERPRISE: "bg-purple-50 text-purple-700",
 }
 
 export default function SubscriptionClient({
-  school, studentCount, feePerStudent, totalOwed, currency, isActive, daysLeft, userEmail,
+  school, planPrices, currency, isActive, daysLeft, userEmail, supportEmail,
 }: Props) {
   const searchParams = useSearchParams()
   const justPaid = searchParams.get("success") === "paid"
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [selected, setSelected] = useState<"BASIC" | "PRO" | "ENTERPRISE">("PRO")
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState("")
 
-  // Status helpers
+  const curr = currency === "GHS" ? "GH₵" : currency
+
   const statusColor = isActive
     ? daysLeft <= 14 ? "amber" : "emerald"
     : "red"
-
   const statusLabel = isActive
     ? daysLeft <= 14 ? "Expiring Soon" : "Active"
     : school.subscriptionPaidAt ? "Expired" : "Not Subscribed"
-
   const StatusIcon = isActive
     ? daysLeft <= 14 ? AlertTriangle : CheckCircle2
     : XCircle
 
+  const selectedPrice = selected === "BASIC" ? planPrices.BASIC : selected === "PRO" ? planPrices.PRO : null
+
   async function handlePayNow() {
+    if (!selectedPrice) return
     setLoading(true); setError("")
     try {
       const res = await fetch("/api/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(totalOwed * 100), // pesewas
+          amount: Math.round(selectedPrice * 100),
           type: "SUBSCRIPTION",
           metadata: {
             schoolId: school.id,
-            studentCount,
-            feePerStudent,
             currentPlan: school.plan,
+            selectedPlan: selected,
             email: userEmail,
-            description: `NexSchoola subscription — ${studentCount} students × GH₵${feePerStudent}`,
+            description: `NexSchoola ${selected === "BASIC" ? "Basic" : "Pro"} — 1 year`,
+            planPrice: selectedPrice,
           },
         }),
       })
       if (!res.ok) throw new Error((await res.json()).error)
       const data = await res.json()
-      if (data.authorization_url) {
-        window.location.href = data.authorization_url
-      } else {
-        throw new Error("No payment URL returned")
-      }
+      if (data.authorization_url) window.location.href = data.authorization_url
+      else throw new Error("No payment URL returned")
     } catch (err: any) {
       setError(err.message || "Payment initialization failed")
       setLoading(false)
@@ -84,26 +152,25 @@ export default function SubscriptionClient({
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-8 max-w-4xl">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-extrabold text-gray-900">Platform Subscription</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Manage your NexSchoola subscription. GH₵{feePerStudent} per student per term.
+          Choose a yearly plan for <strong>{school.name}</strong>. All plans billed annually.
         </p>
       </div>
 
-      {/* Success banner */}
+      {/* Banners */}
       {justPaid && (
         <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <div>
             <p className="text-sm font-bold text-emerald-800">Payment confirmed!</p>
-            <p className="text-xs text-emerald-600">Your subscription has been renewed for one term (90 days).</p>
+            <p className="text-xs text-emerald-600">Your subscription is now active for 1 year.</p>
           </div>
         </div>
       )}
-
-      {/* Error */}
       {error && (
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl">
           <XCircle className="w-5 h-5 text-red-500 shrink-0" />
@@ -111,130 +178,189 @@ export default function SubscriptionClient({
         </div>
       )}
 
-      {/* Status card */}
+      {/* Current status */}
       <div className={cn(
-        "rounded-2xl border-2 p-6",
+        "rounded-2xl border-2 p-5 flex items-start justify-between gap-3",
         statusColor === "emerald" && "border-emerald-200 bg-emerald-50",
-        statusColor === "amber" && "border-amber-200 bg-amber-50",
-        statusColor === "red" && "border-red-200 bg-red-50",
+        statusColor === "amber"   && "border-amber-200 bg-amber-50",
+        statusColor === "red"     && "border-red-200 bg-red-50",
       )}>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <StatusIcon className={cn(
-              "w-8 h-8",
-              statusColor === "emerald" && "text-emerald-600",
-              statusColor === "amber" && "text-amber-600",
-              statusColor === "red" && "text-red-500",
-            )} />
-            <div>
-              <p className={cn(
-                "text-lg font-bold",
-                statusColor === "emerald" && "text-emerald-800",
-                statusColor === "amber" && "text-amber-800",
-                statusColor === "red" && "text-red-700",
-              )}>
-                {statusLabel}
+        <div className="flex items-center gap-3">
+          <StatusIcon className={cn("w-7 h-7",
+            statusColor === "emerald" && "text-emerald-600",
+            statusColor === "amber"   && "text-amber-600",
+            statusColor === "red"     && "text-red-500",
+          )} />
+          <div>
+            <p className={cn("font-bold",
+              statusColor === "emerald" && "text-emerald-800",
+              statusColor === "amber"   && "text-amber-800",
+              statusColor === "red"     && "text-red-700",
+            )}>{statusLabel}</p>
+            {isActive && school.planExpiry ? (
+              <p className={cn("text-xs", statusColor === "emerald" ? "text-emerald-600" : "text-amber-600")}>
+                Expires {formatDate(school.planExpiry)} · {daysLeft} day{daysLeft !== 1 ? "s" : ""} remaining
               </p>
-              {isActive && school.planExpiry && (
-                <p className={cn(
-                  "text-sm",
-                  statusColor === "emerald" ? "text-emerald-600" : "text-amber-600",
-                )}>
-                  Expires {formatDate(school.planExpiry)} · {daysLeft} day{daysLeft !== 1 ? "s" : ""} remaining
-                </p>
+            ) : (
+              <p className="text-xs text-red-600">
+                {school.subscriptionPaidAt
+                  ? `Expired ${formatDate(school.planExpiry ?? school.subscriptionPaidAt)}`
+                  : "No active subscription — choose a plan below"}
+              </p>
+            )}
+          </div>
+        </div>
+        <span className={cn("text-xs font-bold px-3 py-1 rounded-full shrink-0", STATUS_BADGE[school.plan] ?? "bg-gray-100 text-gray-600")}>
+          {school.plan}
+        </span>
+      </div>
+
+      {/* Plan cards */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        {PLANS.map(plan => {
+          const Icon      = plan.icon
+          const isSelected = selected === plan.key
+          const isCurrent  = school.plan === plan.key && isActive
+          const price      = plan.key === "BASIC" ? planPrices.BASIC : plan.key === "PRO" ? planPrices.PRO : null
+
+          return (
+            <button
+              key={plan.key}
+              onClick={() => setSelected(plan.key)}
+              className={cn(
+                "relative text-left rounded-2xl border-2 p-5 transition-all focus:outline-none",
+                isSelected
+                  ? `${plan.borderClass} shadow-lg`
+                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm",
               )}
-              {!isActive && (
-                <p className="text-sm text-red-600">
-                  {school.subscriptionPaidAt
-                    ? `Expired on ${formatDate(school.planExpiry ?? school.subscriptionPaidAt)}`
-                    : "No active subscription — pay now to unlock all features"}
-                </p>
+            >
+              {/* Badges */}
+              {plan.popular && !isCurrent && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow">
+                  Most Popular
+                </span>
               )}
+              {isCurrent && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow">
+                  Current Plan
+                </span>
+              )}
+
+              {/* Icon + name */}
+              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-3", plan.iconBg)}>
+                <Icon className={cn("w-4 h-4", plan.iconColor)} />
+              </div>
+              <p className="font-bold text-gray-900 text-base">{plan.label}</p>
+
+              {/* Price */}
+              <div className="mt-1 mb-4">
+                {price !== null ? (
+                  <>
+                    <span className="text-2xl font-extrabold text-gray-900">{curr}{price.toLocaleString()}</span>
+                    <span className="text-xs text-gray-400 ml-1">/year</span>
+                  </>
+                ) : (
+                  <span className="text-lg font-bold text-purple-700">Custom Pricing</span>
+                )}
+              </div>
+
+              {/* Features */}
+              <ul className="space-y-2">
+                {plan.features.map(f => (
+                  <li key={f} className="flex items-start gap-2 text-xs text-gray-600">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Selected indicator */}
+              {isSelected && (
+                <div className={cn("mt-4 text-xs font-semibold flex items-center gap-1", plan.iconColor)}>
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Selected
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Action CTA */}
+      {selected === "ENTERPRISE" ? (
+        /* Enterprise — contact sales */
+        <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold">Enterprise — Let's Talk</h2>
+              <p className="text-purple-200 text-sm mt-1">
+                Get a custom-built website, your own domain, and a dedicated support team. Pricing is tailored to your school's needs.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+              {supportEmail && (
+                <a
+                  href={`mailto:${supportEmail}?subject=Enterprise Plan Enquiry — ${school.name}&body=Hi, I'm interested in the Enterprise plan for ${school.name}. Please get in touch.`}
+                  className="flex items-center justify-center gap-2 bg-white text-purple-700 font-bold text-sm px-5 py-3 rounded-xl hover:bg-purple-50 transition-colors shadow-sm"
+                >
+                  <Mail className="w-4 h-4" /> Email Sales
+                </a>
+              )}
+              <a
+                href={`https://wa.me/?text=Hi, I'm interested in the Enterprise plan for ${encodeURIComponent(school.name)} on NexSchoola.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-purple-500 text-white font-bold text-sm px-5 py-3 rounded-xl hover:bg-purple-400 transition-colors"
+              >
+                <Phone className="w-4 h-4" /> WhatsApp Us
+              </a>
             </div>
           </div>
-          <span className={cn("text-xs font-bold px-3 py-1 rounded-full", PLAN_COLOR[school.plan] ?? "bg-gray-100 text-gray-600")}>
-            {school.plan}
-          </span>
+          <p className="text-purple-300 text-xs mt-4">
+            Our sales team typically responds within 24 hours. Include your school name and student count for a faster quote.
+          </p>
         </div>
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5 text-indigo-600" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Active Students</p>
-            <p className="text-2xl font-extrabold text-gray-900">{studentCount}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-            <CreditCard className="w-5 h-5 text-amber-600" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Rate per Student</p>
-            <p className="text-2xl font-extrabold text-gray-900">GH₵{feePerStudent}</p>
-            <p className="text-xs text-gray-400">per term</p>
-          </div>
-        </div>
-
-        <div className={cn(
-          "rounded-2xl border shadow-sm p-5 flex items-center gap-4",
-          isActive ? "bg-white border-gray-100" : "bg-red-50 border-red-200"
-        )}>
-          <div className={cn(
-            "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
-            isActive ? "bg-emerald-50" : "bg-red-100"
-          )}>
-            <ShieldCheck className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-red-500")} />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Amount This Term</p>
-            <p className={cn("text-2xl font-extrabold", isActive ? "text-gray-900" : "text-red-700")}>
-              GH₵{totalOwed.toFixed(2)}
-            </p>
-            <p className="text-xs text-gray-400">{studentCount} × GH₵{feePerStudent}</p>
+      ) : (
+        /* Basic / Pro — pay now */
+        <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold">
+                {isActive ? `Renew ${selected === "BASIC" ? "Basic" : "Pro"}` : `Subscribe — ${selected === "BASIC" ? "Basic" : "Pro"}`}
+              </h2>
+              <p className="text-indigo-200 text-sm mt-1">
+                {curr}{selectedPrice?.toLocaleString()} billed annually · 365 days access
+                {isActive && daysLeft > 0 && " · extends from current expiry"}
+              </p>
+              {!isActive && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <Clock className="w-3.5 h-3.5 text-amber-300" />
+                  <p className="text-amber-200 text-xs font-medium">All features unlock immediately after payment</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handlePayNow}
+              disabled={loading}
+              className="shrink-0 flex items-center gap-2 bg-white text-indigo-700 font-bold text-sm px-5 py-3 rounded-xl hover:bg-indigo-50 disabled:opacity-60 transition-colors shadow-sm"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+              {loading ? "Loading…" : `Pay ${curr}${selectedPrice?.toLocaleString()}`}
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Payment info box */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-gray-900">How It Works</h2>
-        <div className="space-y-3 text-sm text-gray-600">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</div>
-            <p>You pay <strong>GH₵{feePerStudent} per active student</strong> each term to keep NexSchoola running for your school.</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</div>
-            <p>Payment is made securely via Paystack — card, mobile money, or bank transfer.</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</div>
-            <p>Your subscription renews for <strong>90 days (one term)</strong> immediately after payment is confirmed.</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">4</div>
-            <p>This fee is <strong>separate from school fees</strong> — school fees paid by students go directly to your school's bank account.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment history */}
+      {/* Last payment */}
       {school.subscriptionPaidAt && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-bold text-gray-900 mb-4">Last Payment</h2>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" /> Last Payment
+          </h2>
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+            <CreditCard className="w-4 h-4 text-gray-400 shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">{formatDate(school.subscriptionPaidAt)}</p>
-              {school.subscriptionNotes && (
-                <p className="text-xs text-gray-400 font-mono mt-0.5">{school.subscriptionNotes}</p>
-              )}
+              {school.subscriptionNotes && <p className="text-xs text-gray-400 font-mono mt-0.5">{school.subscriptionNotes}</p>}
             </div>
             {school.planExpiry && (
               <div className="text-right">
@@ -246,45 +372,23 @@ export default function SubscriptionClient({
         </div>
       )}
 
-      {/* Pay Now CTA */}
-      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold">
-              {isActive ? "Renew Subscription" : "Subscribe Now"}
-            </h2>
-            <p className="text-indigo-200 text-sm mt-1">
-              {studentCount} students × GH₵{feePerStudent} = <strong className="text-white">GH₵{totalOwed.toFixed(2)}</strong> for one term
-            </p>
-            {!isActive && (
-              <div className="flex items-center gap-1.5 mt-2">
-                <Clock className="w-3.5 h-3.5 text-amber-300" />
-                <p className="text-amber-200 text-xs font-medium">
-                  Features are restricted until you subscribe
-                </p>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handlePayNow}
-            disabled={loading}
-            className="shrink-0 flex items-center gap-2 bg-white text-indigo-700 font-bold text-sm px-5 py-3 rounded-xl hover:bg-indigo-50 disabled:opacity-60 transition-colors shadow-sm"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <ExternalLink className="w-4 h-4" />
-            )}
-            {loading ? "Loading…" : `Pay GH₵${totalOwed.toFixed(2)}`}
-          </button>
+      {/* How it works */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <h2 className="font-bold text-gray-900 mb-3">How It Works</h2>
+        <div className="space-y-3 text-sm text-gray-600">
+          {[
+            "Choose the plan that fits your school. Basic covers core management; Pro adds parent portal, library, and dormitory features.",
+            "Pay securely via Paystack — mobile money, card, or bank transfer. No hidden fees.",
+            "Your subscription activates immediately for 365 days. Renewing early extends from your current expiry date.",
+            "Enterprise schools get a fully custom-branded website and dedicated support — contact our sales team for a tailored quote.",
+          ].map((text, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <p>{text}</p>
+            </div>
+          ))}
         </div>
       </div>
-
-      <style jsx global>{`
-        .label { display: block; font-size: 0.75rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
-        .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
-        .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
-      `}</style>
     </div>
   )
 }
