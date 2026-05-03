@@ -3,12 +3,12 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { initializePayment, generateReference } from "@/lib/paystack"
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const slipId = params.id
+    const { id: slipId } = await params
     const userId = session.user.id
     const schoolId = session.user.schoolId
 

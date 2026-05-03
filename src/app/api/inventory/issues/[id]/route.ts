@@ -3,12 +3,12 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 // PUT: return an issued item (increment quantity, mark as returned/PAID)
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const issueId = params.id
+    const { id: issueId } = await params
 
     const updated = await prisma.$transaction(async (tx) => {
       const issue = await tx.itemIssue.findUnique({ where: { id: issueId } })

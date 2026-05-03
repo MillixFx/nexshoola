@@ -3,13 +3,15 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 // GET: list students assigned to this transport route
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+    const { id } = await params
+
     const assignments = await prisma.studentTransport.findMany({
-      where: { transportId: params.id },
+      where: { transportId: id },
       include: {
         student: {
           include: {
@@ -28,19 +30,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: assign a student to this route
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+    const { id } = await params
     const { studentId, pickupPoint } = await req.json()
     if (!studentId) return NextResponse.json({ error: "studentId is required" }, { status: 400 })
 
     // Upsert: student can only be on one route (unique on studentId)
     const assignment = await prisma.studentTransport.upsert({
       where: { studentId },
-      create: { studentId, transportId: params.id, pickupPoint: pickupPoint ?? null },
-      update: { transportId: params.id, pickupPoint: pickupPoint ?? null },
+      create: { studentId, transportId: id, pickupPoint: pickupPoint ?? null },
+      update: { transportId: id, pickupPoint: pickupPoint ?? null },
       include: {
         student: {
           include: {
@@ -58,16 +61,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // DELETE: remove a student from this route
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+    const { id } = await params
     const studentId = req.nextUrl.searchParams.get("studentId")
     if (!studentId) return NextResponse.json({ error: "studentId is required" }, { status: 400 })
 
     await prisma.studentTransport.deleteMany({
-      where: { studentId, transportId: params.id },
+      where: { studentId, transportId: id },
     })
 
     return NextResponse.json({ success: true })
