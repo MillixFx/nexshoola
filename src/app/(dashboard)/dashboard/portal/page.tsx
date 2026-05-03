@@ -7,6 +7,7 @@ import {
   GraduationCap, FileText, Calendar, ChevronRight,
   User, Users,
 } from "lucide-react"
+import FeePayButton from "./FeePayButton"
 
 export const dynamic = "force-dynamic"
 
@@ -180,6 +181,7 @@ async function StudentPortal({ userId, schoolId }: { userId: string; schoolId: s
                 slip.status === "PAID" ? "bg-emerald-50 text-emerald-700" :
                 slip.status === "PARTIAL" ? "bg-amber-50 text-amber-700" :
                 "bg-red-50 text-red-700"
+              const canPay = slip.status !== "PAID"
               return (
                 <div key={slip.id} className={`flex items-center gap-3 px-4 py-3 ${i !== 0 ? "border-t border-gray-100" : ""}`}>
                   <div className="flex-1 min-w-0">
@@ -189,12 +191,15 @@ async function StudentPortal({ userId, schoolId }: { userId: string; schoolId: s
                       {slip.dueDate ? ` · Due ${fmtDate(slip.dueDate)}` : ""}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="text-right shrink-0 mr-2">
                     <p className="text-sm font-bold text-gray-900">GH₵ {slip.amount.toLocaleString()}</p>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>
                       {slip.status}
                     </span>
                   </div>
+                  {canPay && (
+                    <FeePayButton slipId={slip.id} amount={slip.amount - slip.paidAmount} />
+                  )}
                 </div>
               )
             })}

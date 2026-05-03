@@ -16,7 +16,38 @@ export async function GET(req: NextRequest) {
       const { metadata } = result.data
       const { schoolId, userId, type } = metadata
 
-      if (type === "FEE" || type === "SCHOOL_FEE") {
+      if (type === "FEE_PAYMENT") {
+        // Student-initiated fee slip payment from portal
+        const amountPaid = result.data.amount / 100
+        const slip = await prisma.feeSlip.findFirst({ where: { paystackRef: reference } })
+        if (slip) {
+          const newPaid = slip.paidAmount + amountPaid
+          const newStatus = newPaid >= slip.amount ? "PAID" : "PARTIAL"
+          await prisma.feeSlip.update({
+            where: { id: slip.id },
+            data: {
+              paidAmount: newPaid,
+              paidAt: new Date(),
+              status: newStatus,
+            },
+          })
+          // Record a transaction
+          await prisma.transaction.create({
+            data: {
+              schoolId: metadata.schoolId,
+              amount: amountPaid,
+              type: "INCOME",
+              description: metadata.description ?? "Fee Payment",
+              reference,
+              method: "PAYSTACK",
+              studentId: metadata.studentId ?? null,
+              status: "COMPLETED",
+            },
+          })
+        }
+        return NextResponse.redirect(new URL("/dashboard/portal?success=fee_paid", req.url))
+
+      } else if (type === "FEE" || type === "SCHOOL_FEE") {
         // School fee payment — record the transaction
         await prisma.feeSlip.updateMany({
           where: { paystackRef: reference },
