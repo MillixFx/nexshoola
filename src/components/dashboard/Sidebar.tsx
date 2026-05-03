@@ -10,6 +10,7 @@ import {
   Lightbulb, Settings, ChevronLeft, ChevronDown,
   GraduationCap as Logo, UserCheck, X, Banknote,
   BarChart3, ShieldCheck, ExternalLink, CalendarDays, LayoutGrid, NotebookPen,
+  ArrowUpCircle, Briefcase,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
@@ -61,6 +62,7 @@ const NAV: NavSection[] = [
       { label: "Examinations", href: "/dashboard/examinations", icon: FileText,
         roles: ["ADMIN","HEADMASTER","TEACHER","STUDENT"] },
       { label: "Report Cards", href: "/dashboard/report-cards", icon: BarChart3,      roles: MGMT },
+      { label: "Promotion",    href: "/dashboard/promotion",    icon: ArrowUpCircle,  roles: MGMT },
     ],
   },
   {
@@ -108,6 +110,7 @@ const NAV: NavSection[] = [
     title: "HR & Admin",
     icon: Settings,
     items: [
+      { label: "HR & Employees", href: "/dashboard/hr",   icon: Briefcase,  roles: ["ADMIN","HEADMASTER","HR"] as Role[] },
       { label: "Leave",       href: "/dashboard/leave",       icon: LeaveIcon,  roles: ALL_STAFF },
       { label: "Suggestions", href: "/dashboard/suggestions", icon: Lightbulb,  roles: ALL },
       { label: "Reports",     href: "/dashboard/reports",     icon: BarChart3,

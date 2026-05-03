@@ -12,7 +12,7 @@ const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"]
 const PRIORITY_COLORS: Record<string, string> = { LOW: "bg-gray-100 text-gray-600", NORMAL: "bg-blue-50 text-blue-700", HIGH: "bg-amber-50 text-amber-700", URGENT: "bg-red-50 text-red-700" }
 const emptyForm = { title: "", content: "", audience: "ALL", priority: "NORMAL", expiresAt: "" }
 
-export default function NoticeClient({ notices: initial, schoolId }: { notices: Notice[]; schoolId: string }) {
+export default function NoticeClient({ notices: initial }: { notices: Notice[] }) {
   const [notices, setNotices] = useState(initial)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
@@ -23,7 +23,7 @@ export default function NoticeClient({ notices: initial, schoolId }: { notices: 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError("")
     try {
-      const res = await fetch("/api/notices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, schoolId }) })
+      const res = await fetch("/api/notices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
       if (!res.ok) throw new Error((await res.json()).error)
       const notice = await res.json()
       setNotices(prev => [notice, ...prev])

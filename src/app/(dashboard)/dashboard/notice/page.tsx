@@ -9,5 +9,5 @@ export default async function NoticeBoardPage() {
   const schoolId = session?.user?.schoolId
   if (!schoolId) redirect("/login")
   const notices = await prisma.notice.findMany({ where: { schoolId }, orderBy: { createdAt: "desc" } })
-  return <NoticeClient notices={notices} schoolId={schoolId} />
+  return <NoticeClient notices={notices} />
 }
