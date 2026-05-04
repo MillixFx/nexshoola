@@ -2,33 +2,33 @@ import { Star, Quote } from "lucide-react"
 
 const testimonials = [
   {
-    name: "Akosua Mensah",
-    role: "Headmistress",
-    school: "Green Valley Academy, Accra",
-    avatar: "AM",
+    name: "Mr. Isaac Duut",
+    role: "Parent",
+    school: "Christ Foundation Academy",
+    avatar: "ID",
     color: "bg-indigo-500",
     quote:
-      "NexSchoola has completely transformed how we run our school. Collecting fees via Mobile Money alone saved us hours every week. Our parents love the transparency.",
+      "My son's performance has improved a lot. We can now track his attendance and see his results directly on our phones. NexSchoola has made things so much easier for us as parents.",
     rating: 5,
   },
   {
-    name: "Kwame Asante",
-    role: "School Administrator",
-    school: "Blessed Kids School, Kumasi",
-    avatar: "KA",
+    name: "Madam Ruth Kombat",
+    role: "Parent",
+    school: "Christ Foundation Academy",
+    avatar: "RK",
     color: "bg-emerald-500",
     quote:
-      "The exam and result management module is incredible. We used to spend days printing results manually. Now it takes minutes and parents can view results on their phones.",
+      "The teachers really pay attention to every child. And with NexSchoola, I can see my child's fees, attendance and report card anytime. It gives me peace of mind.",
     rating: 5,
   },
   {
-    name: "Efua Boateng",
-    role: "Director",
-    school: "Excel International School, Takoradi",
-    avatar: "EB",
+    name: "Mr. Joseph Langbong",
+    role: "Parent",
+    school: "Christ Foundation Academy",
+    avatar: "JL",
     color: "bg-amber-500",
     quote:
-      "Finally a school management system that understands Ghana. MoMo payments, GHS currency, and it actually works. We onboarded all 3 of our branches in one day.",
+      "Discipline in this school is very strong, and the system supports it. Fee payments via Mobile Money, notices sent instantly — this is exactly what Ghanaian schools need.",
     rating: 5,
   },
 ]
