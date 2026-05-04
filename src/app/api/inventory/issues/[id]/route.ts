@@ -10,25 +10,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { id: issueId } = await params
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const issue = await tx.itemIssue.findUnique({ where: { id: issueId } })
-      if (!issue) throw new Error("Issue record not found")
-      if (issue.status === "PAID") throw new Error("Item already returned")
+    // Neon HTTP adapter does not support $transaction — run sequentially
+    const issue = await prisma.itemIssue.findUnique({ where: { id: issueId } })
+    if (!issue) return NextResponse.json({ error: "Issue record not found" }, { status: 404 })
+    if (issue.status === "PAID") return NextResponse.json({ error: "Item already returned" }, { status: 400 })
 
-      // Increment stock
-      await tx.inventoryItem.update({
-        where: { id: issue.itemId },
-        data: { quantity: { increment: issue.quantity } },
-      })
+    // Increment stock
+    await prisma.inventoryItem.update({
+      where: { id: issue.itemId },
+      data: { quantity: { increment: issue.quantity } },
+    })
 
-      // Mark as returned (using PAID as the "returned" status per schema)
-      const updated = await tx.itemIssue.update({
-        where: { id: issueId },
-        data: { status: "PAID" },
-        include: { item: { select: { name: true, unit: true } } },
-      })
-
-      return updated
+    // Mark as returned (using PAID as the "returned" status per schema)
+    const updated = await prisma.itemIssue.update({
+      where: { id: issueId },
+      data: { status: "PAID" },
+      include: { item: { select: { name: true, unit: true } } },
     })
 
     return NextResponse.json(updated)

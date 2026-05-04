@@ -62,11 +62,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Teacher not found." }, { status: 404 })
     }
 
-    // Deactivate any existing open-ended sub for this class
-    await prisma.classSubstitute.updateMany({
+    // Deactivate any existing open-ended substitutions for this class
+    // Using findMany + individual updates to avoid updateMany transaction issues on Neon HTTP
+    const existing = await prisma.classSubstitute.findMany({
       where: { classId, isActive: true, endDate: null },
-      data: { isActive: false },
+      select: { id: true },
     })
+    for (const s of existing) {
+      await prisma.classSubstitute.update({
+        where: { id: s.id },
+        data: { isActive: false },
+      })
+    }
 
     const sub = await prisma.classSubstitute.create({
       data: {
@@ -81,7 +88,8 @@ export async function POST(req: NextRequest) {
       include: subInclude,
     })
     return NextResponse.json(sub, { status: 201 })
-  } catch (e) {
-    return NextResponse.json({ error: "Failed to assign substitute." }, { status: 500 })
+  } catch (e: any) {
+    console.error("Assign substitute error:", e)
+    return NextResponse.json({ error: e.message || "Failed to assign substitute." }, { status: 500 })
   }
 }

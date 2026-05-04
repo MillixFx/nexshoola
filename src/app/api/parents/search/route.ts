@@ -1,38 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
-// GET /api/parents/search?q=&schoolId=
-// Search parents by name or email within the school; limit 10 results
+// GET /api/parents/search?q=
+// Search parents by name, phone, or email within the authenticated user's school
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const q = searchParams.get("q") ?? ""
-  const schoolId = searchParams.get("schoolId")
-
-  if (!schoolId) {
-    return NextResponse.json({ error: "schoolId required" }, { status: 400 })
+  const session = await auth()
+  if (!session?.user?.schoolId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  const schoolId = session.user.schoolId
+  const q = req.nextUrl.searchParams.get("q") ?? ""
 
   try {
     const parents = await prisma.parent.findMany({
       where: {
         schoolId,
-        OR: [
-          { user: { name: { contains: q, mode: "insensitive" } } },
-          { user: { email: { contains: q, mode: "insensitive" } } },
-        ],
+        ...(q.trim()
+          ? {
+              OR: [
+                { user: { name: { contains: q, mode: "insensitive" } } },
+                { user: { email: { contains: q, mode: "insensitive" } } },
+                { user: { phone: { contains: q } } },
+                { phone: { contains: q } },
+              ],
+            }
+          : {}),
       },
       select: {
         id: true,
         relation: true,
+        occupation: true,
+        phone: true,
         user: { select: { name: true, email: true, phone: true } },
-        students: {
-          select: {
-            student: { select: { user: { select: { name: true } } } },
-          },
-        },
       },
-      take: 10,
-      orderBy: { createdAt: "desc" },
+      take: 15,
+      orderBy: { user: { name: "asc" } },
     })
 
     return NextResponse.json(parents)

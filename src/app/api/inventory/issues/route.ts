@@ -39,29 +39,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Quantity must be a positive number" }, { status: 400 })
     }
 
-    // Use a transaction to create issue and decrement stock
-    const [issue] = await prisma.$transaction(async (tx) => {
-      const item = await tx.inventoryItem.findUnique({ where: { id: itemId } })
-      if (!item) throw new Error("Item not found")
-      if (item.quantity < qty) throw new Error(`Insufficient stock. Available: ${item.quantity}`)
+    // Neon HTTP adapter does not support $transaction — run sequentially
+    const item = await prisma.inventoryItem.findUnique({ where: { id: itemId } })
+    if (!item) return NextResponse.json({ error: "Item not found" }, { status: 404 })
+    if (item.quantity < qty) {
+      return NextResponse.json({ error: `Insufficient stock. Available: ${item.quantity}` }, { status: 400 })
+    }
 
-      await tx.inventoryItem.update({
-        where: { id: itemId },
-        data: { quantity: { decrement: qty } },
-      })
+    await prisma.inventoryItem.update({
+      where: { id: itemId },
+      data: { quantity: { decrement: qty } },
+    })
 
-      const issue = await tx.itemIssue.create({
-        data: {
-          itemId,
-          recipientId,
-          recipientType,
-          quantity: qty,
-          status: "UNPAID", // "active" / not yet returned
-        },
-        include: { item: { select: { name: true, unit: true } } },
-      })
-
-      return [issue]
+    const issue = await prisma.itemIssue.create({
+      data: {
+        itemId,
+        recipientId,
+        recipientType,
+        quantity: qty,
+        status: "UNPAID",
+      },
+      include: { item: { select: { name: true, unit: true } } },
     })
 
     return NextResponse.json(issue, { status: 201 })

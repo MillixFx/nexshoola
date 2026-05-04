@@ -60,31 +60,29 @@ export async function POST(req: NextRequest) {
     })
     if (existing) return NextResponse.json({ error: "This person already has a copy of this book." }, { status: 409 })
 
-    // Create issue + decrement available in one transaction
-    const issue = await prisma.$transaction(async (tx) => {
-      const created = await tx.bookIssue.create({
-        data: {
-          bookId,
-          memberId: member.id,
-          dueDate: new Date(dueDate),
-          status: "ISSUED",
-        },
-        include: {
-          book: { select: { id: true, title: true, author: true, isbn: true } },
-          member: {
-            select: {
-              id: true,
-              memberId: true,
-              user: { select: { id: true, name: true, role: true } },
-            },
+    // Neon HTTP adapter does not support $transaction — run sequentially
+    const created = await prisma.bookIssue.create({
+      data: {
+        bookId,
+        memberId: member.id,
+        dueDate: new Date(dueDate),
+        status: "ISSUED",
+      },
+      include: {
+        book: { select: { id: true, title: true, author: true, isbn: true } },
+        member: {
+          select: {
+            id: true,
+            memberId: true,
+            user: { select: { id: true, name: true, role: true } },
           },
         },
-      })
-      await tx.book.update({ where: { id: bookId }, data: { available: { decrement: 1 } } })
-      return created
+      },
     })
 
-    return NextResponse.json(issue, { status: 201 })
+    await prisma.book.update({ where: { id: bookId }, data: { available: { decrement: 1 } } })
+
+    return NextResponse.json(created, { status: 201 })
   } catch (e: any) {
     console.error("Issue book error:", e)
     return NextResponse.json({ error: e.message || "Failed to issue book." }, { status: 500 })

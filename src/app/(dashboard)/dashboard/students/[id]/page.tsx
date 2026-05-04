@@ -96,6 +96,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         parents: student.parents.map((sp: any) => ({
           relation: sp.relation,
           parent: {
+            id: sp.parent.id,
             occupation: sp.parent.occupation,
             phone: sp.parent.phone,
             user: sp.parent.user,

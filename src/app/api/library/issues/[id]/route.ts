@@ -17,24 +17,23 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
     if (!issue) return NextResponse.json({ error: "Issue not found." }, { status: 404 })
     if (issue.status === "RETURNED") return NextResponse.json({ error: "Already returned." }, { status: 400 })
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const result = await tx.bookIssue.update({
-        where: { id },
-        data: { status: "RETURNED", returnDate: new Date() },
-        include: {
-          book: { select: { id: true, title: true, author: true, isbn: true } },
-          member: {
-            select: {
-              id: true,
-              memberId: true,
-              user: { select: { id: true, name: true, role: true } },
-            },
+    // Neon HTTP adapter does not support $transaction — run sequentially
+    const updated = await prisma.bookIssue.update({
+      where: { id },
+      data: { status: "RETURNED", returnDate: new Date() },
+      include: {
+        book: { select: { id: true, title: true, author: true, isbn: true } },
+        member: {
+          select: {
+            id: true,
+            memberId: true,
+            user: { select: { id: true, name: true, role: true } },
           },
         },
-      })
-      await tx.book.update({ where: { id: issue.bookId }, data: { available: { increment: 1 } } })
-      return result
+      },
     })
+
+    await prisma.book.update({ where: { id: issue.bookId }, data: { available: { increment: 1 } } })
 
     return NextResponse.json(updated)
   } catch (e: any) {

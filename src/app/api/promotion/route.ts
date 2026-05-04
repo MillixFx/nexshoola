@@ -61,29 +61,26 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Create promotion records
-      await tx.promotion.createMany({
-        data: promotions.map(p => ({
+    // Neon HTTP adapter does not support $transaction — run operations sequentially
+    for (const p of promotions) {
+      // Move student to new class
+      await prisma.student.update({
+        where: { id: p.studentId },
+        data: { classId: p.toClassId },
+      })
+
+      // Record the promotion history
+      await prisma.promotion.create({
+        data: {
           studentId: p.studentId,
           fromClassId: p.fromClassId,
           toClassId: p.toClassId,
           note: note || null,
-        })),
+        },
       })
+    }
 
-      // Update each student's classId
-      for (const p of promotions) {
-        await tx.student.update({
-          where: { id: p.studentId },
-          data: { classId: p.toClassId },
-        })
-      }
-
-      return promotions.length
-    })
-
-    return NextResponse.json({ promoted: result })
+    return NextResponse.json({ promoted: promotions.length })
   } catch (e: any) {
     console.error("Promotion error:", e)
     return NextResponse.json({ error: e.message || "Failed to promote students." }, { status: 500 })

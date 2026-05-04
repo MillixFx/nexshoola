@@ -25,7 +25,7 @@ export async function POST(
 
   try {
     if (body.type === "existing") {
-      const { parentId } = body as { type: "existing"; parentId: string }
+      const { parentId, relation } = body as { type: "existing"; parentId: string; relation?: string }
 
       // Verify parent belongs to this school
       const parent = await prisma.parent.findUnique({ where: { id: parentId } })
@@ -35,8 +35,8 @@ export async function POST(
 
       await prisma.studentParent.upsert({
         where: { studentId_parentId: { studentId, parentId } },
-        create: { studentId, parentId },
-        update: {},
+        create: { studentId, parentId, relation: relation || null },
+        update: { relation: relation || null },
       })
 
       return NextResponse.json({ ok: true })
@@ -86,7 +86,7 @@ export async function POST(
       const parentId = user.parent!.id
 
       await prisma.studentParent.create({
-        data: { studentId, parentId },
+        data: { studentId, parentId, relation: relation || null },
       })
 
       return NextResponse.json({ ok: true, parentId }, { status: 201 })

@@ -28,7 +28,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     orderBy: { roomNumber: "asc" },
   })
 
-  // Normalise: each bed has a single student or null
   const normalised = rooms.map(r => ({
     ...r,
     capacity: r.bedCount,
@@ -56,27 +55,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!roomNumber) return NextResponse.json({ error: "Room number is required." }, { status: 400 })
     const beds = Number(capacity) || 4
 
-    const room = await prisma.$transaction(async (tx) => {
-      const created = await tx.dormitoryRoom.create({
-        data: { dormitoryId: id, roomNumber: String(roomNumber), bedCount: beds },
-      })
-      await tx.dormitoryBed.createMany({
-        data: Array.from({ length: beds }, (_, i) => ({
-          roomId: created.id,
-          bedNumber: String(i + 1),
-        })),
-      })
-      return tx.dormitoryRoom.findUnique({
-        where: { id: created.id },
-        include: {
-          beds: {
-            include: {
-              students: { select: { id: true, user: { select: { name: true } } }, take: 1 },
-            },
-            orderBy: { bedNumber: "asc" },
+    // Neon HTTP adapter does not support $transaction — run sequentially
+    const created = await prisma.dormitoryRoom.create({
+      data: { dormitoryId: id, roomNumber: String(roomNumber), bedCount: beds },
+    })
+
+    await prisma.dormitoryBed.createMany({
+      data: Array.from({ length: beds }, (_, i) => ({
+        roomId: created.id,
+        bedNumber: String(i + 1),
+      })),
+    })
+
+    const room = await prisma.dormitoryRoom.findUnique({
+      where: { id: created.id },
+      include: {
+        beds: {
+          include: {
+            students: { select: { id: true, user: { select: { name: true } } }, take: 1 },
           },
+          orderBy: { bedNumber: "asc" },
         },
-      })
+      },
     })
 
     const normalised = {

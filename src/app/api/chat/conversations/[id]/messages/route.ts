@@ -69,13 +69,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   // Bump conversation updatedAt for sorting + mark sender's lastReadAt
-  await prisma.$transaction([
-    prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
-    prisma.conversationParticipant.update({
-      where: { conversationId_userId: { conversationId, userId } },
-      data: { lastReadAt: new Date() },
-    }),
-  ])
+  // Neon HTTP adapter does not support $transaction — run sequentially
+  await prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } })
+  await prisma.conversationParticipant.update({
+    where: { conversationId_userId: { conversationId, userId } },
+    data: { lastReadAt: new Date() },
+  })
 
   return NextResponse.json(message, { status: 201 })
 }
