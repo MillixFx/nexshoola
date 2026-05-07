@@ -64,9 +64,13 @@ export default function ReportCardClient({
         {/* School header */}
         <div className="border-b-2 border-indigo-600 p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <GraduationCap className="w-7 h-7 text-white" />
-            </div>
+            {school.logo ? (
+              <img src={school.logo} alt={school.name} className="w-16 h-16 object-contain rounded-xl" />
+            ) : (
+              <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center">
+                <GraduationCap className="w-7 h-7 text-white" />
+              </div>
+            )}
             <div className="text-left">
               <h1 className="text-xl font-extrabold text-gray-900">{school.name}</h1>
               {school.address && <p className="text-xs text-gray-500">{school.address}</p>}

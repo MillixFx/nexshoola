@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   if (!schoolId) redirect("/login")
 
   const [school, allStaff, currentDelegees] = await Promise.all([
-    prisma.school.findUnique({ where: { id: schoolId } }),
+    prisma.school.findUnique({ where: { id: schoolId } }) as any,
     prisma.teacher.findMany({
       where: { schoolId, isActive: true },
       select: { id: true, userId: true, user: { select: { id: true, name: true, email: true, role: true } } },
