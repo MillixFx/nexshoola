@@ -149,9 +149,12 @@ export default function ChatClient({
     setShowNew(true)
     if (users.length === 0) {
       setUsersLoading(true)
-      const res = await fetch("/api/chat/users")
-      if (res.ok) setUsers(await res.json())
-      setUsersLoading(false)
+      try {
+        const res = await fetch("/api/chat/users")
+        if (res.ok) setUsers(await res.json())
+      } catch { /* network error */ } finally {
+        setUsersLoading(false)
+      }
     }
   }
 
@@ -164,8 +167,10 @@ export default function ChatClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userIds: [userId] }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to start conversation")
+      let data: any = null
+      try { data = await res.json() } catch { /* empty body */ }
+      if (!res.ok) throw new Error(data?.error || "Failed to start conversation")
+      if (!data?.id) throw new Error("Invalid response from server")
       setShowNew(false)
       setNewSearch("")
       setActiveId(data.id)

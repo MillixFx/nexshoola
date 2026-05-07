@@ -123,24 +123,50 @@ export async function POST(req: NextRequest) {
   const isGroup = userIds.length > 1
   const allParticipantIds = Array.from(new Set([userId, ...userIds]))
 
-  const conversation = await prisma.conversation.create({
-    data: {
-      schoolId,
-      isGroup,
-      name: isGroup ? name || "Group Chat" : null,
-      createdById: userId,
-      participants: { create: allParticipantIds.map((id) => ({ userId: id })) },
-    },
+  // Neon HTTP adapter does not support implicit nested-write transactions.
+  // Create conversation first, then participants separately.
+  let conversationId: string
+  try {
+    const conv = await prisma.conversation.create({
+      data: {
+        schoolId,
+        isGroup,
+        name: isGroup ? name || "Group Chat" : null,
+        createdById: userId,
+      },
+    })
+    conversationId = conv.id
+  } catch (e: any) {
+    console.error("Failed to create conversation:", e)
+    return NextResponse.json({ error: e.message || "Failed to create conversation" }, { status: 500 })
+  }
+
+  // Add all participants
+  try {
+    await prisma.conversationParticipant.createMany({
+      data: allParticipantIds.map((pid) => ({ conversationId, userId: pid })),
+      skipDuplicates: true,
+    })
+  } catch (e: any) {
+    // Clean up orphaned conversation
+    await prisma.conversation.delete({ where: { id: conversationId } }).catch(() => {})
+    console.error("Failed to add participants:", e)
+    return NextResponse.json({ error: e.message || "Failed to add participants" }, { status: 500 })
+  }
+
+  // Fetch the completed conversation with participants
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: conversationId },
     include: {
       participants: { include: { user: { select: { id: true, name: true, email: true, role: true, avatar: true } } } },
     },
   })
 
   return NextResponse.json({
-    id: conversation.id,
-    isGroup: conversation.isGroup,
-    name: conversation.name,
-    participants: conversation.participants.map((p) => p.user),
+    id: conversationId,
+    isGroup,
+    name: conversation?.name ?? null,
+    participants: conversation?.participants.map((p) => p.user) ?? [],
     unreadCount: 0,
     lastMessage: null,
   }, { status: 201 })
