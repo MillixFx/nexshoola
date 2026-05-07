@@ -32,7 +32,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       data: { name, email, phone, isActive },
     })
 
-    const updated = await prisma.student.update({
+    // Neon HTTP: update + include → update then findUnique
+    await prisma.student.update({
       where: { id },
       data: {
         classId: classId || null,
@@ -47,6 +48,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         isActive,
         ...(photo !== undefined ? { photo: photo || null } : {}),
       },
+    })
+    const updated = await prisma.student.findUnique({
+      where: { id },
       include: {
         user: { select: { name: true, email: true, phone: true, isActive: true } },
         class: { select: { name: true, section: true } },

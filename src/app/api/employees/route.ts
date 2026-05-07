@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
     const resolvedEmail = email?.trim() || `emp_${(employeeId || Date.now())}@noreply.local`
     const hashed = await bcrypt.hash("changeme123", 10)
 
-    const user = await prisma.user.create({
+    // Neon HTTP: nested create + include → sequential creates then findUnique
+    const createdUser = await prisma.user.create({
       data: {
         schoolId,
         name: name.trim(),
@@ -53,21 +54,25 @@ export async function POST(req: NextRequest) {
         password: hashed,
         phone: phone?.trim() || null,
         role: userRole,
-        employee: {
-          create: {
-            schoolId,
-            employeeId: employeeId?.trim() || null,
-            role: role || null,
-            department: department?.trim() || null,
-            gender: gender || null,
-            address: address?.trim() || null,
-            joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
-          },
-        },
       },
-      include: { employee: { select: employeeSelect } },
     })
-    return NextResponse.json(user.employee, { status: 201 })
+    const createdEmployee = await prisma.employee.create({
+      data: {
+        schoolId,
+        userId: createdUser.id,
+        employeeId: employeeId?.trim() || null,
+        role: role || null,
+        department: department?.trim() || null,
+        gender: gender || null,
+        address: address?.trim() || null,
+        joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
+      },
+    })
+    const employee = await prisma.employee.findUnique({
+      where: { id: createdEmployee.id },
+      select: employeeSelect,
+    })
+    return NextResponse.json(employee, { status: 201 })
   } catch (e: any) {
     console.error("Create employee error:", e)
     if (e.code === "P2002") return NextResponse.json({ error: "A user with this email already exists." }, { status: 409 })

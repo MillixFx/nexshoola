@@ -39,19 +39,26 @@ export async function POST(req: NextRequest) {
     const resolvedRole = ALLOWED_STAFF_ROLES.has(role) ? role : "TEACHER"
     const hashed = await bcrypt.hash(password || "changeme123", 10)
 
-    const user = await prisma.user.create({
+    // Neon HTTP: nested create + include → sequential creates then findUnique
+    const createdUser = await prisma.user.create({
+      data: { schoolId, name, email, password: hashed, phone, role: resolvedRole },
+    })
+    await prisma.teacher.create({
       data: {
-        schoolId, name, email, password: hashed, phone,
-        role: resolvedRole,
-        teacher: {
-          create: {
-            schoolId, teacherId, qualification, designation, department,
-            joiningDate: joiningDate ? new Date(joiningDate) : undefined,
-            gender, address,
-            photo: photo || null,
-          },
-        },
+        schoolId,
+        userId: createdUser.id,
+        teacherId,
+        qualification,
+        designation,
+        department,
+        joiningDate: joiningDate ? new Date(joiningDate) : undefined,
+        gender,
+        address,
+        photo: photo || null,
       },
+    })
+    const user = await prisma.user.findUnique({
+      where: { id: createdUser.id },
       include: { teacher: true },
     })
     return NextResponse.json(user, { status: 201 })

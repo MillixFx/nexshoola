@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
       data: { quantity: { decrement: qty } },
     })
 
-    const issue = await prisma.itemIssue.create({
+    // Neon HTTP: create + include → create then findUnique
+    const created = await prisma.itemIssue.create({
       data: {
         itemId,
         recipientId,
@@ -59,6 +60,9 @@ export async function POST(req: NextRequest) {
         quantity: qty,
         status: "UNPAID",
       },
+    })
+    const issue = await prisma.itemIssue.findUnique({
+      where: { id: created.id },
       include: { item: { select: { name: true, unit: true } } },
     })
 

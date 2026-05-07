@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
       : null
 
     try {
-      await prisma.user.create({
+      // Neon HTTP: nested create → sequential creates
+      const createdUser = await prisma.user.create({
         data: {
           schoolId,
           name: r.name.trim(),
@@ -105,20 +106,21 @@ export async function POST(req: NextRequest) {
           password: hashed,
           phone: r.phone?.trim() || null,
           role: "STUDENT",
-          student: {
-            create: {
-              schoolId,
-              classId: cls?.id || null,
-              rollNumber: r.rollNumber?.trim() || null,
-              studentId: r.studentId?.trim() || null,
-              gender,
-              dateOfBirth: r.dateOfBirth ? new Date(r.dateOfBirth) : null,
-              nationality: r.nationality?.trim() || "Ghanaian",
-              address: r.address?.trim() || null,
-              religion: r.religion?.trim() || null,
-              bloodGroup: r.bloodGroup?.trim() || null,
-            },
-          },
+        },
+      })
+      await prisma.student.create({
+        data: {
+          schoolId,
+          userId: createdUser.id,
+          classId: cls?.id || null,
+          rollNumber: r.rollNumber?.trim() || null,
+          studentId: r.studentId?.trim() || null,
+          gender,
+          dateOfBirth: r.dateOfBirth ? new Date(r.dateOfBirth) : null,
+          nationality: r.nationality?.trim() || "Ghanaian",
+          address: r.address?.trim() || null,
+          religion: r.religion?.trim() || null,
+          bloodGroup: r.bloodGroup?.trim() || null,
         },
       })
       results.push({ row: rowNum, name: r.name, status: "ok" })

@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { schoolId, userId, subject, body, isAnonymous } = await req.json()
-    const suggestion = await prisma.suggestion.create({
+    // Neon HTTP: create + include → create then findUnique
+    const created = await prisma.suggestion.create({
       data: {
         schoolId,
         userId: isAnonymous ? null : (userId || null),
@@ -25,6 +26,9 @@ export async function POST(req: NextRequest) {
         isAnon: !!isAnonymous,
         status: "PENDING",
       },
+    })
+    const suggestion = await prisma.suggestion.findUnique({
+      where: { id: created.id },
       include: { user: { select: { name: true, role: true } } },
     })
     return NextResponse.json(suggestion, { status: 201 })

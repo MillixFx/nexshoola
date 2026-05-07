@@ -40,13 +40,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const routine = await prisma.examRoutine.create({
+    // Neon HTTP: create + include → create then findUnique
+    const created = await prisma.examRoutine.create({
       data: {
         examId, classId, subjectId,
         date:      new Date(date),
         startTime, endTime,
         room:      room || null,
       },
+    })
+    const routine = await prisma.examRoutine.findUnique({
+      where: { id: created.id },
       include: {
         class:   { select: { id: true, name: true, section: true } },
         subject: { select: { id: true, title: true } },

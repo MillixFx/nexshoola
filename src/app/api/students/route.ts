@@ -72,30 +72,28 @@ export async function POST(req: NextRequest) {
 
     const hashed = await bcrypt.hash(password || "changeme123", 10)
 
-    const user = await prisma.user.create({
+    // Neon HTTP: nested create + include → sequential creates then findUnique
+    const createdUser = await prisma.user.create({
+      data: { schoolId, name, email, password: hashed, phone, role: "STUDENT" },
+    })
+    await prisma.student.create({
       data: {
         schoolId,
-        name,
-        email,
-        password: hashed,
-        phone,
-        role: "STUDENT",
-        student: {
-          create: {
-            schoolId,
-            classId: classId || null,
-            rollNumber,
-            studentId,
-            dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-            gender,
-            address,
-            bloodGroup,
-            religion,
-            nationality,
-            photo: photo || null,
-          },
-        },
+        userId: createdUser.id,
+        classId: classId || null,
+        rollNumber,
+        studentId,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        gender,
+        address,
+        bloodGroup,
+        religion,
+        nationality,
+        photo: photo || null,
       },
+    })
+    const user = await prisma.user.findUnique({
+      where: { id: createdUser.id },
       include: { student: true },
     })
 

@@ -10,7 +10,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const totalDeductions = (deductions as { name: string; amount: number }[]).reduce((s, d) => s + d.amount, 0)
     const netPay = Number(basicSalary) + totalAllowances - totalDeductions
 
-    const payslip = await prisma.staffPayslip.update({
+    // Neon HTTP: update + include → update then findUnique
+    await prisma.staffPayslip.update({
       where: { id },
       data: {
         basicSalary: Number(basicSalary),
@@ -21,6 +22,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         status: status ?? "DRAFT",
         issuedAt: status === "ISSUED" || status === "PAID" ? new Date() : undefined,
       },
+    })
+    const payslip = await prisma.staffPayslip.findUnique({
+      where: { id },
       include: { teacher: { include: { user: { select: { name: true } } } } },
     })
     return NextResponse.json(payslip)

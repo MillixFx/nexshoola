@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
     const totalDeductions = (deductions as { name: string; amount: number }[]).reduce((s, d) => s + d.amount, 0)
     const netPay = Number(basicSalary) + totalAllowances - totalDeductions
 
-    const payslip = await prisma.staffPayslip.create({
+    // Neon HTTP: create + include → create then findUnique
+    const created = await prisma.staffPayslip.create({
       data: {
         schoolId,
         teacherId,
@@ -35,6 +36,9 @@ export async function POST(req: NextRequest) {
         notes: notes || null,
         status: "DRAFT",
       },
+    })
+    const payslip = await prisma.staffPayslip.findUnique({
+      where: { id: created.id },
       include: { teacher: { include: { user: { select: { name: true } } } } },
     })
     return NextResponse.json(payslip, { status: 201 })

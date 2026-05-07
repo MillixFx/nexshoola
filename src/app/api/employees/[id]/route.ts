@@ -25,7 +25,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     })
 
-    const updated = await prisma.employee.update({
+    // Neon HTTP: update + select (with relation) → update then findUnique
+    await prisma.employee.update({
       where: { id },
       data: {
         ...(employeeId  !== undefined ? { employeeId:  employeeId || null }  : {}),
@@ -36,6 +37,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         ...(isActive    !== undefined ? { isActive }                        : {}),
         ...(joiningDate !== undefined ? { joiningDate: new Date(joiningDate) } : {}),
       },
+    })
+    const updated = await prisma.employee.findUnique({
+      where: { id },
       select: {
         id: true, employeeId: true, role: true, department: true,
         gender: true, address: true, photo: true, joiningDate: true, isActive: true,
