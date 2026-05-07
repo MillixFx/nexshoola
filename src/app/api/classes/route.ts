@@ -24,10 +24,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { schoolId, name, section, code, capacity } = body
-    const cls = await prisma.class.create({
+    const created = await prisma.class.create({
       data: { schoolId, name, section, code, capacity: capacity ? Number(capacity) : null },
-      include: classInclude,
     })
+    const cls = await prisma.class.findUnique({ where: { id: created.id }, include: classInclude })
     return NextResponse.json(cls, { status: 201 })
   } catch (e: any) {
     if (e.code === "P2002") return NextResponse.json({ error: "Class already exists." }, { status: 409 })

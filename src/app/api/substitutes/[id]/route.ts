@@ -12,12 +12,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { endDate, note } = body
 
   try {
-    const sub = await prisma.classSubstitute.update({
+    // Neon HTTP: update without include, then fetch separately
+    await prisma.classSubstitute.update({
       where: { id },
       data: {
         ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
         ...(note !== undefined ? { note } : {}),
       },
+    })
+    const sub = await prisma.classSubstitute.findUnique({
+      where: { id },
       include: {
         substitute: { select: { id: true, user: { select: { name: true } } } },
         class: { select: { id: true, name: true, section: true } },

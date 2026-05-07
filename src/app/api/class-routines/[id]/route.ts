@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params
     const { subjectId, teacherId, day, startTime, endTime, room } = await req.json()
 
-    const routine = await prisma.classRoutine.update({
+    await prisma.classRoutine.update({
       where: { id },
       data: {
         ...(subjectId  !== undefined ? { subjectId }              : {}),
@@ -20,8 +20,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         ...(endTime    !== undefined ? { endTime }                : {}),
         ...(room       !== undefined ? { room: room || null }     : {}),
       },
-      include: routineInclude,
     })
+    const routine = await prisma.classRoutine.findUnique({ where: { id }, include: routineInclude })
 
     return NextResponse.json(routine)
   } catch (e) {

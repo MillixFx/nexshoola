@@ -23,7 +23,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     // classTeacherId: "" → null (unassign), string → assign, undefined → no change
     if (classTeacherId !== undefined) data.classTeacherId = classTeacherId || null
 
-    const cls = await prisma.class.update({ where: { id }, data, include: classInclude })
+    await prisma.class.update({ where: { id }, data })
+    const cls = await prisma.class.findUnique({ where: { id }, include: classInclude })
     return NextResponse.json(cls)
   } catch (e: any) {
     console.error("Class update error:", e)

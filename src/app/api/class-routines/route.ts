@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "classId, subjectId, day, startTime, endTime required" }, { status: 400 })
     }
 
-    const routine = await prisma.classRoutine.create({
+    const created = await prisma.classRoutine.create({
       data: {
         classId,
         subjectId,
@@ -48,8 +48,8 @@ export async function POST(req: NextRequest) {
         endTime,
         room: room || null,
       },
-      include: routineInclude,
     })
+    const routine = await prisma.classRoutine.findUnique({ where: { id: created.id }, include: routineInclude })
 
     return NextResponse.json(routine, { status: 201 })
   } catch (e) {

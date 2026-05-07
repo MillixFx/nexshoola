@@ -17,10 +17,11 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
     if (!issue) return NextResponse.json({ error: "Issue not found." }, { status: 404 })
     if (issue.status === "RETURNED") return NextResponse.json({ error: "Already returned." }, { status: 400 })
 
-    // Neon HTTP adapter does not support $transaction — run sequentially
-    const updated = await prisma.bookIssue.update({
+    // Neon HTTP adapter: write without include, fetch separately
+    await prisma.bookIssue.update({ where: { id }, data: { status: "RETURNED", returnDate: new Date() } })
+    await prisma.book.update({ where: { id: issue.bookId }, data: { available: { increment: 1 } } })
+    const updated = await prisma.bookIssue.findUnique({
       where: { id },
-      data: { status: "RETURNED", returnDate: new Date() },
       include: {
         book: { select: { id: true, title: true, author: true, isbn: true } },
         member: {
@@ -32,8 +33,6 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
         },
       },
     })
-
-    await prisma.book.update({ where: { id: issue.bookId }, data: { available: { increment: 1 } } })
 
     return NextResponse.json(updated)
   } catch (e: any) {

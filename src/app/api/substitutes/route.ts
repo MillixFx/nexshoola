@@ -75,7 +75,9 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const sub = await prisma.classSubstitute.create({
+    // Neon HTTP: create without include to avoid implicit transaction,
+    // then fetch the full record separately.
+    const created = await prisma.classSubstitute.create({
       data: {
         schoolId: session.user.schoolId,
         classId,
@@ -85,6 +87,9 @@ export async function POST(req: NextRequest) {
         endDate: endDate ? new Date(endDate) : null,
         note: note || null,
       },
+    })
+    const sub = await prisma.classSubstitute.findUnique({
+      where: { id: created.id },
       include: subInclude,
     })
     return NextResponse.json(sub, { status: 201 })

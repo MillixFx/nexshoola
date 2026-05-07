@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
     const { type, schoolId, title, amount, classId, term, academicYear } = body
 
     if (type === "fee_item") {
-      const item = await prisma.feeItem.create({
+      const created = await prisma.feeItem.create({
         data: { schoolId, title, amount: Number(amount), classId: classId || null, term: term || null, academicYear: academicYear || null },
-        include: { class: { select: { name: true, section: true } } },
       })
+      const item = await prisma.feeItem.findUnique({ where: { id: created.id }, include: { class: { select: { name: true, section: true } } } })
       return NextResponse.json(item, { status: 201 })
     }
 

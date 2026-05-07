@@ -63,8 +63,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "content required" }, { status: 400 })
   }
 
-  const message = await prisma.chatMessage.create({
+  const created = await prisma.chatMessage.create({
     data: { conversationId, senderId: userId, content: content.trim() },
+  })
+  const message = await prisma.chatMessage.findUnique({
+    where: { id: created.id },
     include: { sender: { select: { id: true, name: true, role: true, avatar: true } } },
   })
 

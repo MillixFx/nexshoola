@@ -22,9 +22,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     })
 
     // Mark as returned (using PAID as the "returned" status per schema)
-    const updated = await prisma.itemIssue.update({
+    await prisma.itemIssue.update({ where: { id: issueId }, data: { status: "PAID" } })
+    const updated = await prisma.itemIssue.findUnique({
       where: { id: issueId },
-      data: { status: "PAID" },
       include: { item: { select: { name: true, unit: true } } },
     })
 
