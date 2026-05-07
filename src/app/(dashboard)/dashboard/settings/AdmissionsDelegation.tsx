@@ -40,9 +40,9 @@ export default function AdmissionsDelegation({ staff, delegees: initial }: Props
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: selected }),
       })
-      if (!res.ok) throw new Error((await res.json()).error)
-      const newPerm = await res.json()
-      setDelegees(prev => [...prev, newPerm])
+      const data = await res.json()               // parse once
+      if (!res.ok) throw new Error(data.error ?? "Failed to grant access")
+      setDelegees(prev => [...prev, data])
       setSelected("")
     } catch (e: any) { setError(e.message) } finally { setSaving(false) }
   }

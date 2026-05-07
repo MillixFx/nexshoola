@@ -153,7 +153,7 @@ export default function SettingsClient({ school }: { school: School }) {
             <BookOpen className="w-4 h-4 text-indigo-500" /> Academic Calendar
           </h2>
           <p className="text-xs text-gray-400 mb-4">This sets the default academic year and term used across report cards, fee slips, and exams.</p>
-          <div className="grid sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="label">Current Academic Year</label>
               <input
@@ -180,8 +180,8 @@ export default function SettingsClient({ school }: { school: School }) {
         {/* School Info */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h2 className="font-bold text-gray-900 mb-5">School Information</h2>
-          <div className="grid sm:grid-cols-2 gap-5">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="sm:col-span-2">
               <label className="label">School Name *</label>
               <input className="input" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ghana International School" />
             </div>
@@ -189,13 +189,13 @@ export default function SettingsClient({ school }: { school: School }) {
               <label className="label">Subdomain (slug) *</label>
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
                 <input
-                  className="flex-1 px-4 py-2.5 text-sm outline-none"
+                  className="flex-1 min-w-0 px-4 py-2.5 text-sm outline-none"
                   required
                   value={form.slug}
                   onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
                   placeholder="gis"
                 />
-                <span className="bg-gray-50 px-3 py-2.5 text-xs text-gray-400 border-l border-gray-200">.nexschoola.com</span>
+                <span className="bg-gray-50 px-2 py-2.5 text-xs text-gray-400 border-l border-gray-200 whitespace-nowrap shrink-0">.nexschoola.com</span>
               </div>
             </div>
             <div>
@@ -210,7 +210,7 @@ export default function SettingsClient({ school }: { school: School }) {
               <label className="label">Phone</label>
               <input className="input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Address</label>
               <input className="input" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
             </div>
@@ -224,7 +224,7 @@ export default function SettingsClient({ school }: { school: School }) {
         {/* Locale */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h2 className="font-bold text-gray-900 mb-5">Localisation</h2>
-          <div className="grid sm:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="label">Country</label>
               <select className="input" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))}>
