@@ -11,6 +11,7 @@ import {
   Users, X,
 } from "lucide-react"
 import { formatDate, formatCurrency, cn } from "@/lib/utils"
+import ConfirmModal from "@/components/dashboard/ConfirmModal"
 
 type AttendanceRecord = { date: string; status: string; note: string | null }
 type Mark = {
@@ -100,6 +101,11 @@ export default function StudentProfileClient({
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
 
+  // Unlink guardian confirmation
+  const [toUnlink, setToUnlink] = useState<{ parentId: string; name: string } | null>(null)
+  const [unlinking, setUnlinking] = useState(false)
+  const [unlinkError, setUnlinkError] = useState<string | null>(null)
+
   const initials = studentProp.user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
 
   // Group marks by exam
@@ -170,22 +176,29 @@ export default function StudentProfileClient({
     }
   }
 
-  async function unlinkParent(parentId: string) {
-    if (!confirm("Remove this guardian from the student?")) return
+  async function doUnlinkParent() {
+    if (!toUnlink) return
+    setUnlinking(true)
+    setUnlinkError(null)
     try {
       const res = await fetch(`/api/students/${studentProp.id}/link-parent`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId }),
+        body: JSON.stringify({ parentId: toUnlink.parentId }),
       })
       if (!res.ok) {
-        const data = await res.json()
-        alert(data.error ?? "Failed to unlink")
+        const data = await res.json().catch(() => ({}))
+        setUnlinkError(data.error ?? "Failed to unlink guardian")
+        setToUnlink(null)
         return
       }
-      setParents(prev => prev.filter(p => p.parent.id !== parentId))
+      setParents(prev => prev.filter(p => p.parent.id !== toUnlink.parentId))
+      setToUnlink(null)
     } catch {
-      alert("Failed to unlink guardian")
+      setUnlinkError("Failed to unlink guardian")
+      setToUnlink(null)
+    } finally {
+      setUnlinking(false)
     }
   }
 
@@ -396,6 +409,14 @@ export default function StudentProfileClient({
               )}
             </div>
 
+            {unlinkError && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5 mb-3">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-red-600 flex-1">{unlinkError}</p>
+                <button onClick={() => setUnlinkError(null)} className="text-red-400 hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
+              </div>
+            )}
+
             {parents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Users className="w-8 h-8 text-gray-200 mb-2" />
@@ -427,7 +448,7 @@ export default function StudentProfileClient({
                     </div>
                     {isAdmin && (
                       <button
-                        onClick={() => unlinkParent(sp.parent.id)}
+                        onClick={() => setToUnlink({ parentId: sp.parent.id, name: sp.parent.user.name })}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 rounded hover:bg-red-50 transition-all"
                         title="Remove guardian"
                       >
@@ -812,6 +833,17 @@ export default function StudentProfileClient({
           </div>
         </div>
       )}
+
+      {/* Remove guardian confirmation */}
+      <ConfirmModal
+        open={!!toUnlink}
+        title="Remove Guardian"
+        message={`Remove ${toUnlink?.name ?? "this guardian"} from ${studentProp.user.name}?`}
+        confirmLabel={unlinking ? "Removing…" : "Remove"}
+        danger
+        onConfirm={doUnlinkParent}
+        onCancel={() => setToUnlink(null)}
+      />
 
       <style jsx global>{`
         @media print {
