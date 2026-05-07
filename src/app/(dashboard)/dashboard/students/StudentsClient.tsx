@@ -6,7 +6,7 @@ import Link from "next/link"
 import {
   Plus, Pencil, Trash2, Users, Eye, Camera,
   Search, Loader2, X, CreditCard, ChevronDown, ChevronUp,
-  User, UserCheck, FileSpreadsheet,
+  User, UserCheck, FileSpreadsheet, Printer,
 } from "lucide-react"
 import PageHeader from "@/components/dashboard/PageHeader"
 import DataTable, { Column } from "@/components/dashboard/DataTable"
@@ -14,7 +14,7 @@ import CSVImport from "./CSVImport"
 import { formatDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import ConfirmModal from "@/components/dashboard/ConfirmModal"
-import IDCard, { StudentCardData, SchoolInfo } from "@/components/dashboard/IDCard"
+import IDCard, { StudentCardData, SchoolInfo, BulkIDCardPrint } from "@/components/dashboard/IDCard"
 
 type Student = {
   id: string
@@ -105,6 +105,7 @@ export default function StudentsClient({
   const [csvOpen, setCsvOpen]         = useState(false)
   const [editing, setEditing]         = useState<Student | null>(null)
   const [idCardStudent, setIdCardStudent] = useState<Student | null>(null)
+  const [bulkPrintOpen, setBulkPrintOpen] = useState(false)
   const [form, setForm]               = useState(emptyStudent)
   const [saving, setSaving]           = useState(false)
   const [error, setError]             = useState("")
@@ -270,20 +271,32 @@ export default function StudentsClient({
       <PageHeader
         title="Students"
         description={`${students.length} student${students.length !== 1 ? "s" : ""} enrolled`}
-        action={canAdmit ? (
+        action={
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCsvOpen(true)}
-              className="flex items-center gap-2 bg-white text-indigo-600 border border-indigo-200 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-50 transition-colors shadow-sm"
-            >
-              <FileSpreadsheet className="w-4 h-4" /> Import CSV
-            </button>
-            <button onClick={openAdd}
-              className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">
-              <Plus className="w-4 h-4" /> Admit Student
-            </button>
+            {students.length > 0 && school && !isParent && (
+              <button
+                onClick={() => setBulkPrintOpen(true)}
+                className="flex items-center gap-2 bg-white text-gray-600 border border-gray-200 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                <Printer className="w-4 h-4" /> Print ID Cards
+              </button>
+            )}
+            {canAdmit && (
+              <>
+                <button
+                  onClick={() => setCsvOpen(true)}
+                  className="flex items-center gap-2 bg-white text-indigo-600 border border-indigo-200 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-50 transition-colors shadow-sm"
+                >
+                  <FileSpreadsheet className="w-4 h-4" /> Import CSV
+                </button>
+                <button onClick={openAdd}
+                  className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">
+                  <Plus className="w-4 h-4" /> Admit Student
+                </button>
+              </>
+            )}
           </div>
-        ) : undefined}
+        }
       />
 
       {students.length === 0 && !open ? (
@@ -655,6 +668,28 @@ export default function StudentsClient({
           } satisfies StudentCardData}
           school={school}
           onClose={() => setIdCardStudent(null)}
+        />
+      )}
+
+      {bulkPrintOpen && school && (
+        <BulkIDCardPrint
+          cards={students.filter(s => s.isActive).map(s => ({
+            type: "student" as const,
+            name: s.user.name,
+            photo: s.photo,
+            className: s.class
+              ? `${s.class.name}${s.class.section ? ` – ${s.class.section}` : ""}`
+              : null,
+            studentId: s.studentId,
+            rollNumber: s.rollNumber,
+            dateOfBirth: s.dateOfBirth,
+            gender: s.gender,
+            admissionDate: s.admissionDate,
+            bloodGroup: s.bloodGroup,
+            nationality: s.nationality,
+          } satisfies StudentCardData))}
+          school={school}
+          onClose={() => setBulkPrintOpen(false)}
         />
       )}
     </div>

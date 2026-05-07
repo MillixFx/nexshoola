@@ -1,7 +1,7 @@
 "use client"
 
-import { useRef } from "react"
-import { Printer } from "lucide-react"
+import { useRef, useState } from "react"
+import { Printer, X, CreditCard } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,7 +102,7 @@ function Avatar({ name, photo, size }: { name: string; photo?: string | null; si
 
 // ─── The actual card face (all inline styles — required for print serialisation) ──
 
-function CardFace({ data, school }: { data: StudentCardData | StaffCardData; school: SchoolInfo }) {
+export function CardFace({ data, school }: { data: StudentCardData | StaffCardData; school: SchoolInfo }) {
   const isStudent = data.type === "student"
   const cardTitle = isStudent ? "STUDENT ID CARD" : "STAFF ID CARD"
   const currentYear = new Date().getFullYear()
@@ -313,6 +313,126 @@ function printCard(html: string, title: string) {
 })();
 <\/script></body></html>`)
   win.document.close()
+}
+
+// ─── Bulk print helper ────────────────────────────────────────────────────────
+
+function printBulkCards(html: string, title: string) {
+  const win = window.open("", "_blank", "width=900,height=700,toolbar=0,scrollbars=1,status=0")
+  if (!win) { alert("Please allow pop-ups to print ID cards."); return }
+  win.document.write(`<!DOCTYPE html><html><head>
+<title>${title}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f3f4f6; padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 440px); gap: 20px; justify-content: center; }
+  .card-wrap { break-inside: avoid; }
+  @page { size: A4 landscape; margin: 10mm; }
+  @media print {
+    body { background: white; padding: 0; }
+    .grid { grid-template-columns: repeat(2, 440px); gap: 12px; }
+  }
+</style>
+</head><body><div class="grid">${html}</div><script>
+(function(){
+  var imgs = document.querySelectorAll('img');
+  var total = imgs.length, loaded = 0;
+  function tryPrint(){ window.print(); setTimeout(function(){ window.close(); }, 500); }
+  if(total === 0){ tryPrint(); return; }
+  imgs.forEach(function(img){
+    if(img.complete){ loaded++; if(loaded===total) tryPrint(); }
+    else { img.onload = img.onerror = function(){ loaded++; if(loaded===total) tryPrint(); }; }
+  });
+  setTimeout(tryPrint, 3000);
+})();
+<\/script></body></html>`)
+  win.document.close()
+}
+
+// ─── Bulk ID card modal ────────────────────────────────────────────────────────
+
+export interface BulkIDCardProps {
+  cards: StudentCardData[]
+  school: SchoolInfo
+  onClose: () => void
+}
+
+export function BulkIDCardPrint({ cards, school, onClose }: BulkIDCardProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [filter, setFilter] = useState("")
+
+  const filtered = filter
+    ? cards.filter(c => (c.className ?? "").toLowerCase().includes(filter.toLowerCase()))
+    : cards
+
+  const uniqueClasses = Array.from(new Set(cards.map(c => c.className ?? "").filter(Boolean))).sort()
+
+  function handlePrint() {
+    if (!containerRef.current) return
+    const wrappedCards = Array.from(containerRef.current.children)
+      .map(el => `<div class="card-wrap">${el.innerHTML}</div>`)
+      .join("")
+    printBulkCards(wrappedCards, `${school.name} — ID Cards (${filtered.length})`)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0 bg-white">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <CreditCard className="w-4 h-4 text-indigo-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Print ID Cards</h2>
+            <p className="text-xs text-gray-400">{filtered.length} of {cards.length} cards</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {uniqueClasses.length > 1 && (
+            <select
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option value="">All Classes</option>
+              {uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
+          <button
+            onClick={handlePrint}
+            disabled={filtered.length === 0}
+            className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+          >
+            <Printer className="w-4 h-4" />
+            Print {filtered.length > 0 ? `${filtered.length} Cards` : ""}
+          </button>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Preview grid */}
+      <div className="flex-1 overflow-auto bg-gray-50 p-6">
+        {filtered.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">No cards to display</div>
+        ) : (
+          <div
+            ref={containerRef}
+            className="grid gap-5 justify-center"
+            style={{ gridTemplateColumns: "repeat(auto-fill, 440px)" }}
+          >
+            {filtered.map((card, i) => (
+              <div key={i} style={{ transform: "scale(0.9)", transformOrigin: "top left", width: 440 }}>
+                <CardFace data={card} school={school} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ─── Modal wrapper ────────────────────────────────────────────────────────────

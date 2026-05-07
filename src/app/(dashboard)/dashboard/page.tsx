@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 import {
   Users, GraduationCap, DollarSign, ClipboardCheck,
   TrendingUp, Calendar, Bell, UserCheck, BookOpen,
-  ArrowRight, FileText, Library, Lightbulb,
+  ArrowRight, FileText, Library, Lightbulb, CreditCard,
 } from "lucide-react"
 import Link from "next/link"
 import { Suspense } from "react"
@@ -47,6 +47,27 @@ export default async function DashboardPage() {
     }),
   ])
 
+  // ── Admin: recent admissions + pending fee slips ─────────────────────
+  let recentAdmissions: { id: string; admissionDate: Date; user: { name: string }; class: { name: string; section: string | null } | null }[] = []
+  let pendingFeeSlipsCount = 0
+  if ((role === "ADMIN" || role === "HEADMASTER") && schoolId) {
+    const [admissions, unpaidFees] = await Promise.all([
+      prisma.student.findMany({
+        where: { schoolId, isActive: true },
+        orderBy: { admissionDate: "desc" },
+        take: 5,
+        select: {
+          id: true, admissionDate: true,
+          user: { select: { name: true } },
+          class: { select: { name: true, section: true } },
+        },
+      }),
+      prisma.feeSlip.count({ where: { schoolId, status: { in: ["PENDING", "OVERDUE"] } } }),
+    ])
+    recentAdmissions = admissions
+    pendingFeeSlipsCount = unpaidFees
+  }
+
   // ── Role-specific stats ─────────────────────────────────────────────
   let stats: { label: string; value: string; sub: string; icon: React.ElementType; color: string; href: string }[] = []
   let quickLinks: { label: string; value: number | string; icon: React.ElementType; href: string; color: string }[] = []
@@ -74,10 +95,10 @@ export default async function DashboardPage() {
       { label: "Attendance Today",  value: todayTotal > 0 ? attendancePct : "Not marked", sub: `${todayPresent}/${todayTotal} present`, icon: ClipboardCheck, color: "bg-sky-50 text-sky-600", href: "/dashboard/attendance" },
     ]
     quickLinks = [
-      { label: "Classes",       value: classCount,    icon: BookOpen,  href: "/dashboard/classes",  color: "text-violet-600 bg-violet-50" },
-      { label: "Parents",       value: parentCount,   icon: UserCheck, href: "/dashboard/parents",  color: "text-pink-600 bg-pink-50" },
-      { label: "Leave Pending", value: pendingLeave,  icon: Calendar,  href: "/dashboard/leave",    color: "text-orange-600 bg-orange-50" },
-      { label: "Notices",       value: recentNotices.length, icon: Bell, href: "/dashboard/notice", color: "text-teal-600 bg-teal-50" },
+      { label: "Classes",        value: classCount,    icon: BookOpen,   href: "/dashboard/classes",  color: "text-violet-600 bg-violet-50" },
+      { label: "Parents",        value: parentCount,   icon: UserCheck,  href: "/dashboard/parents",  color: "text-pink-600 bg-pink-50" },
+      { label: "Leave Pending",  value: pendingLeave,  icon: Calendar,   href: "/dashboard/leave",    color: "text-orange-600 bg-orange-50" },
+      { label: "Unpaid Fees",    value: pendingFeeSlipsCount, icon: CreditCard, href: "/dashboard/finance", color: pendingFeeSlipsCount > 0 ? "text-red-600 bg-red-50" : "text-teal-600 bg-teal-50" },
     ]
 
   } else if (role === "TEACHER") {
@@ -214,8 +235,8 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Bottom grid: notices + events */}
-      <div className="grid lg:grid-cols-2 gap-5">
+      {/* Bottom grid: notices + events (+ recent admissions for admin) */}
+      <div className={`grid gap-5 ${(role === "ADMIN" || role === "HEADMASTER") ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900">Recent Notices</h2>
@@ -268,6 +289,42 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Recent admissions — admin / headmaster only */}
+        {(role === "ADMIN" || role === "HEADMASTER") && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-gray-900">Recent Admissions</h2>
+              <Link href="/dashboard/students" className="text-xs text-indigo-600 font-medium hover:underline flex items-center gap-1">
+                All students <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            {recentAdmissions.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-6">No students admitted yet</p>
+            ) : (
+              <div className="space-y-3">
+                {recentAdmissions.map((s) => {
+                  const initials = s.user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                  return (
+                    <Link key={s.id} href={`/dashboard/students/${s.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{s.user.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {s.class ? `${s.class.name}${s.class.section ? ` ${s.class.section}` : ""}` : "No class"}
+                          {" · "}
+                          {new Date(s.admissionDate).toLocaleDateString("en-GH", { day: "numeric", month: "short" })}
+                        </p>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
