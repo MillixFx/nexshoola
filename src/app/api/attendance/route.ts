@@ -39,15 +39,25 @@ export async function POST(req: NextRequest) {
     // records = [{ studentId, status }]
     const d = new Date(date)
 
-    const results = await Promise.all(
-      records.map(({ studentId, status, note }: { studentId: string; status: string; note?: string }) =>
-        prisma.dailyAttendance.upsert({
+    // Neon HTTP: upsert uses implicit transaction — replace with findUnique + create/update
+    const results = []
+    for (const { studentId, status, note } of records as { studentId: string; status: string; note?: string }[]) {
+      const existing = await prisma.dailyAttendance.findUnique({
+        where: { studentId_date: { studentId, date: d } },
+      })
+      if (existing) {
+        const updated = await prisma.dailyAttendance.update({
           where: { studentId_date: { studentId, date: d } },
-          create: { schoolId, classId, studentId, date: d, status: status as AttendanceStatus, note },
-          update: { status: status as AttendanceStatus, note },
+          data: { status: status as AttendanceStatus, note },
         })
-      )
-    )
+        results.push(updated)
+      } else {
+        const created = await prisma.dailyAttendance.create({
+          data: { schoolId, classId, studentId, date: d, status: status as AttendanceStatus, note },
+        })
+        results.push(created)
+      }
+    }
 
     // ── SMS absence alerts to parents (best-effort, non-blocking) ──
     const absentIds = (records as { studentId: string; status: string }[])

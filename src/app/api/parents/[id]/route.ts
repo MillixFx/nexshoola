@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 
+const parentInclude = {
+  user: { select: { name: true, email: true, phone: true, isActive: true } },
+  students: {
+    include: { student: { select: { id: true, user: { select: { name: true } } } } },
+  },
+} as const
+
 /** DELETE /api/parents/[id] */
 export async function DELETE(
   _req: NextRequest,
@@ -28,7 +35,7 @@ export async function DELETE(
   }
 }
 
-/** PATCH /api/parents/[id]/link — link/unlink a student */
+/** PATCH /api/parents/[id] — link/unlink a student */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,15 +50,15 @@ export async function PATCH(
     if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 })
 
     if (action === "link") {
-      await prisma.studentParent.upsert({
+      // Neon HTTP: upsert uses implicit transaction — replace with findUnique + conditional create
+      const existing = await prisma.studentParent.findUnique({
         where: { studentId_parentId: { studentId, parentId } },
-        create: { studentId, parentId },
-        update: {},
       })
+      if (!existing) {
+        await prisma.studentParent.create({ data: { studentId, parentId } })
+      }
     } else if (action === "unlink") {
-      await prisma.studentParent.deleteMany({
-        where: { studentId, parentId },
-      })
+      await prisma.studentParent.deleteMany({ where: { studentId, parentId } })
     } else {
       return NextResponse.json({ error: "action must be 'link' or 'unlink'" }, { status: 400 })
     }
@@ -59,12 +66,7 @@ export async function PATCH(
     // Return updated parent with students
     const parent = await prisma.parent.findUnique({
       where: { id: parentId },
-      include: {
-        user: { select: { name: true, email: true, phone: true, isActive: true } },
-        students: {
-          include: { student: { select: { id: true, user: { select: { name: true } } } } },
-        },
-      },
+      include: parentInclude,
     })
     return NextResponse.json(parent)
   } catch (e: any) {

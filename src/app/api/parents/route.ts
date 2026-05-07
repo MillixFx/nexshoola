@@ -35,7 +35,9 @@ export async function POST(req: NextRequest) {
       || `parent_${phone.trim().replace(/\D/g, "")}_${Date.now()}@noreply.local`
 
     const hashed = await bcrypt.hash(password || "changeme123", 10)
-    const user = await prisma.user.create({
+
+    // Neon HTTP: nested create + include uses implicit transactions — split into sequential steps
+    const createdUser = await prisma.user.create({
       data: {
         schoolId,
         name: name.trim(),
@@ -43,15 +45,19 @@ export async function POST(req: NextRequest) {
         password: hashed,
         phone: phone.trim(),
         role: "PARENT",
-        parent: {
-          create: {
-            schoolId,
-            occupation: occupation || null,
-            address: address || null,
-            relation: relation || "Parent",
-          },
-        },
       },
+    })
+    const createdParent = await prisma.parent.create({
+      data: {
+        schoolId,
+        userId: createdUser.id,
+        occupation: occupation || null,
+        address: address || null,
+        relation: relation || "Parent",
+      },
+    })
+    const user = await prisma.user.findUnique({
+      where: { id: createdUser.id },
       include: {
         parent: {
           include: {

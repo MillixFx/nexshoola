@@ -58,11 +58,21 @@ export async function POST(req: NextRequest) {
   const computedGrade  = String(ghanaGrade(score))
   const computedRemark = ghanaRemark(score)
 
-  const mark = await prisma.subjectMark.upsert({
+  // Neon HTTP: upsert uses implicit transaction — replace with findUnique + create/update
+  const existing = await prisma.subjectMark.findUnique({
     where: { studentId_subjectId_examId: { studentId, subjectId, examId } },
-    create: { studentId, subjectId, examId, marks: score, grade: computedGrade, remark: computedRemark },
-    update: { marks: score, grade: computedGrade, remark: computedRemark },
   })
+  let mark
+  if (existing) {
+    mark = await prisma.subjectMark.update({
+      where: { studentId_subjectId_examId: { studentId, subjectId, examId } },
+      data: { marks: score, grade: computedGrade, remark: computedRemark },
+    })
+  } else {
+    mark = await prisma.subjectMark.create({
+      data: { studentId, subjectId, examId, marks: score, grade: computedGrade, remark: computedRemark },
+    })
+  }
 
   return NextResponse.json(mark, { status: 201 })
 }

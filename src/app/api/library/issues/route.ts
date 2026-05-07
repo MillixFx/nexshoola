@@ -47,12 +47,9 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findFirst({ where: { id: userId, schoolId } })
     if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 })
 
-    // Get or create LibraryMember
-    const member = await prisma.libraryMember.upsert({
-      where: { userId },
-      create: { userId },
-      update: {},
-    })
+    // Get or create LibraryMember — Neon HTTP: upsert → findUnique + conditional create
+    let member = await prisma.libraryMember.findUnique({ where: { userId } })
+    if (!member) member = await prisma.libraryMember.create({ data: { userId } })
 
     // Check user doesn't already have this book
     const existing = await prisma.bookIssue.findFirst({
@@ -60,27 +57,17 @@ export async function POST(req: NextRequest) {
     })
     if (existing) return NextResponse.json({ error: "This person already has a copy of this book." }, { status: 409 })
 
-    // Neon HTTP adapter does not support $transaction — run sequentially
-    const created = await prisma.bookIssue.create({
-      data: {
-        bookId,
-        memberId: member.id,
-        dueDate: new Date(dueDate),
-        status: "ISSUED",
-      },
+    const newIssue = await prisma.bookIssue.create({
+      data: { bookId, memberId: member.id, dueDate: new Date(dueDate), status: "ISSUED" },
+    })
+    await prisma.book.update({ where: { id: bookId }, data: { available: { decrement: 1 } } })
+    const created = await prisma.bookIssue.findUnique({
+      where: { id: newIssue.id },
       include: {
         book: { select: { id: true, title: true, author: true, isbn: true } },
-        member: {
-          select: {
-            id: true,
-            memberId: true,
-            user: { select: { id: true, name: true, role: true } },
-          },
-        },
+        member: { select: { id: true, memberId: true, user: { select: { id: true, name: true, role: true } } } },
       },
     })
-
-    await prisma.book.update({ where: { id: bookId }, data: { available: { decrement: 1 } } })
 
     return NextResponse.json(created, { status: 201 })
   } catch (e: any) {

@@ -33,11 +33,18 @@ export async function POST(
         return NextResponse.json({ error: "Parent not found" }, { status: 404 })
       }
 
-      await prisma.studentParent.upsert({
+      // Neon HTTP: upsert → findUnique + create/update
+      const existing = await prisma.studentParent.findUnique({
         where: { studentId_parentId: { studentId, parentId } },
-        create: { studentId, parentId, relation: relation || null },
-        update: { relation: relation || null },
       })
+      if (existing) {
+        await prisma.studentParent.update({
+          where: { studentId_parentId: { studentId, parentId } },
+          data: { relation: relation || null },
+        })
+      } else {
+        await prisma.studentParent.create({ data: { studentId, parentId, relation: relation || null } })
+      }
 
       return NextResponse.json({ ok: true })
     }
@@ -63,7 +70,8 @@ export async function POST(
 
       const hashed = await bcrypt.hash("changeme123", 10)
 
-      const user = await prisma.user.create({
+      // Neon HTTP: nested create + include → split into sequential steps
+      const createdUser = await prisma.user.create({
         data: {
           schoolId: session.user.schoolId,
           name,
@@ -71,19 +79,19 @@ export async function POST(
           password: hashed,
           phone: phone.trim(),
           role: "PARENT",
-          parent: {
-            create: {
-              schoolId: session.user.schoolId,
-              relation: relation || "Parent",
-              occupation: occupation || null,
-              address: address || null,
-            },
-          },
         },
-        include: { parent: true },
+      })
+      const createdParent = await prisma.parent.create({
+        data: {
+          schoolId: session.user.schoolId,
+          userId: createdUser.id,
+          relation: relation || "Parent",
+          occupation: occupation || null,
+          address: address || null,
+        },
       })
 
-      const parentId = user.parent!.id
+      const parentId = createdParent.id
 
       await prisma.studentParent.create({
         data: { studentId, parentId, relation: relation || null },

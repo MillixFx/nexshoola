@@ -38,16 +38,22 @@ export async function PUT(req: NextRequest) {
       where: { classId, subjectId: { notIn: incomingSubjectIds } },
     })
 
-    // Upsert each assignment
-    await Promise.all(
-      assignments.map(({ subjectId, teacherId }) =>
-        prisma.classSubject.upsert({
+    // Neon HTTP: upsert uses implicit transaction — replace with findUnique + create/update
+    for (const { subjectId, teacherId } of assignments) {
+      const existing = await prisma.classSubject.findUnique({
+        where: { classId_subjectId: { classId, subjectId } },
+      })
+      if (existing) {
+        await prisma.classSubject.update({
           where: { classId_subjectId: { classId, subjectId } },
-          create: { classId, subjectId, teacherId: teacherId || null },
-          update: { teacherId: teacherId || null },
+          data: { teacherId: teacherId || null },
         })
-      )
-    )
+      } else {
+        await prisma.classSubject.create({
+          data: { classId, subjectId, teacherId: teacherId || null },
+        })
+      }
+    }
 
     // Return fresh data
     const updated = await prisma.classSubject.findMany({

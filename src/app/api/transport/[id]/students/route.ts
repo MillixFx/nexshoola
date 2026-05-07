@@ -39,11 +39,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { studentId, pickupPoint } = await req.json()
     if (!studentId) return NextResponse.json({ error: "studentId is required" }, { status: 400 })
 
-    // Upsert: student can only be on one route (unique on studentId)
-    const assignment = await prisma.studentTransport.upsert({
-      where: { studentId },
-      create: { studentId, transportId: id, pickupPoint: pickupPoint ?? null },
-      update: { transportId: id, pickupPoint: pickupPoint ?? null },
+    // Neon HTTP: upsert + include → findUnique + create/update, then fetch separately
+    const existingAssign = await prisma.studentTransport.findUnique({ where: { studentId } })
+    let assignId: string
+    if (existingAssign) {
+      await prisma.studentTransport.update({
+        where: { studentId },
+        data: { transportId: id, pickupPoint: pickupPoint ?? null },
+      })
+      assignId = existingAssign.id
+    } else {
+      const created = await prisma.studentTransport.create({
+        data: { studentId, transportId: id, pickupPoint: pickupPoint ?? null },
+      })
+      assignId = created.id
+    }
+    const assignment = await prisma.studentTransport.findUnique({
+      where: { id: assignId },
       include: {
         student: {
           include: {

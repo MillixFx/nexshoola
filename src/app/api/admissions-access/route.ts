@@ -34,10 +34,16 @@ export async function POST(req: NextRequest) {
   const { userId } = await req.json()
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 })
 
-  const perm = await prisma.userPermission.upsert({
-    where: { schoolId_userId_permission: { schoolId, userId, permission: PERMISSION } },
-    create: { schoolId, userId, permission: PERMISSION, grantedBy: session.user.id },
-    update: { grantedBy: session.user.id },
+  // Neon HTTP: upsert + include → findUnique + create/update, then fetch separately
+  const whereKey = { schoolId_userId_permission: { schoolId, userId, permission: PERMISSION } }
+  const existing = await prisma.userPermission.findUnique({ where: whereKey })
+  if (existing) {
+    await prisma.userPermission.update({ where: whereKey, data: { grantedBy: session.user.id } })
+  } else {
+    await prisma.userPermission.create({ data: { schoolId, userId, permission: PERMISSION, grantedBy: session.user.id } })
+  }
+  const perm = await prisma.userPermission.findUnique({
+    where: whereKey,
     include: { user: { select: { id: true, name: true, email: true, role: true } } },
   })
 
