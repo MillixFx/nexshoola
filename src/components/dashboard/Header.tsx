@@ -8,6 +8,7 @@ import { getInitials } from "@/lib/utils"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { useState, useRef, useEffect, useCallback } from "react"
+import ThemeToggle from "@/components/ThemeToggle"
 
 interface Notice { id: string; title: string; content: string; priority: string; createdAt: string | Date }
 
@@ -262,7 +263,7 @@ export default function Header({
 
   return (
     <>
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30">
+      <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30">
         {/* Left */}
         <div className="flex items-center gap-3">
           <button onClick={onMenuToggle} className="lg:hidden p-2 -ml-1 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors" aria-label="Open menu">
@@ -277,7 +278,7 @@ export default function Header({
 
           {/* Search */}
           <div className="hidden sm:block relative" ref={searchRef}>
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 w-64 focus-within:border-indigo-300 focus-within:bg-white transition-colors">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 w-64 focus-within:border-indigo-300 focus-within:bg-white dark:focus-within:bg-gray-700 transition-colors">
               {searching
                 ? <Loader2 className="w-4 h-4 text-gray-400 shrink-0 animate-spin" />
                 : <Search className="w-4 h-4 text-gray-400 shrink-0" />
@@ -288,7 +289,7 @@ export default function Header({
                 onChange={handleSearchChange}
                 onFocus={() => { if (results && totalResults > 0) setSearchOpen(true) }}
                 placeholder="Search students, staff…"
-                className="bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none w-full"
+                className="bg-transparent text-sm text-gray-600 dark:text-gray-300 placeholder-gray-400 outline-none w-full"
               />
               {query && (
                 <button onClick={clearSearch} className="text-gray-400 hover:text-gray-600 shrink-0">
@@ -299,7 +300,7 @@ export default function Header({
 
             {/* Results dropdown */}
             {searchOpen && results && totalResults > 0 && (
-              <div className="absolute top-full left-0 mt-2 w-96 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/60 overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
+              <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
                 {results.students.length > 0 && (
                   <div>
                     <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Students</p>
@@ -395,6 +396,7 @@ export default function Header({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle className="hidden sm:flex" />
           {/* School badge */}
           <span className="hidden md:inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
@@ -413,9 +415,9 @@ export default function Header({
             </button>
 
             {bellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
-                  <p className="text-sm font-bold text-gray-900">Notices</p>
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50 dark:border-gray-700">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Notices</p>
                   <button onClick={() => setBellOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
                 </div>
                 {notices.length === 0 ? (
@@ -458,22 +460,25 @@ export default function Header({
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-gray-50">
-                  <p className="text-sm font-bold text-gray-900 truncate">{userName}</p>
-                  <p className="text-xs text-gray-400 capitalize mt-0.5">{role.toLowerCase().replace(/_/g, " ")}</p>
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
+                <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-700">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{userName}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-0.5">{role.toLowerCase().replace(/_/g, " ")}</p>
                 </div>
                 <div className="py-1.5">
-                  <Link href="/dashboard/settings" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Link href="/dashboard/settings" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <Settings className="w-4 h-4 text-gray-400" /> Settings
                   </Link>
                   <button
                     onClick={() => { setDropdownOpen(false); setPwOpen(true) }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <Lock className="w-4 h-4 text-gray-400" /> Change Password
                   </button>
-                  <button onClick={() => signOut({ callbackUrl: "/login" })} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                  <div className="px-4 py-2 border-t border-gray-50 dark:border-gray-700">
+                    <ThemeToggle className="w-full justify-center" />
+                  </div>
+                  <button onClick={() => signOut({ callbackUrl: "/login" })} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                     <LogOut className="w-4 h-4" /> Sign Out
                   </button>
                 </div>

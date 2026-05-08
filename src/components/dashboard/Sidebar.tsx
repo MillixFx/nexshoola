@@ -165,8 +165,8 @@ function NavGroup({
               className={cn(
                 "flex justify-center p-2.5 rounded-xl transition-all",
                 isActive
-                  ? "bg-indigo-50 text-indigo-700"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -188,11 +188,11 @@ function NavGroup({
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full",
             hasActive
-              ? "bg-indigo-50 text-indigo-700"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
           )}
         >
-          <LayoutDashboard className={cn("w-4 h-4 shrink-0", hasActive && "text-indigo-600")} />
+          <LayoutDashboard className={cn("w-4 h-4 shrink-0", hasActive && "text-indigo-600 dark:text-indigo-400")} />
           <span>Dashboard</span>
           {hasActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600" />}
         </Link>
@@ -204,11 +204,11 @@ function NavGroup({
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full",
             hasActive
-              ? "bg-indigo-50 text-indigo-700"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
           )}
         >
-          <LayoutGrid className={cn("w-4 h-4 shrink-0", hasActive && "text-indigo-600")} />
+          <LayoutGrid className={cn("w-4 h-4 shrink-0", hasActive && "text-indigo-600 dark:text-indigo-400")} />
           <span>My Portal</span>
           {hasActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600" />}
         </Link>
@@ -220,8 +220,8 @@ function NavGroup({
             className={cn(
               "flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
               hasActive
-                ? "text-indigo-600"
-                : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                ? "text-indigo-600 dark:text-indigo-400"
+                : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             )}
           >
             <GroupIcon className="w-3.5 h-3.5 shrink-0" />
@@ -251,8 +251,8 @@ function NavGroup({
                       className={cn(
                         "flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all",
                         isActive
-                          ? "bg-indigo-50 text-indigo-700"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                          : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                       )}
                     >
                       <Icon className={cn("w-3.5 h-3.5 shrink-0", isActive && "text-indigo-600")} />
@@ -311,26 +311,26 @@ export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADM
 
       {/* ── Mobile drawer ───────────────────────────────────────────────── */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out lg:hidden",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out lg:hidden",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2" onClick={onMobileClose}>
             <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
               <Logo className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-sm text-gray-900">Nex<span className="text-indigo-600">Schoola</span></span>
+            <span className="font-bold text-sm text-gray-900 dark:text-white">Nex<span className="text-indigo-600">Schoola</span></span>
           </Link>
-          <button onClick={onMobileClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+          <button onClick={onMobileClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300">
             <X className="w-4 h-4" />
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2 scrollbar-thin">
           <NavList pathname={pathname} collapsed={false} role={userRole} onLinkClick={onMobileClose} />
         </nav>
-        <div className="shrink-0 px-3 py-3 border-t border-gray-100">
+        <div className="shrink-0 px-3 py-3 border-t border-gray-100 dark:border-gray-800">
           <Link href="/" onClick={onMobileClose}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 transition-colors">
             <ExternalLink className="w-4 h-4 shrink-0" /><span>Back to Site</span>
           </Link>
         </div>
@@ -338,17 +338,17 @@ export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADM
 
       {/* ── Desktop sidebar ─────────────────────────────────────────────── */}
       <aside className={cn(
-        "hidden lg:flex flex-col bg-white border-r border-gray-100 shadow-sm transition-all duration-300 shrink-0",
+        "hidden lg:flex flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 shadow-sm transition-all duration-300 shrink-0",
         collapsed ? "w-16" : "w-60"
       )}>
         {/* Logo row */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           {!collapsed ? (
             <Link href="/dashboard" className="flex items-center gap-2">
               <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
                 <Logo className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-sm text-gray-900">Nex<span className="text-indigo-600">Schoola</span></span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">Nex<span className="text-indigo-600">Schoola</span></span>
             </Link>
           ) : (
             <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto">
@@ -358,7 +358,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADM
           <button
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
-              "p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors",
+              "p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
               collapsed && "mx-auto mt-1"
             )}
           >
@@ -372,10 +372,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose, role = "ADM
         </nav>
 
         {/* Footer */}
-        <div className={cn("shrink-0 border-t border-gray-100 px-2 py-3", collapsed && "flex justify-center")}>
+        <div className={cn("shrink-0 border-t border-gray-100 dark:border-gray-800 px-2 py-3", collapsed && "flex justify-center")}>
           <Link href="/" title="Back to Site"
             className={cn(
-              "flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors",
+              "flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 transition-colors",
               collapsed && "justify-center px-2"
             )}>
             <ExternalLink className="w-4 h-4 shrink-0" />

@@ -205,14 +205,14 @@ export default function ChatClient({
   )
 
   return (
-    <div className="-m-4 sm:-m-6 h-[calc(100vh-64px)] flex bg-white">
+    <div className="-m-4 sm:-m-6 h-[calc(100vh-64px)] flex bg-white dark:bg-gray-900">
       {/* ── Conversations list (left panel) */}
       <aside className={cn(
-        "w-full sm:w-80 sm:max-w-xs border-r border-gray-100 flex flex-col bg-white",
+        "w-full sm:w-80 sm:max-w-xs border-r border-gray-100 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900",
         activeId && "hidden sm:flex"
       )}>
-        <div className="p-4 border-b border-gray-100 flex items-center gap-2">
-          <h1 className="text-lg font-bold text-gray-900 flex-1">Chat</h1>
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white flex-1">Chat</h1>
           <button onClick={openNew} className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700" title="New chat">
             <Plus className="w-4 h-4" />
           </button>
@@ -225,7 +225,7 @@ export default function ChatClient({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search conversations…"
-              className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:bg-white focus:border-indigo-300"
+              className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-gray-700 focus:border-indigo-300 text-gray-900 dark:text-white placeholder-gray-400"
             />
           </div>
         </div>
@@ -250,8 +250,8 @@ export default function ChatClient({
                     <button
                       onClick={() => setActiveId(c.id)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left",
-                        isActive && "bg-indigo-50 hover:bg-indigo-50"
+                        "w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left",
+                        isActive && "bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
                       )}
                     >
                       <div className={cn(
@@ -262,7 +262,7 @@ export default function ChatClient({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-sm text-gray-900 truncate flex-1">{name}</p>
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate flex-1">{name}</p>
                           {c.lastMessage && (
                             <span className="text-[10px] text-gray-400 shrink-0">{timeAgo(c.lastMessage.createdAt)}</span>
                           )}
@@ -300,7 +300,7 @@ export default function ChatClient({
       </aside>
 
       {/* ── Active chat (right panel) */}
-      <section className={cn("flex-1 flex flex-col bg-gray-50", !activeId && "hidden sm:flex")}>
+      <section className={cn("flex-1 flex flex-col bg-gray-50 dark:bg-gray-950", !activeId && "hidden sm:flex")}>
         {!active ? (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
             <MessageSquare className="w-12 h-12 text-gray-300 mb-3" />
@@ -309,7 +309,7 @@ export default function ChatClient({
         ) : (
           <>
             {/* Chat header */}
-            <header className="px-4 py-3 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
+            <header className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center gap-3 shrink-0">
               <button onClick={() => setActiveId(null)} className="sm:hidden p-1 -ml-1 text-gray-500 hover:text-gray-700">
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -353,7 +353,7 @@ export default function ChatClient({
                         )}
                         <div className={cn(
                           "rounded-2xl px-3.5 py-2 text-sm break-words shadow-sm",
-                          mine ? "bg-indigo-600 text-white rounded-br-md" : "bg-white text-gray-900 rounded-bl-md border border-gray-100"
+                          mine ? "bg-indigo-600 text-white rounded-br-md" : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-md border border-gray-100 dark:border-gray-700"
                         )}>
                           <p className="whitespace-pre-wrap">{m.content}</p>
                           <p className={cn("text-[10px] mt-1 flex items-center gap-1", mine ? "text-indigo-200 justify-end" : "text-gray-400")}>
@@ -369,7 +369,7 @@ export default function ChatClient({
             </div>
 
             {/* Composer */}
-            <form onSubmit={handleSend} className="p-3 sm:p-4 border-t border-gray-100 bg-white flex items-end gap-2 shrink-0">
+            <form onSubmit={handleSend} className="p-3 sm:p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-end gap-2 shrink-0">
               <textarea
                 value={draft}
                 onChange={e => setDraft(e.target.value)}
@@ -381,7 +381,7 @@ export default function ChatClient({
                 }}
                 placeholder="Type a message…"
                 rows={1}
-                className="flex-1 resize-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 max-h-32"
+                className="flex-1 resize-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 max-h-32"
               />
               <button
                 type="submit"
@@ -398,8 +398,8 @@ export default function ChatClient({
       {/* ── New conversation modal */}
       {showNew && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white">
+          <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">New Conversation</h2>
                 {currentUserRole === "SUPER_ADMIN" && (
@@ -416,7 +416,7 @@ export default function ChatClient({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 border-b border-gray-100 space-y-2">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -430,7 +430,7 @@ export default function ChatClient({
                       ? "Search staff or students…"
                       : "Search by name, email, or role…"
                   }
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:bg-white focus:border-indigo-300"
+                  className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-gray-700 focus:border-indigo-300 text-gray-900 dark:text-white placeholder-gray-400"
                 />
               </div>
               {convError && (
@@ -449,7 +449,7 @@ export default function ChatClient({
                       <button
                         onClick={() => startConversation(u.id)}
                         disabled={!!startingConv}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left disabled:opacity-60 transition-opacity"
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left disabled:opacity-60 transition-opacity"
                       >
                         <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
                           {startingConv === u.id
@@ -458,7 +458,7 @@ export default function ChatClient({
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-gray-900 truncate">{u.name}</p>
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">{u.name}</p>
                           <p className="text-xs text-gray-400 truncate">{u.email}</p>
                         </div>
                         <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0", ROLE_COLOR[u.role] ?? "bg-gray-100 text-gray-600")}>

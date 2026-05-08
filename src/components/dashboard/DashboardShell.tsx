@@ -19,7 +19,7 @@ export default function DashboardShell({ children, userName, schoolName, role, n
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} role={role} />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header
@@ -29,7 +29,7 @@ export default function DashboardShell({ children, userName, schoolName, role, n
           notices={notices}
           onMenuToggle={() => setMobileOpen(o => !o)}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 dark:bg-gray-950">
           {children}
         </main>
       </div>

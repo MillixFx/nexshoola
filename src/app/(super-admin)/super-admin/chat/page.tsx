@@ -9,12 +9,10 @@ export default async function SuperAdminChatPage() {
   if (session?.user?.role !== "SUPER_ADMIN") redirect("/login")
 
   return (
-    <div className="-m-6 h-[calc(100vh-64px)]">
-      <ChatClient
-        currentUserId={session.user.id!}
-        currentUserName={session.user.name ?? "Platform Owner"}
-        currentUserRole="SUPER_ADMIN"
-      />
-    </div>
+    <ChatClient
+      currentUserId={session.user.id!}
+      currentUserName={session.user.name ?? "Platform Owner"}
+      currentUserRole="SUPER_ADMIN"
+    />
   )
 }
