@@ -24,6 +24,12 @@ export const metadata: Metadata = {
     "The all-in-one school management platform built for Ghanaian schools. Manage students, teachers, fees, exams, attendance, and more — all in one place.",
   keywords: ["school management", "Ghana", "education", "SaaS", "NexSchoola"],
   authors: [{ name: "NexSchoola" }],
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "NexSchoola",
+  },
   openGraph: {
     type: "website",
     locale: "en_GH",
@@ -41,6 +47,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jakarta.variable} h-full antialiased`}>
+      <head>
+        <meta name="theme-color" content="#4F46E5" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+      </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
       </body>
