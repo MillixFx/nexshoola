@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Building2, Users, DollarSign, TrendingUp, AlertCircle, CheckCircle2, Clock } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
 
 export default async function SuperAdminOverview() {
   const session = await auth()
@@ -20,11 +19,31 @@ export default async function SuperAdminOverview() {
 
   const activeSchools = schools.filter(s => s.isActive)
   const totalStudents = schools.reduce((sum, s) => sum + s._count.students, 0)
-  const feePerStudent = platformConfig?.feePerStudentTermly ?? 15
-  const expectedRevenue = totalStudents * feePerStudent
 
-  const paidSchools = schools.filter(s => s.subscriptionPaidAt && new Date(s.subscriptionPaidAt) > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
-  const owingSchools = activeSchools.filter(s => !s.subscriptionPaidAt || new Date(s.subscriptionPaidAt!) < new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
+  // Flat yearly plan prices (from platform config)
+  const planPriceBasic = platformConfig?.planPriceBasic ?? 1200
+  const planPricePro   = platformConfig?.planPricePro   ?? 2000
+  const currency       = platformConfig?.currency === "GHS" ? "GH₵" : (platformConfig?.currency ?? "GH₵")
+
+  // Expected annual revenue = sum of plan prices for all non-free schools
+  const expectedRevenue = schools
+    .filter(s => s.plan !== "FREE")
+    .reduce((sum, s) => {
+      if (s.plan === "BASIC") return sum + planPriceBasic
+      if (s.plan === "PRO")   return sum + planPricePro
+      return sum // ENTERPRISE is custom — exclude from estimate
+    }, 0)
+
+  // A school is "paid" if planExpiry is set and in the future, or subscriptionPaidAt within last year
+  const now = Date.now()
+  const oneYearAgo = now - 365 * 24 * 60 * 60 * 1000
+  const paidSchools = schools.filter(s =>
+    (s.planExpiry && new Date(s.planExpiry).getTime() > now) ||
+    (s.subscriptionPaidAt && !s.planExpiry && new Date(s.subscriptionPaidAt).getTime() > oneYearAgo)
+  )
+  const owingSchools = activeSchools.filter(s =>
+    s.plan !== "FREE" && !paidSchools.some(p => p.id === s.id)
+  )
   const trialSchools = schools.filter(s => s.plan === "FREE")
 
   const PLAN_COLOR: Record<string, string> = {
@@ -46,7 +65,7 @@ export default async function SuperAdminOverview() {
         {[
           { label: "Total Schools", value: schools.length, icon: Building2, color: "bg-indigo-50 text-indigo-600", detail: `${activeSchools.length} active` },
           { label: "Total Students", value: totalStudents.toLocaleString(), icon: Users, color: "bg-blue-50 text-blue-600", detail: "across all schools" },
-          { label: "Expected Revenue", value: formatCurrency(expectedRevenue), icon: DollarSign, color: "bg-emerald-50 text-emerald-600", detail: `@ GH₵${feePerStudent}/student/term` },
+          { label: "Expected Revenue", value: `${currency}${expectedRevenue.toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600", detail: "yearly · Basic + Pro plans" },
           { label: "Paid Schools", value: paidSchools.length, icon: TrendingUp, color: "bg-amber-50 text-amber-600", detail: `${owingSchools.length} owing` },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
