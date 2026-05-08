@@ -265,7 +265,7 @@ export default function SettingsClient({ school }: { school: School }) {
           <h2 className="font-bold text-gray-900 mb-2">Subscription</h2>
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">{school.plan} Plan</span>
-            <a href="/pricing" className="text-sm text-indigo-600 hover:underline font-medium">Upgrade →</a>
+            <a href="/dashboard/subscription" className="text-sm text-indigo-600 hover:underline font-medium">Upgrade →</a>
           </div>
         </div>
 
