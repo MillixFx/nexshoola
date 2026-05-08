@@ -9,10 +9,21 @@ async function assertParticipant(conversationId: string, userId: string) {
   return !!p
 }
 
+// Attach sender data to messages — completely flat (no nested include/select)
+async function attachSenders(messages: { id: string; conversationId: string; senderId: string; content: string; createdAt: Date; deletedAt: Date | null }[]) {
+  if (messages.length === 0) return []
+  const senderIds = [...new Set(messages.map(m => m.senderId))]
+  const senders = await prisma.user.findMany({
+    where: { id: { in: senderIds } },
+    select: { id: true, name: true, role: true, avatar: true },
+  })
+  const senderMap = new Map(senders.map(s => [s.id, s]))
+  return messages.map(m => ({ ...m, sender: senderMap.get(m.senderId) ?? null }))
+}
+
 /**
- * GET /api/chat/conversations/[id]/messages?since=<iso>
- * Returns messages in the conversation. If `since` is provided, returns only
- * messages newer than that timestamp (used for polling-based live updates).
+ * GET /api/chat/conversations/[id]/messages
+ * All queries flat — no nested include/select on relations (Neon HTTP constraint).
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -34,18 +45,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       ...(since ? { createdAt: { gt: new Date(since) } } : {}),
     },
     orderBy: { createdAt: "asc" },
-    include: {
-      sender: { select: { id: true, name: true, role: true, avatar: true } },
-    },
+    select: { id: true, conversationId: true, senderId: true, content: true, createdAt: true, deletedAt: true },
   })
 
-  return NextResponse.json(messages)
+  const enriched = await attachSenders(messages)
+  return NextResponse.json(enriched)
 }
 
 /**
  * POST /api/chat/conversations/[id]/messages
- * Body: { content: string }
- * Creates a new message and bumps the conversation's updatedAt.
+ * All queries flat — no nested include/select on relations (Neon HTTP constraint).
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -63,21 +72,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "content required" }, { status: 400 })
   }
 
+  // Create message — flat, no include
   const created = await prisma.chatMessage.create({
     data: { conversationId, senderId: userId, content: content.trim() },
-  })
-  const message = await prisma.chatMessage.findUnique({
-    where: { id: created.id },
-    include: { sender: { select: { id: true, name: true, role: true, avatar: true } } },
+    select: { id: true, conversationId: true, senderId: true, content: true, createdAt: true, deletedAt: true },
   })
 
-  // Bump conversation updatedAt for sorting + mark sender's lastReadAt
-  // Neon HTTP adapter does not support $transaction — run sequentially
+  // Bump conversation updatedAt + mark sender read — sequential flat updates
   await prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } })
   await prisma.conversationParticipant.update({
     where: { conversationId_userId: { conversationId, userId } },
     data: { lastReadAt: new Date() },
   })
 
-  return NextResponse.json(message, { status: 201 })
+  // Attach sender data — flat
+  const [enriched] = await attachSenders([created])
+  return NextResponse.json(enriched ?? created, { status: 201 })
 }
