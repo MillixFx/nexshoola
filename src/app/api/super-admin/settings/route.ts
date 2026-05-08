@@ -6,7 +6,15 @@ export async function GET() {
   const session = await auth()
   if (session?.user?.role !== "SUPER_ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   const config = await prisma.platformConfig.findFirst()
-  return NextResponse.json(config)
+  if (!config) return NextResponse.json(null)
+
+  // Never return raw secret keys to the browser — send masked placeholders instead
+  // The frontend uses these only to show "key is set" status, not the actual value
+  return NextResponse.json({
+    ...config,
+    paystackSecretKey:    config.paystackSecretKey    ? "sk_••••••••••••••••" : null,
+    paystackWebhookSecret: config.paystackWebhookSecret ? "whsk_••••••••••••••••" : null,
+  })
 }
 
 export async function POST(req: NextRequest) {
@@ -22,10 +30,14 @@ export async function POST(req: NextRequest) {
 
   const existing = await prisma.platformConfig.findFirst()
 
+  // If the client sends back our masked placeholder, keep the existing real value
+  const isMaskedSecret  = (v: string | null | undefined) => v?.startsWith("sk_••") || v?.startsWith("whsk_••")
+  const isMaskedWebhook = (v: string | null | undefined) => v?.startsWith("whsk_••")
+
   const data = {
-    paystackSecretKey:    paystackSecretKey    || null,
+    paystackSecretKey:    isMaskedSecret(paystackSecretKey)   ? existing?.paystackSecretKey    ?? null : (paystackSecretKey    || null),
     paystackPublicKey:    paystackPublicKey    || null,
-    paystackWebhookSecret: paystackWebhookSecret || null,
+    paystackWebhookSecret: isMaskedWebhook(paystackWebhookSecret) ? existing?.paystackWebhookSecret ?? null : (paystackWebhookSecret || null),
     feePerStudentTermly:  parseFloat(feePerStudentTermly)  || 15,
     platformFeePercent:   parseFloat(platformFeePercent)   || 0,
     currency:             currency             || "GHS",

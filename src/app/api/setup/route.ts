@@ -6,6 +6,11 @@ import bcrypt from "bcryptjs"
 // Passwords are read from env vars: SEED_ADMIN_PASSWORD, SEED_SUPER_ADMIN_PASSWORD
 // Defaults to randomly generated values printed only in server logs (never in response)
 export async function GET() {
+  // Disabled in production — only usable in development
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Setup endpoint is disabled in production." }, { status: 403 })
+  }
+
   try {
     const results: any = {}
 

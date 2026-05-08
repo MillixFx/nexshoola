@@ -45,12 +45,25 @@ export async function GET(req: NextRequest) {
 // POST /api/marks  → upsert a single mark
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const role = session.user.role
+  if (role !== "ADMIN" && role !== "HEADMASTER" && role !== "TEACHER" && role !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
 
   const { studentId, subjectId, examId, marks } = await req.json()
 
   if (!studentId || !subjectId || !examId || marks === undefined) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+  }
+
+  // Verify the student belongs to the caller's school (prevent cross-tenant mark tampering)
+  if (role !== "SUPER_ADMIN") {
+    const student = await prisma.student.findUnique({ where: { id: studentId }, select: { schoolId: true } })
+    if (!student || student.schoolId !== session.user.schoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
   }
 
   const score = parseFloat(marks)
