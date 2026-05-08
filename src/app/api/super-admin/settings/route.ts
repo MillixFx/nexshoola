@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const {
     paystackSecretKey, paystackPublicKey, paystackWebhookSecret,
-    feePerStudentTermly, platformFeePercent, currency, siteName, supportEmail,
+    feePerStudentTermly, platformFeePercent, currency, siteName, supportEmail, supportPhone,
     planPriceBasic, planPricePro, planPriceEnterprise,
   } = body
 
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     currency:             currency             || "GHS",
     siteName:             siteName             || "NexSchoola",
     supportEmail:         supportEmail         || null,
+    supportPhone:         supportPhone         || null,
     planPriceBasic:       parseFloat(planPriceBasic)       || 500,
     planPricePro:         parseFloat(planPricePro)         || 1200,
     planPriceEnterprise:  parseFloat(planPriceEnterprise)  || 2500,

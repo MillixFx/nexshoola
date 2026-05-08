@@ -26,15 +26,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Enforce minimum payment of GH₵70 (7000 pesewas) — Paystack rejects below this
-    const MIN_PESEWAS = 7000
-    if (amount < MIN_PESEWAS) {
-      return NextResponse.json(
-        { error: `Minimum payable amount is GH₵70. This payment (GH₵${(amount / 100).toFixed(2)}) is too low.` },
-        { status: 400 }
-      )
-    }
-
     const schoolId = session.user.schoolId
     const userId = session.user.id
     const reference = generateReference(type.toUpperCase())

@@ -13,6 +13,7 @@ type PlatformConfig = {
   currency?: string | null
   siteName?: string | null
   supportEmail?: string | null
+  supportPhone?: string | null
   planPriceBasic?: number | null
   planPricePro?: number | null
   planPriceEnterprise?: number | null
@@ -28,6 +29,7 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
     currency:             config?.currency             ?? "GHS",
     siteName:             config?.siteName             ?? "NexSchoola",
     supportEmail:         config?.supportEmail         ?? "",
+    supportPhone:         config?.supportPhone         ?? "",
     planPriceBasic:       config?.planPriceBasic       ?? 500,
     planPricePro:         config?.planPricePro         ?? 1200,
     planPriceEnterprise:  config?.planPriceEnterprise  ?? 2500,
@@ -195,6 +197,13 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
               <label className="label">Support Email</label>
               <input type="email" className="input" value={form.supportEmail}
                 onChange={e => setForm(f => ({ ...f, supportEmail: e.target.value }))} placeholder="support@nexschoola.com" />
+            </div>
+            <div>
+              <label className="label">WhatsApp / Phone</label>
+              <input type="tel" className="input" value={form.supportPhone}
+                onChange={e => setForm(f => ({ ...f, supportPhone: e.target.value }))}
+                placeholder="233XXXXXXXXX (international format, no +)" />
+              <p className="text-xs text-gray-400 mt-1">Used for the WhatsApp button on the Enterprise plan card.</p>
             </div>
             <div>
               <label className="label">Default Currency</label>

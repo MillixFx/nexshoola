@@ -1152,6 +1152,7 @@ model PlatformConfig {
   currency              String  @default("GHS")
   siteName              String  @default("NexSchoola")
   supportEmail          String?
+  supportPhone          String? // WhatsApp/phone for Enterprise enquiries (intl format, e.g. 233XXXXXXXXX)
   // Yearly flat plan prices (set by super admin)
   planPriceBasic        Float   @default(500)   // GH₵500/year
   planPricePro          Float   @default(1200)  // GH₵1200/year

@@ -1,8 +1,7 @@
 "use client"
 
-import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Printer, ArrowLeft, GraduationCap, ImageDown, Loader2 } from "lucide-react"
+import { Printer, ArrowLeft, GraduationCap } from "lucide-react"
 import { formatDate, cn } from "@/lib/utils"
 import { ghanaGrade, ghanaGradeColor, ghanaRemark, GHANA_GRADE_KEY } from "@/lib/grading"
 
@@ -22,45 +21,9 @@ export default function ReportCardClient({
   school: { name: string; address: string | null; phone: string | null; email: string | null; logo: string | null }
 }) {
   const router = useRouter()
-  const cardRef = useRef<HTMLDivElement>(null)
-  const [downloading, setDownloading] = useState(false)
 
   function changeExam(examId: string) {
     router.push(`/dashboard/students/${student.id}/report-card?examId=${examId}`)
-  }
-
-  async function downloadAsJPG() {
-    if (!cardRef.current || downloading) return
-    setDownloading(true)
-    try {
-      // Load html2canvas from CDN on demand (no npm install required)
-      if (!(window as any).html2canvas) {
-        await new Promise<void>((resolve, reject) => {
-          const s = document.createElement("script")
-          s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-          s.onload = () => resolve()
-          s.onerror = () => reject(new Error("Failed to load html2canvas"))
-          document.head.appendChild(s)
-        })
-      }
-      const canvas = await (window as any).html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-      })
-      const link = document.createElement("a")
-      const fileName = `report-card-${student.name.replace(/\s+/g, "-")}-${exam?.title ?? "exam"}.jpg`
-      link.download = fileName
-      link.href = canvas.toDataURL("image/jpeg", 0.95)
-      link.click()
-    } catch (err) {
-      console.error("JPG download failed:", err)
-      alert("Could not generate image. Try printing instead.")
-    } finally {
-      setDownloading(false)
-    }
   }
 
   const overallGrade = ghanaGrade(stats.average)
@@ -88,24 +51,16 @@ export default function ReportCardClient({
             </select>
           )}
           <button
-            onClick={downloadAsJPG}
-            disabled={downloading}
-            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-50 disabled:opacity-60"
-          >
-            {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageDown className="w-4 h-4" />}
-            {downloading ? "Generating…" : "Download JPG"}
-          </button>
-          <button
             onClick={() => window.print()}
             className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-indigo-700"
           >
-            <Printer className="w-4 h-4" /> Print / PDF
+            <Printer className="w-4 h-4" /> Print Report Card
           </button>
         </div>
       </div>
 
       {/* ══ REPORT CARD ═══════════════════════════════════════ */}
-      <div ref={cardRef} className="bg-white border-2 border-gray-200 rounded-2xl max-w-2xl mx-auto print:border-0 print:shadow-none print:rounded-none print:max-w-none">
+      <div className="bg-white border-2 border-gray-200 rounded-2xl max-w-2xl mx-auto print:border-0 print:shadow-none print:rounded-none print:max-w-none">
         {/* School header */}
         <div className="border-b-2 border-indigo-600 p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-2">

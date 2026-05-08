@@ -29,14 +29,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const outstanding = slip.amount - slip.paidAmount
     if (outstanding <= 0) return NextResponse.json({ error: "No outstanding balance" }, { status: 400 })
 
-    // Enforce minimum of GH₵70 per transaction
-    if (outstanding < 70) {
-      return NextResponse.json(
-        { error: `Minimum payable amount is GH₵70. Outstanding balance (GH₵${outstanding.toFixed(2)}) is too low to process online — please pay in person.` },
-        { status: 400 }
-      )
-    }
-
     // Look up school subaccount
     const school = await prisma.school.findUnique({
       where: { id: schoolId },

@@ -26,6 +26,7 @@ export default async function SubscriptionPage() {
       select: {
         currency: true,
         supportEmail: true,
+        supportPhone: true,
         planPriceBasic: true,
         planPricePro: true,
       },
@@ -60,6 +61,7 @@ export default async function SubscriptionPage() {
       daysLeft={daysLeft}
       userEmail={session?.user?.email ?? ""}
       supportEmail={platformConfig?.supportEmail ?? ""}
+      supportPhone={platformConfig?.supportPhone ?? ""}
     />
   )
 }
