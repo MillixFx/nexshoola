@@ -47,10 +47,10 @@ export default async function SuperAdminOverview() {
   const trialSchools = schools.filter(s => s.plan === "FREE")
 
   const PLAN_COLOR: Record<string, string> = {
-    FREE: "bg-gray-100 text-gray-600",
-    BASIC: "bg-blue-50 text-blue-700",
-    PRO: "bg-indigo-50 text-indigo-700",
-    ENTERPRISE: "bg-purple-50 text-purple-700",
+    FREE: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+    BASIC: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400",
+    PRO: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400",
+    ENTERPRISE: "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400",
   }
 
   return (
@@ -60,37 +60,37 @@ export default async function SuperAdminOverview() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor all schools, revenue, and platform health</p>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats grid — 2 cols on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Total Schools", value: schools.length, icon: Building2, color: "bg-indigo-50 text-indigo-600", detail: `${activeSchools.length} active` },
-          { label: "Total Students", value: totalStudents.toLocaleString(), icon: Users, color: "bg-blue-50 text-blue-600", detail: "across all schools" },
-          { label: "Expected Revenue", value: `${currency}${expectedRevenue.toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600", detail: "yearly · Basic + Pro plans" },
-          { label: "Paid Schools", value: paidSchools.length, icon: TrendingUp, color: "bg-amber-50 text-amber-600", detail: `${owingSchools.length} owing` },
+          { label: "Total Schools",    value: schools.length,                               icon: Building2,   color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400",  detail: `${activeSchools.length} active` },
+          { label: "Total Students",   value: totalStudents.toLocaleString(),                icon: Users,       color: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",          detail: "across all schools" },
+          { label: "Expected Revenue", value: `${currency}${expectedRevenue.toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400", detail: "yearly · plans" },
+          { label: "Paid Schools",     value: paidSchools.length,                           icon: TrendingUp,  color: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",     detail: `${owingSchools.length} owing` },
         ].map(s => (
-          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
-              <s.icon className="w-5 h-5" />
+          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 sm:p-5">
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 sm:mb-3 ${s.color}`}>
+              <s.icon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{s.value}</p>
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{s.label}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{s.detail}</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{s.value}</p>
+            <p className="text-[11px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">{s.label}</p>
+            <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-0.5">{s.detail}</p>
           </div>
         ))}
       </div>
 
-      {/* Subscription status bar */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Subscription status — stacked on mobile, 3-col on sm+ */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
-          { label: "On Trial (FREE)", count: trialSchools.length, icon: Clock, color: "bg-gray-50 border-gray-200 text-gray-700" },
-          { label: "Subscription Paid", count: paidSchools.length, icon: CheckCircle2, color: "bg-emerald-50 border-emerald-200 text-emerald-700" },
-          { label: "Owing / Overdue", count: owingSchools.filter(s => s.plan !== "FREE").length, icon: AlertCircle, color: "bg-red-50 border-red-200 text-red-700" },
+          { label: "On Trial (FREE)",   count: trialSchools.length,                              icon: Clock,        color: "bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300" },
+          { label: "Subscription Paid", count: paidSchools.length,                              icon: CheckCircle2, color: "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-400" },
+          { label: "Owing / Overdue",   count: owingSchools.filter(s => s.plan !== "FREE").length, icon: AlertCircle,  color: "bg-red-50 border-red-200 text-red-700 dark:bg-red-950 dark:border-red-800 dark:text-red-400" },
         ].map(s => (
-          <div key={s.label} className={`rounded-2xl border p-5 flex items-center gap-4 ${s.color}`}>
+          <div key={s.label} className={`rounded-2xl border p-4 sm:p-5 flex items-center gap-4 ${s.color}`}>
             <s.icon className="w-8 h-8 shrink-0 opacity-60" />
-            <div>
-              <p className="text-3xl font-extrabold">{s.count}</p>
-              <p className="text-sm font-semibold">{s.label}</p>
+            <div className="min-w-0">
+              <p className="text-3xl font-extrabold leading-none">{s.count}</p>
+              <p className="text-sm font-semibold mt-1 leading-tight">{s.label}</p>
             </div>
           </div>
         ))}
@@ -115,7 +115,7 @@ export default async function SuperAdminOverview() {
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
               {schools.length === 0 ? (
                 <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-gray-400">No schools registered yet.</td></tr>
               ) : schools.map(school => (
@@ -128,7 +128,7 @@ export default async function SuperAdminOverview() {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${PLAN_COLOR[school.plan] ?? "bg-gray-100 text-gray-600"}`}>{school.plan}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${school.isActive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${school.isActive ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400" : "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400"}`}>
                       {school.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
