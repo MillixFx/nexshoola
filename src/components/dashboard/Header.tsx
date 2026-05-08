@@ -530,7 +530,7 @@ export default function Header({
             </button>
 
             {bellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
+              <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto sm:right-0 top-[4.5rem] sm:top-full sm:mt-2 sm:w-80 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50 dark:border-gray-700">
                   <p className="text-sm font-bold text-gray-900 dark:text-white">Notices</p>
                   <button onClick={() => setBellOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
@@ -575,7 +575,7 @@ export default function Header({
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
+              <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto sm:right-0 top-[4.5rem] sm:top-full sm:mt-2 sm:w-52 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 overflow-hidden z-50">
                 <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-700">
                   <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{userName}</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-0.5">{role.toLowerCase().replace(/_/g, " ")}</p>

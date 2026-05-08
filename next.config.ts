@@ -1,15 +1,17 @@
 import type { NextConfig } from "next"
+import withPWA from "@ducanh2912/next-pwa"
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@neondatabase/serverless", "@prisma/adapter-neon", "ws"],
 
-  // Performance: tree-shake icon libraries so we only ship icons we actually use.
-  // Cuts client JS bundle by 100-200kb on most pages.
+  // Required in Next.js 16: PWA plugin adds a webpack config, so we must declare
+  // an explicit turbopack config (even empty) to silence the mismatch error.
+  turbopack: {},
+
   experimental: {
     optimizePackageImports: ["lucide-react", "date-fns"],
   },
 
-  // Allow Unsplash + common CDNs for next/image (used for hero school photo)
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
@@ -17,7 +19,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Long-cache static asset extensions (handled by Vercel edge)
   async headers() {
     return [
       {
@@ -28,4 +29,12 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withPWA({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+})(nextConfig)
