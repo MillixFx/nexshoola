@@ -10,29 +10,53 @@ import { signOut } from "next-auth/react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import ThemeToggle from "@/components/ThemeToggle"
 
-function playSound(type: "message" | "notice") {
+// Single AudioContext shared for the lifetime of the page.
+// Must be unlocked by a user gesture before sounds can play.
+let _audioCtx: AudioContext | null = null
+function getAudioCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null
   try {
-    const ctx = new AudioContext()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.type = "sine"
-    if (type === "message") {
-      osc.frequency.setValueAtTime(880, ctx.currentTime)
-      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.12)
-      gain.gain.setValueAtTime(0.25, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
-      osc.start(ctx.currentTime)
-      osc.stop(ctx.currentTime + 0.35)
-    } else {
-      osc.frequency.setValueAtTime(660, ctx.currentTime)
-      gain.gain.setValueAtTime(0.2, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
-      osc.start(ctx.currentTime)
-      osc.stop(ctx.currentTime + 0.4)
-    }
-  } catch { /* AudioContext blocked before user interaction */ }
+    if (!_audioCtx) _audioCtx = new AudioContext()
+    return _audioCtx
+  } catch { return null }
+}
+function unlockAudio() {
+  const ctx = getAudioCtx()
+  if (ctx && ctx.state === "suspended") ctx.resume()
+}
+
+function playSound(type: "message" | "notice") {
+  const ctx = getAudioCtx()
+  if (!ctx) return
+  // Resume in case it got suspended (tab switch, etc.)
+  const play = () => {
+    try {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = "sine"
+      if (type === "message") {
+        osc.frequency.setValueAtTime(880, ctx.currentTime)
+        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.12)
+        gain.gain.setValueAtTime(0.3, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.4)
+      } else {
+        osc.frequency.setValueAtTime(660, ctx.currentTime)
+        gain.gain.setValueAtTime(0.25, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.5)
+      }
+    } catch { /* ignore */ }
+  }
+  if (ctx.state === "running") {
+    play()
+  } else {
+    ctx.resume().then(play).catch(() => {})
+  }
 }
 
 interface Notice { id: string; title: string; content: string; priority: string; createdAt: string | Date }
@@ -257,6 +281,12 @@ export default function Header({
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  // Unlock AudioContext on first user interaction (browser security requirement)
+  useEffect(() => {
+    document.addEventListener("pointerdown", unlockAudio, { once: true })
+    return () => document.removeEventListener("pointerdown", unlockAudio)
   }, [])
 
   // ── Poll chat unread count every 10 s ──────────────────────────────────────
