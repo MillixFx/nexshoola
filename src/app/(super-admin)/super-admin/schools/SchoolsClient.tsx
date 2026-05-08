@@ -189,11 +189,11 @@ export default function SchoolsClient({ schools: initial }: { schools: School[] 
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-3">
                     <a
-                      href={`https://${s.slug}.nexschoola.com`}
+                      href={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://nexschoola.vercel.app"}/login?slug=${s.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-semibold text-gray-400 hover:text-gray-600 flex items-center gap-0.5"
-                      title="Open school dashboard"
+                      className="text-xs font-semibold text-gray-400 hover:text-indigo-600 flex items-center gap-0.5"
+                      title={`Open ${s.slug} school login`}
                     >
                       <ExternalLink className="w-3 h-3" />
                     </a>
