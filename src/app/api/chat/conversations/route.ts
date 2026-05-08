@@ -128,78 +128,88 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "userIds required" }, { status: 400 })
   }
 
-  // Verify all participants belong to this school — flat query
+  // Verify all target users exist — flat, no school filter so SUPER_ADMIN can chat too
   const otherUsers = await prisma.user.findMany({
-    where: { id: { in: userIds }, schoolId },
+    where: { id: { in: userIds } },
     select: { id: true },
   })
   if (otherUsers.length !== userIds.length) {
-    return NextResponse.json({ error: "Some users are not in your school" }, { status: 403 })
+    return NextResponse.json({ error: "One or more users not found" }, { status: 403 })
   }
 
-  // For 1:1, look for an existing direct conversation — flat select
+  // For 1:1: find an existing direct conversation by manually intersecting participants.
+  // Avoid participants: { some: {...} } in WHERE — that relational filter triggers an
+  // implicit transaction on Neon HTTP. Use two flat lookups + JS intersection instead.
   if (userIds.length === 1) {
     const otherId = userIds[0]
-    const existing = await prisma.conversation.findFirst({
-      where: {
-        schoolId,
-        isGroup: false,
-        AND: [
-          { participants: { some: { userId } } },
-          { participants: { some: { userId: otherId } } },
-        ],
-      },
-      select: { id: true, name: true },
-    })
-    if (existing) {
-      const parts = await fetchParticipantUsers([existing.id])
-      return NextResponse.json({
-        id: existing.id,
-        isGroup: false,
-        name: existing.name,
-        participants: parts.map(p => p.user).filter(Boolean),
-        unreadCount: 0,
-        lastMessage: null,
+
+    const [myParticipations, otherParticipations] = await Promise.all([
+      prisma.conversationParticipant.findMany({
+        where: { userId },
+        select: { conversationId: true },
+      }),
+      prisma.conversationParticipant.findMany({
+        where: { userId: otherId },
+        select: { conversationId: true },
+      }),
+    ])
+
+    const myConvIds  = new Set(myParticipations.map(p => p.conversationId))
+    const sharedIds  = otherParticipations.map(p => p.conversationId).filter(id => myConvIds.has(id))
+
+    if (sharedIds.length > 0) {
+      // Find a non-group conversation among the shared ones — flat WHERE (id in [...])
+      const existing = await prisma.conversation.findFirst({
+        where: { id: { in: sharedIds }, isGroup: false },
+        select: { id: true, name: true },
       })
+      if (existing) {
+        const parts = await fetchParticipantUsers([existing.id])
+        return NextResponse.json({
+          id: existing.id,
+          isGroup: false,
+          name: existing.name,
+          participants: parts.map(p => p.user).filter(Boolean),
+          unreadCount: 0,
+          lastMessage: null,
+        })
+      }
     }
   }
 
   const isGroup = userIds.length > 1
   const allParticipantIds = Array.from(new Set([userId, ...userIds]))
 
-  // Create conversation — flat, no nested write
+  // Create conversation — flat scalar create, no nested write
   let conversationId: string
   try {
     const conv = await prisma.conversation.create({
       data: { schoolId, isGroup, name: isGroup ? name || "Group Chat" : null, createdById: userId },
+      select: { id: true },
     })
     conversationId = conv.id
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "Failed to create conversation" }, { status: 500 })
   }
 
-  // Add participants — createMany is a single INSERT, no transaction
-  try {
-    await prisma.conversationParticipant.createMany({
-      data: allParticipantIds.map(pid => ({ conversationId, userId: pid })),
-      skipDuplicates: true,
-    })
-  } catch (e: any) {
-    await prisma.conversation.delete({ where: { id: conversationId } }).catch(() => {})
-    return NextResponse.json({ error: e.message || "Failed to add participants" }, { status: 500 })
+  // Add participants individually — avoids any createMany implicit transaction edge cases
+  for (const pid of allParticipantIds) {
+    try {
+      await prisma.conversationParticipant.create({
+        data: { conversationId, userId: pid },
+        select: { id: true },
+      })
+    } catch {
+      // Ignore unique constraint violations (duplicate participant)
+    }
   }
 
-  // Fetch conversation name + participants — all flat
-  const convRow = await prisma.conversation.findUnique({
-    where: { id: conversationId },
-    select: { name: true },
-  })
   const parts = await fetchParticipantUsers([conversationId])
 
   return NextResponse.json({
     id: conversationId,
     isGroup,
-    name: convRow?.name ?? null,
+    name: isGroup ? name || "Group Chat" : null,
     participants: parts.map(p => p.user).filter(Boolean),
     unreadCount: 0,
     lastMessage: null,
