@@ -59,6 +59,7 @@ const NAV: NavSection[] = [
       { label: "Timetable",    href: "/dashboard/timetable",    icon: CalendarDays,   roles: [...ACADEMIC, "STUDENT", "PARENT"] as Role[] },
       { label: "Attendance",   href: "/dashboard/attendance",   icon: ClipboardCheck, roles: ACADEMIC },
       { label: "Grade Book",   href: "/dashboard/marks",        icon: NotebookPen,    roles: ACADEMIC },
+      { label: "Results",      href: "/dashboard/results",      icon: BarChart3,       roles: ["ADMIN","HEADMASTER","TEACHER"] as Role[] },
       { label: "Examinations", href: "/dashboard/examinations", icon: FileText,
         roles: ["ADMIN","HEADMASTER","TEACHER","STUDENT"] },
       { label: "Report Cards", href: "/dashboard/report-cards", icon: BarChart3,      roles: MGMT },
