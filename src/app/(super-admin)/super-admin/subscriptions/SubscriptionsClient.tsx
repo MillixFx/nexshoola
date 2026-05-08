@@ -71,8 +71,8 @@ export default function SubscriptionsClient({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">Subscriptions</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Subscriptions</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Track yearly subscriptions — Basic {curr}{planPrices.BASIC.toLocaleString()} · Pro {curr}{planPrices.PRO.toLocaleString()} · Enterprise {curr}{planPrices.ENTERPRISE.toLocaleString()}
         </p>
       </div>
@@ -84,14 +84,14 @@ export default function SubscriptionsClient({
           { label: "Owing Renewal",        value: owingSchools.length.toString(), icon: AlertCircle, color: "bg-red-50 text-red-600",     sub: `${curr}${totalOutstanding.toLocaleString()} outstanding` },
           { label: "Free Trial",           value: schools.filter(s => s.plan === "FREE").length.toString(), icon: Clock, color: "bg-amber-50 text-amber-600", sub: "Not yet subscribed" },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${s.color}`}>
               <s.icon className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">{s.label}</p>
-              <p className="text-xl font-extrabold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-400">{s.sub}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{s.label}</p>
+              <p className="text-xl font-extrabold text-gray-900 dark:text-white">{s.value}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">{s.sub}</p>
             </div>
           </div>
         ))}

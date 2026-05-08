@@ -56,8 +56,8 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">Platform Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Configure global API keys, plan pricing, and platform settings</p>
+        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Platform Settings</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure global API keys, plan pricing, and platform settings</p>
       </div>
 
       {error && <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700">{error}</div>}
@@ -65,14 +65,14 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
       <form onSubmit={handleSave} className="space-y-6">
 
         {/* Paystack Keys */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
               <Key className="w-4 h-4 text-green-600" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900">Paystack API Keys</h2>
-              <p className="text-xs text-gray-400">Platform-wide Paystack keys used for subscription payments</p>
+              <h2 className="font-bold text-gray-900 dark:text-white">Paystack API Keys</h2>
+              <p className="text-xs text-gray-400 dark:text-gray-400">Platform-wide Paystack keys used for subscription payments</p>
             </div>
           </div>
           <div className="space-y-4">
@@ -117,14 +117,14 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
         </div>
 
         {/* Yearly Plan Prices */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
               <Tag className="w-4 h-4 text-indigo-600" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900">Yearly Plan Prices</h2>
-              <p className="text-xs text-gray-400">
+              <h2 className="font-bold text-gray-900 dark:text-white">Yearly Plan Prices</h2>
+              <p className="text-xs text-gray-400 dark:text-gray-400">
                 Flat annual fees charged to schools. Changes apply immediately to new payments.
                 Enterprise pricing is custom — schools contact sales directly.
               </p>
@@ -155,14 +155,14 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
         </div>
 
         {/* Fee Structure (legacy / platform %) */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
               <DollarSign className="w-4 h-4 text-amber-600" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900">School Fee Processing</h2>
-              <p className="text-xs text-gray-400">% cut taken from student fee payments (set to 0 to pass full amount to school)</p>
+              <h2 className="font-bold text-gray-900 dark:text-white">School Fee Processing</h2>
+              <p className="text-xs text-gray-400 dark:text-gray-400">% cut taken from student fee payments (set to 0 to pass full amount to school)</p>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -178,12 +178,12 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
         </div>
 
         {/* General */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
               <Globe className="w-4 h-4 text-gray-600" />
             </div>
-            <h2 className="font-bold text-gray-900">General</h2>
+            <h2 className="font-bold text-gray-900 dark:text-white">General</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -225,8 +225,10 @@ export default function PlatformSettingsClient({ config }: { config: PlatformCon
 
       <style jsx global>{`
         .label { display: block; font-size: 0.75rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
-        .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
+        .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; background-color: #ffffff; color: #111827; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
+        html.dark .label { color: #d1d5db; }
+        html.dark .input { background-color: #1f2937; border-color: #374151; color: #f9fafb; }
       `}</style>
     </div>
   )

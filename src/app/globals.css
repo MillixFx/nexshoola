@@ -85,6 +85,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -128,6 +129,69 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── Global dark mode overrides ────────────────────────────────────────────────
+   Tailwind utilities live in @layer utilities. Unlayered rules (this block)
+   have higher cascade priority, so .dark .bg-white beats .bg-white globally
+   without needing dark: variants on every element.
+   ─────────────────────────────────────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
+  /* ── Backgrounds ── */
+  .bg-white    { background-color: oklch(0.269 0 0) !important; }
+  .bg-gray-50  { background-color: oklch(0.205 0 0) !important; }
+  .bg-gray-100 { background-color: oklch(0.30 0 0)  !important; }
+  .bg-gray-200 { background-color: oklch(0.35 0 0)  !important; }
+
+  /* ── Borders ── */
+  .border-gray-100 { border-color: oklch(0.35 0 0) !important; }
+  .border-gray-200 { border-color: oklch(0.38 0 0) !important; }
+  .border-gray-300 { border-color: oklch(0.42 0 0) !important; }
+
+  /* ── Text ── */
+  .text-gray-900 { color: oklch(0.985 0 0) !important; }
+  .text-gray-800 { color: oklch(0.87 0 0)  !important; }
+  .text-gray-700 { color: oklch(0.75 0 0)  !important; }
+  .text-gray-600 { color: oklch(0.65 0 0)  !important; }
+  .text-gray-500 { color: oklch(0.56 0 0)  !important; }
+  .text-gray-400 { color: oklch(0.50 0 0)  !important; }
+
+  /* ── Hover backgrounds ── */
+  .hover\:bg-gray-50:hover  { background-color: oklch(0.30 0 0) !important; }
+  .hover\:bg-gray-100:hover { background-color: oklch(0.35 0 0) !important; }
+
+  /* ── Dividers ── */
+  .divide-gray-100 > :not(:first-child),
+  .divide-gray-200 > :not(:first-child) { border-color: oklch(0.35 0 0) !important; }
+
+  /* ── Skeletons / pulse placeholders ── */
+  .bg-gray-200.animate-pulse { background-color: oklch(0.35 0 0) !important; }
+
+  /* ── Form inputs, textareas, selects ──
+     Covers ALL forms site-wide — modal forms, inline forms, search boxes, etc. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,
+  select {
+    background-color: oklch(0.22 0 0)  !important;
+    color:            oklch(0.985 0 0) !important;
+    border-color:     oklch(0.38 0 0)  !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: oklch(0.55 0 0) !important;
+  }
+
+  /* ── Modals / sheets (fixed white panels) ── */
+  .fixed.bg-white,
+  [role="dialog"] .bg-white { background-color: oklch(0.20 0 0) !important; }
+
+  /* ── Shadows — lighten so they don't disappear ── */
+  .shadow-sm  { box-shadow: 0 1px 3px oklch(0 0 0 / 0.4)  !important; }
+  .shadow-md  { box-shadow: 0 4px 8px oklch(0 0 0 / 0.5)  !important; }
+  .shadow-xl  { box-shadow: 0 10px 25px oklch(0 0 0 / 0.6) !important; }
 }
 
 /* ── Print reset — fix dashboard shell overflow clipping ── */

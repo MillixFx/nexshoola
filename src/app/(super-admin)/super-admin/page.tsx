@@ -56,8 +56,8 @@ export default async function SuperAdminOverview() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">Platform Overview</h1>
-        <p className="text-sm text-gray-500 mt-1">Monitor all schools, revenue, and platform health</p>
+        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Platform Overview</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor all schools, revenue, and platform health</p>
       </div>
 
       {/* Stats grid */}
@@ -68,13 +68,13 @@ export default async function SuperAdminOverview() {
           { label: "Expected Revenue", value: `${currency}${expectedRevenue.toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600", detail: "yearly · Basic + Pro plans" },
           { label: "Paid Schools", value: paidSchools.length, icon: TrendingUp, color: "bg-amber-50 text-amber-600", detail: `${owingSchools.length} owing` },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
               <s.icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-extrabold text-gray-900">{s.value}</p>
-            <p className="text-xs font-semibold text-gray-500 mt-0.5">{s.label}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{s.detail}</p>
+            <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{s.value}</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{s.label}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{s.detail}</p>
           </div>
         ))}
       </div>
@@ -97,33 +97,33 @@ export default async function SuperAdminOverview() {
       </div>
 
       {/* Recent schools table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="font-bold text-gray-900">All Schools</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-bold text-gray-900 dark:text-white">All Schools</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">School</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Slug</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Students</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Staff</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Plan</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Subaccount</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+              <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">School</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Slug</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Students</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Staff</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Plan</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Subaccount</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {schools.length === 0 ? (
                 <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-gray-400">No schools registered yet.</td></tr>
               ) : schools.map(school => (
-                <tr key={school.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3 font-semibold text-gray-900">{school.name}</td>
-                  <td className="px-5 py-3 text-gray-500 font-mono text-xs">{school.slug}</td>
-                  <td className="px-4 py-3 text-center text-gray-700 font-medium">{school._count.students}</td>
-                  <td className="px-4 py-3 text-center text-gray-500">{school._count.teachers}</td>
+                <tr key={school.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                  <td className="px-5 py-3 font-semibold text-gray-900 dark:text-gray-100">{school.name}</td>
+                  <td className="px-5 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">{school.slug}</td>
+                  <td className="px-4 py-3 text-center text-gray-700 dark:text-gray-300 font-medium">{school._count.students}</td>
+                  <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">{school._count.teachers}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${PLAN_COLOR[school.plan] ?? "bg-gray-100 text-gray-600"}`}>{school.plan}</span>
                   </td>

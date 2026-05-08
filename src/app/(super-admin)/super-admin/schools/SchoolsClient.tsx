@@ -373,8 +373,10 @@ export default function SchoolsClient({ schools: initial }: { schools: School[] 
 
       <style jsx global>{`
         .label { display: block; font-size: 0.75rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
-        .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; }
+        .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; outline: none; background-color: #ffffff; color: #111827; }
         .input:focus { outline: 2px solid #6366f1; outline-offset: 0; border-color: #6366f1; }
+        html.dark .label { color: #d1d5db; }
+        html.dark .input { background-color: #1f2937; border-color: #374151; color: #f9fafb; }
       `}</style>
     </div>
   )

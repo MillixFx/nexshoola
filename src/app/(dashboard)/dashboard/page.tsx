@@ -13,10 +13,10 @@ function ChartSkeleton() {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
       {[0, 1, 2].map(i => (
-        <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-64 animate-pulse">
-          <div className="h-3 bg-gray-200 rounded w-24 mb-3" />
-          <div className="h-8 bg-gray-200 rounded w-32 mb-6" />
-          <div className="h-32 bg-gray-100 rounded-xl" />
+        <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 h-64 animate-pulse">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-3" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-6" />
+          <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-xl" />
         </div>
       ))}
     </div>
@@ -89,16 +89,16 @@ export default async function DashboardPage() {
     const fees = totalIncome._sum.amount ?? 0
 
     stats = [
-      { label: "Total Students",    value: studentCount.toLocaleString(),  sub: "Active enrolments", icon: Users,         color: "bg-indigo-50 text-indigo-600",  href: "/dashboard/students" },
-      { label: "Total Teachers",    value: teacherCount.toLocaleString(),  sub: "Active staff",      icon: GraduationCap, color: "bg-emerald-50 text-emerald-600", href: "/dashboard/teachers" },
-      { label: "Fees Collected",    value: `GH₵ ${fees.toLocaleString("en-GH", { minimumFractionDigits: 0 })}`, sub: "Total income", icon: DollarSign, color: "bg-amber-50 text-amber-600", href: "/dashboard/finance" },
-      { label: "Attendance Today",  value: todayTotal > 0 ? attendancePct : "Not marked", sub: `${todayPresent}/${todayTotal} present`, icon: ClipboardCheck, color: "bg-sky-50 text-sky-600", href: "/dashboard/attendance" },
+      { label: "Total Students",    value: studentCount.toLocaleString(),  sub: "Active enrolments", icon: Users,         color: "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",  href: "/dashboard/students" },
+      { label: "Total Teachers",    value: teacherCount.toLocaleString(),  sub: "Active staff",      icon: GraduationCap, color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400", href: "/dashboard/teachers" },
+      { label: "Fees Collected",    value: `GH₵ ${fees.toLocaleString("en-GH", { minimumFractionDigits: 0 })}`, sub: "Total income", icon: DollarSign, color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400", href: "/dashboard/finance" },
+      { label: "Attendance Today",  value: todayTotal > 0 ? attendancePct : "Not marked", sub: `${todayPresent}/${todayTotal} present`, icon: ClipboardCheck, color: "bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400", href: "/dashboard/attendance" },
     ]
     quickLinks = [
-      { label: "Classes",        value: classCount,    icon: BookOpen,   href: "/dashboard/classes",  color: "text-violet-600 bg-violet-50" },
-      { label: "Parents",        value: parentCount,   icon: UserCheck,  href: "/dashboard/parents",  color: "text-pink-600 bg-pink-50" },
-      { label: "Leave Pending",  value: pendingLeave,  icon: Calendar,   href: "/dashboard/leave",    color: "text-orange-600 bg-orange-50" },
-      { label: "Unpaid Fees",    value: pendingFeeSlipsCount, icon: CreditCard, href: "/dashboard/finance", color: pendingFeeSlipsCount > 0 ? "text-red-600 bg-red-50" : "text-teal-600 bg-teal-50" },
+      { label: "Classes",        value: classCount,    icon: BookOpen,   href: "/dashboard/classes",  color: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30" },
+      { label: "Parents",        value: parentCount,   icon: UserCheck,  href: "/dashboard/parents",  color: "text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/30" },
+      { label: "Leave Pending",  value: pendingLeave,  icon: Calendar,   href: "/dashboard/leave",    color: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30" },
+      { label: "Unpaid Fees",    value: pendingFeeSlipsCount, icon: CreditCard, href: "/dashboard/finance", color: pendingFeeSlipsCount > 0 ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30" : "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30" },
     ]
 
   } else if (role === "TEACHER") {
@@ -113,16 +113,16 @@ export default async function DashboardPage() {
     const attendancePct = todayTotal > 0 ? `${((todayPresent / todayTotal) * 100).toFixed(1)}%` : "Not marked"
 
     stats = [
-      { label: "Students",         value: studentCount.toLocaleString(), sub: "Enrolled",        icon: Users,         color: "bg-indigo-50 text-indigo-600",  href: "/dashboard/students" },
-      { label: "Classes",          value: classCount.toLocaleString(),   sub: "Total classes",   icon: BookOpen,      color: "bg-emerald-50 text-emerald-600", href: "/dashboard/classes" },
-      { label: "Attendance Today", value: attendancePct,                 sub: `${todayPresent}/${todayTotal} present`, icon: ClipboardCheck, color: "bg-sky-50 text-sky-600", href: "/dashboard/attendance" },
-      { label: "Examinations",     value: examCount.toLocaleString(),    sub: "Total exams",     icon: FileText,      color: "bg-amber-50 text-amber-600",    href: "/dashboard/examinations" },
+      { label: "Students",         value: studentCount.toLocaleString(), sub: "Enrolled",        icon: Users,         color: "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",  href: "/dashboard/students" },
+      { label: "Classes",          value: classCount.toLocaleString(),   sub: "Total classes",   icon: BookOpen,      color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400", href: "/dashboard/classes" },
+      { label: "Attendance Today", value: attendancePct,                 sub: `${todayPresent}/${todayTotal} present`, icon: ClipboardCheck, color: "bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400", href: "/dashboard/attendance" },
+      { label: "Examinations",     value: examCount.toLocaleString(),    sub: "Total exams",     icon: FileText,      color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",    href: "/dashboard/examinations" },
     ]
     quickLinks = [
-      { label: "Notice Board",  value: recentNotices.length, icon: Bell,        href: "/dashboard/notice",       color: "text-indigo-600 bg-indigo-50" },
-      { label: "Leave Pending", value: myLeave,              icon: Calendar,    href: "/dashboard/leave",        color: "text-orange-600 bg-orange-50" },
-      { label: "Library",       value: "Browse",             icon: Library,     href: "/dashboard/library",      color: "text-teal-600 bg-teal-50" },
-      { label: "Suggestions",   value: "Submit",             icon: Lightbulb,   href: "/dashboard/suggestions",  color: "text-amber-600 bg-amber-50" },
+      { label: "Notice Board",  value: recentNotices.length, icon: Bell,        href: "/dashboard/notice",       color: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30" },
+      { label: "Leave Pending", value: myLeave,              icon: Calendar,    href: "/dashboard/leave",        color: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30" },
+      { label: "Library",       value: "Browse",             icon: Library,     href: "/dashboard/library",      color: "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30" },
+      { label: "Suggestions",   value: "Submit",             icon: Lightbulb,   href: "/dashboard/suggestions",  color: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30" },
     ]
 
   } else if (role === "STUDENT") {
@@ -157,16 +157,16 @@ export default async function DashboardPage() {
     const fees = totalFees._sum.amount ?? 0
 
     stats = [
-      { label: "Students",        value: childCount.toLocaleString(),   sub: "Enrolled",          icon: Users,         color: "bg-indigo-50 text-indigo-600",  href: "/dashboard/students" },
-      { label: "Fees Paid",       value: `GH₵ ${fees.toLocaleString("en-GH", { minimumFractionDigits: 0 })}`, sub: "Total collected", icon: DollarSign, color: "bg-emerald-50 text-emerald-600", href: "/dashboard/finance" },
-      { label: "Notices",         value: noticeCount.toLocaleString(),  sub: "From school",       icon: Bell,          color: "bg-amber-50 text-amber-600",    href: "/dashboard/notice" },
-      { label: "Upcoming Events", value: eventCount.toLocaleString(),   sub: "This term",         icon: Calendar,      color: "bg-sky-50 text-sky-600",        href: "/dashboard/calendar" },
+      { label: "Students",        value: childCount.toLocaleString(),   sub: "Enrolled",          icon: Users,         color: "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",  href: "/dashboard/students" },
+      { label: "Fees Paid",       value: `GH₵ ${fees.toLocaleString("en-GH", { minimumFractionDigits: 0 })}`, sub: "Total collected", icon: DollarSign, color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400", href: "/dashboard/finance" },
+      { label: "Notices",         value: noticeCount.toLocaleString(),  sub: "From school",       icon: Bell,          color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",    href: "/dashboard/notice" },
+      { label: "Upcoming Events", value: eventCount.toLocaleString(),   sub: "This term",         icon: Calendar,      color: "bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400",        href: "/dashboard/calendar" },
     ]
     quickLinks = [
-      { label: "Attendance",   value: "View",    icon: ClipboardCheck, href: "/dashboard/attendance",  color: "text-sky-600 bg-sky-50" },
-      { label: "Library",      value: "Browse",  icon: Library,        href: "/dashboard/library",     color: "text-teal-600 bg-teal-50" },
-      { label: "Messages",     value: "Inbox",   icon: UserCheck,      href: "/dashboard/messages",    color: "text-violet-600 bg-violet-50" },
-      { label: "Suggestions",  value: "Submit",  icon: Lightbulb,      href: "/dashboard/suggestions", color: "text-amber-600 bg-amber-50" },
+      { label: "Attendance",   value: "View",    icon: ClipboardCheck, href: "/dashboard/attendance",  color: "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30" },
+      { label: "Library",      value: "Browse",  icon: Library,        href: "/dashboard/library",     color: "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30" },
+      { label: "Messages",     value: "Inbox",   icon: UserCheck,      href: "/dashboard/messages",    color: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30" },
+      { label: "Suggestions",  value: "Submit",  icon: Lightbulb,      href: "/dashboard/suggestions", color: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30" },
     ]
   }
 
@@ -174,10 +174,10 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       {/* Greeting */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Good {getTimeOfDay()}, {firstName}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {school?.name ?? "Your School"} · {new Date().toLocaleDateString("en-GH", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
@@ -190,7 +190,7 @@ export default async function DashboardPage() {
             <Link
               key={stat.label}
               href={stat.href}
-              className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group"
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center`}>
@@ -198,9 +198,9 @@ export default async function DashboardPage() {
                 </div>
                 <TrendingUp className="w-4 h-4 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mb-0.5">{stat.value}</p>
-              <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-              <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">{stat.sub}</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{stat.value}</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 hidden sm:block">{stat.sub}</p>
             </Link>
           )
         })}
@@ -221,14 +221,14 @@ export default async function DashboardPage() {
             <Link
               key={q.label}
               href={q.href}
-              className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3 hover:shadow-md transition-all hover:-translate-y-0.5"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-3 hover:shadow-md transition-all hover:-translate-y-0.5"
             >
               <div className={`w-9 h-9 rounded-xl ${q.color} flex items-center justify-center shrink-0`}>
                 <Icon className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-lg font-bold text-gray-900 leading-none">{q.value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{q.label}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white leading-none">{q.value}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{q.label}</p>
               </div>
             </Link>
           )
@@ -237,9 +237,9 @@ export default async function DashboardPage() {
 
       {/* Bottom grid: notices + events (+ recent admissions for admin) */}
       <div className={`grid gap-5 ${(role === "ADMIN" || role === "HEADMASTER") ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-gray-900">Recent Notices</h2>
+            <h2 className="font-bold text-gray-900 dark:text-white">Recent Notices</h2>
             <Link href="/dashboard/notice" className="text-xs text-indigo-600 font-medium hover:underline flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
@@ -249,13 +249,13 @@ export default async function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {recentNotices.map((n) => (
-                <div key={n.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                  <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0">
-                    <Bell className="w-4 h-4 text-indigo-500" />
+                <div key={n.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  <div className="w-8 h-8 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center shrink-0">
+                    <Bell className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{n.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{n.createdAt.toLocaleDateString("en-GH", { day: "numeric", month: "short" })}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{n.title}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{n.createdAt.toLocaleDateString("en-GH", { day: "numeric", month: "short" })}</p>
                   </div>
                 </div>
               ))}
