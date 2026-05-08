@@ -22,6 +22,7 @@ interface Props {
   daysLeft: number
   userEmail: string
   supportEmail: string
+  supportPhone: string
 }
 
 // ─── Plan metadata ────────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ const STATUS_BADGE: Record<string, string> = {
 }
 
 export default function SubscriptionClient({
-  school, planPrices, currency, isActive, daysLeft, userEmail, supportEmail,
+  school, planPrices, currency, isActive, daysLeft, userEmail, supportEmail, supportPhone,
 }: Props) {
   const searchParams = useSearchParams()
   const justPaid = searchParams.get("success") === "paid"
@@ -305,14 +306,16 @@ export default function SubscriptionClient({
                   <Mail className="w-4 h-4" /> Email Sales
                 </a>
               )}
-              <a
-                href={`https://wa.me/?text=Hi, I'm interested in the Enterprise plan for ${encodeURIComponent(school.name)} on NexSchoola.`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-purple-500 text-white font-bold text-sm px-5 py-3 rounded-xl hover:bg-purple-400 transition-colors"
-              >
-                <Phone className="w-4 h-4" /> WhatsApp Us
-              </a>
+              {supportPhone && (
+                <a
+                  href={`https://wa.me/${supportPhone}?text=${encodeURIComponent(`Hi, I'm interested in the Enterprise plan for ${school.name} on NexSchoola. Please get in touch.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-purple-500 text-white font-bold text-sm px-5 py-3 rounded-xl hover:bg-purple-400 transition-colors"
+                >
+                  <Phone className="w-4 h-4" /> WhatsApp Us
+                </a>
+              )}
             </div>
           </div>
           <p className="text-purple-300 text-xs mt-4">
