@@ -24,6 +24,7 @@ type Conversation = {
 }
 
 const ROLE_COLOR: Record<string, string> = {
+  SUPER_ADMIN: "bg-amber-100 text-amber-800",
   ADMIN: "bg-purple-100 text-purple-700",
   HEADMASTER: "bg-rose-100 text-rose-700",
   TEACHER: "bg-emerald-100 text-emerald-700",
@@ -401,6 +402,9 @@ export default function ChatClient({
             <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">New Conversation</h2>
+                {currentUserRole === "SUPER_ADMIN" && (
+                  <p className="text-xs text-gray-400 mt-0.5">Message school admins and headmasters</p>
+                )}
                 {currentUserRole === "PARENT" && (
                   <p className="text-xs text-gray-400 mt-0.5">You can message school staff only</p>
                 )}

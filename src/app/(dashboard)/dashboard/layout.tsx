@@ -1,9 +1,14 @@
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
+
+  // SUPER_ADMIN belongs in the super-admin console, not the school dashboard
+  if (session?.user?.role === "SUPER_ADMIN") redirect("/super-admin")
+
   const schoolId = session?.user?.schoolId
 
   const [school, notices] = await Promise.all([

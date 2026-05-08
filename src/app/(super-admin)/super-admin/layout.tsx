@@ -4,13 +4,14 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { GraduationCap, LayoutDashboard, Building2, CreditCard, Settings, LogOut, Shield } from "lucide-react"
+import { GraduationCap, LayoutDashboard, Building2, CreditCard, Settings, LogOut, Shield, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV = [
   { href: "/super-admin", icon: LayoutDashboard, label: "Overview" },
   { href: "/super-admin/schools", icon: Building2, label: "Schools" },
   { href: "/super-admin/subscriptions", icon: CreditCard, label: "Subscriptions" },
+  { href: "/super-admin/chat", icon: MessageSquare, label: "Messages" },
   { href: "/super-admin/settings", icon: Settings, label: "Platform Settings" },
 ]
 
@@ -72,8 +73,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
             <Shield className="w-4 h-4 text-amber-600" />
             <span className="text-xs font-bold text-amber-700">Super Admin Console</span>
           </div>
-          <Link href="/dashboard" className="text-xs text-gray-500 hover:text-indigo-600 font-medium">
-            ← Back to Dashboard
+          <Link href="/super-admin" className="text-xs text-gray-500 hover:text-indigo-600 font-medium">
+            ← Overview
           </Link>
         </header>
         <main className="flex-1 overflow-y-auto p-6">

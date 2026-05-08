@@ -7,31 +7,45 @@ const STAFF_ROLES: Role[] = ["ADMIN", "HEADMASTER", "TEACHER", "ACCOUNTANT", "LI
 
 /**
  * GET /api/chat/users
- * Returns users in the same school (excluding self) the current user can chat with.
+ * Returns users the current user can start a conversation with.
  *
- * Role-based visibility:
- *  PARENT  → staff only (ADMIN, HEADMASTER, TEACHER, ACCOUNTANT, LIBRARIAN)
- *  STUDENT → staff + other STUDENTs
- *  Others  → everyone in the school
+ * SUPER_ADMIN  → all ADMIN/HEADMASTER users across every school
+ * ADMIN/HEADMASTER/TEACHER/ACCOUNTANT/LIBRARIAN
+ *               → everyone in their school + SUPER_ADMIN (platform owner)
+ * STUDENT       → staff + other students in their school (no SUPER_ADMIN)
+ * PARENT        → staff only in their school (no SUPER_ADMIN)
  */
 export async function GET() {
   const session = await auth()
-  if (!session?.user?.id || !session.user.schoolId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const role = session.user.role as Role
 
-  let roleFilter: Role[] | undefined
+  // ── SUPER_ADMIN: see all ADMIN/HEADMASTER across all schools ──────────
+  if (role === "SUPER_ADMIN") {
+    const users = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        id: { not: session.user.id },
+        role: { in: ["ADMIN", "HEADMASTER"] },
+      },
+      select: { id: true, name: true, email: true, role: true, avatar: true },
+      orderBy: [{ role: "asc" }, { name: "asc" }],
+    })
+    return NextResponse.json(users)
+  }
 
+  // ── School users require schoolId ─────────────────────────────────────
+  if (!session.user.schoolId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  let roleFilter: Role[] | undefined
   if (role === "PARENT") {
     roleFilter = STAFF_ROLES
   } else if (role === "STUDENT") {
     roleFilter = [...STAFF_ROLES, "STUDENT"]
   }
-  // otherwise (staff): no role filter — see everyone
 
-  const users = await prisma.user.findMany({
+  const schoolUsers = await prisma.user.findMany({
     where: {
       schoolId: session.user.schoolId,
       isActive: true,
@@ -42,5 +56,14 @@ export async function GET() {
     orderBy: [{ role: "asc" }, { name: "asc" }],
   })
 
-  return NextResponse.json(users)
+  // Staff roles can also message the Platform Owner (SUPER_ADMIN)
+  if (STAFF_ROLES.includes(role)) {
+    const superAdmins = await prisma.user.findMany({
+      where: { role: "SUPER_ADMIN", isActive: true },
+      select: { id: true, name: true, email: true, role: true, avatar: true },
+    })
+    return NextResponse.json([...superAdmins, ...schoolUsers])
+  }
+
+  return NextResponse.json(schoolUsers)
 }

@@ -116,13 +116,32 @@ export async function GET() {
  */
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session?.user?.id || !session.user.schoolId) {
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const isSuperAdmin = session.user.role === "SUPER_ADMIN"
+
+  // Regular school users must have a schoolId; SUPER_ADMIN is cross-school
+  if (!isSuperAdmin && !session.user.schoolId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const userId = session.user.id
-  const schoolId = session.user.schoolId
   const { userIds, name } = await req.json()
+
+  // Determine schoolId: for SUPER_ADMIN, borrow from the first target user's school
+  let schoolId = session.user.schoolId ?? ""
+  if (isSuperAdmin && Array.isArray(userIds) && userIds.length > 0) {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userIds[0] },
+      select: { schoolId: true },
+    })
+    schoolId = targetUser?.schoolId ?? ""
+  }
+  if (!schoolId) {
+    return NextResponse.json({ error: "Cannot determine school context for conversation" }, { status: 400 })
+  }
 
   if (!Array.isArray(userIds) || userIds.length === 0) {
     return NextResponse.json({ error: "userIds required" }, { status: 400 })

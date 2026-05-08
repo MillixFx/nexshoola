@@ -1,38 +1,49 @@
 import Link from "next/link"
 import { CheckCircle2, Zap, Building2, Mail } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+import { unstable_noStore as noStore } from "next/cache"
 
-const standardFeatures = [
+const basicFeatures = [
   "All 19 modules included",
-  "Unlimited students",
+  "Up to 500 students",
   "Attendance & exam management",
   "Fee collection via Paystack",
   "Mobile Money support",
   "Library & dormitory management",
   "Transport & inventory tracking",
-  "Parent portal access",
   "Up to 3 admin accounts",
   "Email support",
 ]
 
-const brandedFeatures = [
-  "Everything in Standard",
+const proFeatures = [
+  "Everything in Basic",
+  "Unlimited students",
+  "Parent portal access",
+  "Priority support",
+  "Up to 10 admin accounts",
+  "Advanced reports & analytics",
+  "WhatsApp notifications",
+  "Dedicated onboarding call",
+]
+
+const enterpriseFeatures = [
+  "Everything in Pro",
   "Custom domain (e.g. portal.yourschool.com)",
   "School logo & brand colours",
   "Branded login page & emails",
   "Remove NexSchoola branding",
-  "Up to 10 admin accounts",
-  "WhatsApp & priority support",
-  "Dedicated onboarding call",
+  "Custom website included",
+  "Dedicated account manager",
 ]
 
 export default async function Pricing() {
+  noStore() // always fetch fresh prices from the database
   const config = await prisma.platformConfig.findFirst({
     select: { planPriceBasic: true, planPricePro: true, currency: true },
   })
 
-  const standardPrice = config?.planPriceBasic ?? 500
-  const brandedPrice  = config?.planPricePro   ?? 1200
+  const basicPrice = config?.planPriceBasic ?? 1200
+  const proPrice   = config?.planPricePro   ?? 2000
   const curr = config?.currency === "GHS" ? "GH₵" : (config?.currency ?? "GH₵")
 
   return (
@@ -72,20 +83,20 @@ export default async function Pricing() {
           </Link>
         </div>
 
-        {/* Yearly pricing highlight */}
+        {/* Yearly billing summary banner */}
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-8 mb-12 text-white text-center">
           <p className="text-indigo-200 text-sm font-semibold uppercase tracking-wider mb-2">How Billing Works</p>
           <h3 className="text-2xl sm:text-3xl font-extrabold mb-3">
             Flat yearly fee · All students included
           </h3>
           <p className="text-indigo-200 text-sm max-w-lg mx-auto">
-            Pay once per year and your entire school is covered — 50 students or 5,000 students, same price.
-            No per-student counting, no term-by-term invoices.
+            Pay once per year and your entire school is covered — no per-student counting, no term-by-term invoices.
           </p>
           <div className="flex flex-wrap justify-center gap-6 mt-6">
             {[
-              { label: "Standard", price: `${curr}${standardPrice.toLocaleString()}` },
-              { label: "Branded Portal", price: "Custom" },
+              { label: "Basic", price: `${curr}${basicPrice.toLocaleString()}` },
+              { label: "Pro", price: `${curr}${proPrice.toLocaleString()}` },
+              { label: "Enterprise", price: "Custom" },
             ].map(p => (
               <div key={p.label} className="bg-white/10 rounded-2xl px-8 py-4 text-center">
                 <p className="text-indigo-200 text-xs font-semibold mb-1">{p.label}</p>
@@ -96,88 +107,97 @@ export default async function Pricing() {
           </div>
         </div>
 
-        {/* Two plan cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {/* Three plan cards */}
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
 
-          {/* Standard Plan */}
-          <div className="relative rounded-2xl p-8 flex flex-col border border-gray-200 bg-white hover:shadow-xl hover:shadow-gray-100 transition-all duration-300">
-            <div className="absolute -top-3 left-6">
-              <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                Most Popular
-              </span>
-            </div>
-
-            <div className="mb-6 pt-2">
-              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Standard</h3>
-              <p className="text-sm text-gray-500 mb-5">Everything your school needs, all in one place.</p>
+          {/* Basic Plan */}
+          <div className="relative rounded-2xl p-7 flex flex-col border border-gray-200 bg-white hover:shadow-xl hover:shadow-gray-100 transition-all duration-300">
+            <div className="mb-6">
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Basic</h3>
+              <p className="text-sm text-gray-500 mb-5">Everything your school needs to get started.</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-sm font-medium text-gray-500">{curr}</span>
-                <span className="text-5xl font-extrabold text-gray-900">
-                  {standardPrice.toLocaleString()}
-                </span>
+                <span className="text-4xl font-extrabold text-gray-900">{basicPrice.toLocaleString()}</span>
               </div>
-              <p className="text-sm text-gray-400 mt-1">per year · unlimited students</p>
+              <p className="text-sm text-gray-400 mt-1">per year · up to 500 students</p>
               <p className="text-xs text-indigo-600 font-semibold mt-2 bg-indigo-50 inline-block px-2 py-1 rounded-lg">
-                ≈ {curr}{Math.round(standardPrice / 12).toLocaleString()}/month · no per-student charges
+                ≈ {curr}{Math.round(basicPrice / 12).toLocaleString()}/month
               </p>
             </div>
-
-            <ul className="space-y-3 flex-1 mb-8">
-              {standardFeatures.map(f => (
+            <ul className="space-y-2.5 flex-1 mb-7">
+              {basicFeatures.map(f => (
                 <li key={f} className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
                   <span className="text-sm text-gray-600">{f}</span>
                 </li>
               ))}
             </ul>
-
-            <Link
-              href="/register?plan=standard"
-              className="block text-center font-bold py-3.5 px-6 rounded-full text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all"
-            >
+            <Link href="/register?plan=basic"
+              className="block text-center font-bold py-3 px-6 rounded-full text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all">
               Start 1 Month Free
             </Link>
           </div>
 
-          {/* Branded Portal */}
-          <div className="relative rounded-2xl p-8 flex flex-col border border-gray-800 bg-gray-900 hover:shadow-xl hover:shadow-gray-800/20 transition-all duration-300">
+          {/* Pro Plan */}
+          <div className="relative rounded-2xl p-7 flex flex-col border-2 border-indigo-600 bg-white hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300">
+            <div className="absolute -top-3 left-6">
+              <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
+            </div>
+            <div className="mb-6 pt-2">
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Pro</h3>
+              <p className="text-sm text-gray-500 mb-5">Unlimited students and priority support.</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-medium text-gray-500">{curr}</span>
+                <span className="text-4xl font-extrabold text-gray-900">{proPrice.toLocaleString()}</span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">per year · unlimited students</p>
+              <p className="text-xs text-indigo-600 font-semibold mt-2 bg-indigo-50 inline-block px-2 py-1 rounded-lg">
+                ≈ {curr}{Math.round(proPrice / 12).toLocaleString()}/month
+              </p>
+            </div>
+            <ul className="space-y-2.5 flex-1 mb-7">
+              {proFeatures.map(f => (
+                <li key={f} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
+                  <span className="text-sm text-gray-600">{f}</span>
+                </li>
+              ))}
+            </ul>
+            <Link href="/register?plan=pro"
+              className="block text-center font-bold py-3 px-6 rounded-full text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all">
+              Start 1 Month Free
+            </Link>
+          </div>
+
+          {/* Enterprise */}
+          <div className="relative rounded-2xl p-7 flex flex-col border border-gray-800 bg-gray-900 hover:shadow-xl hover:shadow-gray-800/20 transition-all duration-300">
             <div className="absolute -top-3 left-6">
               <span className="bg-gray-800 border border-gray-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
                 <Building2 className="w-3 h-3" /> White Label
               </span>
             </div>
-
             <div className="mb-6 pt-2">
-              <h3 className="text-xl font-extrabold text-white mb-1">Branded Portal</h3>
-              <p className="text-sm text-gray-400 mb-5">Your school's own branded management system.</p>
-              <p className="text-3xl font-extrabold text-white">Custom Pricing</p>
-              <p className="text-sm text-gray-400 mt-1">tailored to your school's needs</p>
+              <h3 className="text-xl font-extrabold text-white mb-1">Enterprise</h3>
+              <p className="text-sm text-gray-400 mb-5">Your school's own branded system.</p>
+              <p className="text-3xl font-extrabold text-white">Custom</p>
+              <p className="text-sm text-gray-400 mt-1">tailored pricing</p>
               <div className="mt-3 inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5">
-                <span className="text-xs font-bold text-amber-400">
-                  Includes custom website + your own domain
-                </span>
+                <span className="text-xs font-bold text-amber-400">Custom domain + your own brand</span>
               </div>
             </div>
-
-            <ul className="space-y-3 flex-1 mb-8">
-              {brandedFeatures.map(f => (
+            <ul className="space-y-2.5 flex-1 mb-7">
+              {enterpriseFeatures.map(f => (
                 <li key={f} className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
                   <span className="text-sm text-gray-300">{f}</span>
                 </li>
               ))}
             </ul>
-
-            <a
-              href="mailto:hello@nexschoola.com?subject=Branded Portal Enquiry"
-              className="flex items-center justify-center gap-2 font-bold py-3.5 px-6 rounded-full text-sm bg-white text-gray-900 hover:bg-gray-100 transition-all"
-            >
-              <Mail className="w-4 h-4" />
-              Contact Sales
+            <a href="mailto:hello@nexschoola.com?subject=Enterprise Enquiry"
+              className="flex items-center justify-center gap-2 font-bold py-3 px-6 rounded-full text-sm bg-white text-gray-900 hover:bg-gray-100 transition-all">
+              <Mail className="w-4 h-4" /> Contact Sales
             </a>
-            <p className="text-center text-xs text-gray-500 mt-3">
-              Our team typically responds within 24 hours
-            </p>
+            <p className="text-center text-xs text-gray-500 mt-3">Responds within 24 hours</p>
           </div>
         </div>
 
