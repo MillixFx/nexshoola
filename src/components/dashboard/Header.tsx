@@ -2,13 +2,38 @@
 
 import {
   Bell, Search, ChevronDown, Menu, GraduationCap, LogOut,
-  Settings, X, Lock, Check, Eye, EyeOff, Loader2, BookOpen,
+  Settings, X, Lock, Check, Eye, EyeOff, Loader2, BookOpen, MessageSquare,
 } from "lucide-react"
 import { getInitials } from "@/lib/utils"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import ThemeToggle from "@/components/ThemeToggle"
+
+function playSound(type: "message" | "notice") {
+  try {
+    const ctx = new AudioContext()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.type = "sine"
+    if (type === "message") {
+      osc.frequency.setValueAtTime(880, ctx.currentTime)
+      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.12)
+      gain.gain.setValueAtTime(0.25, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.35)
+    } else {
+      osc.frequency.setValueAtTime(660, ctx.currentTime)
+      gain.gain.setValueAtTime(0.2, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.4)
+    }
+  } catch { /* AudioContext blocked before user interaction */ }
+}
 
 interface Notice { id: string; title: string; content: string; priority: string; createdAt: string | Date }
 
@@ -206,9 +231,12 @@ export default function Header({
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [bellOpen, setBellOpen] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
+  const [chatUnread, setChatUnread] = useState(0)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const bellRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
+  const prevChatUnread = useRef(-1)  // -1 = not yet initialised (skip first sound)
+  const prevNoticeCount = useRef(-1)
 
   // Search state
   const [query, setQuery] = useState("")
@@ -229,6 +257,49 @@ export default function Header({
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  // ── Poll chat unread count every 10 s ──────────────────────────────────────
+  useEffect(() => {
+    async function fetchChatUnread() {
+      try {
+        const res = await fetch("/api/chat/conversations")
+        if (!res.ok) return
+        const convs: { unreadCount: number }[] = await res.json()
+        const total = convs.reduce((s, c) => s + (c.unreadCount ?? 0), 0)
+        if (prevChatUnread.current === -1) {
+          prevChatUnread.current = total   // seed — no sound on first load
+        } else if (total > prevChatUnread.current) {
+          playSound("message")
+        }
+        prevChatUnread.current = total
+        setChatUnread(total)
+      } catch { /* ignore network errors */ }
+    }
+    fetchChatUnread()
+    const t = setInterval(fetchChatUnread, 10_000)
+    return () => clearInterval(t)
+  }, [])
+
+  // ── Poll notices every 20 s and play sound when a new one appears ──────────
+  useEffect(() => {
+    async function fetchNoticeCount() {
+      try {
+        const res = await fetch("/api/notices")
+        if (!res.ok) return
+        const data: unknown[] = await res.json()
+        const count = data.length
+        if (prevNoticeCount.current === -1) {
+          prevNoticeCount.current = count  // seed — no sound on first load
+        } else if (count > prevNoticeCount.current) {
+          playSound("notice")
+        }
+        prevNoticeCount.current = count
+      } catch { /* ignore */ }
+    }
+    fetchNoticeCount()
+    const t = setInterval(fetchNoticeCount, 20_000)
+    return () => clearInterval(t)
   }, [])
 
   const runSearch = useCallback(async (q: string) => {
@@ -402,6 +473,20 @@ export default function Header({
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
             {schoolName}
           </span>
+
+          {/* Chat */}
+          <Link
+            href="/dashboard/chat"
+            className="relative p-2 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            title="Messages"
+          >
+            <MessageSquare className="w-5 h-5" />
+            {chatUnread > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-indigo-600 rounded-full text-white text-[9px] font-bold flex items-center justify-center">
+                {chatUnread > 9 ? "9+" : chatUnread}
+              </span>
+            )}
+          </Link>
 
           {/* Bell */}
           <div className="relative" ref={bellRef}>
