@@ -13,51 +13,77 @@ export async function GET() {
 
   const userId = session.user.id
 
-  const conversations = await prisma.conversation.findMany({
+  // Neon HTTP: deep nested includes (with orderBy/take on a nested relation) trigger
+  // an implicit transaction. Split into 3 flat queries and join in JS.
+  const convRows = await prisma.conversation.findMany({
     where: { participants: { some: { userId } } },
     orderBy: { updatedAt: "desc" },
-    include: {
-      participants: {
-        include: {
-          user: { select: { id: true, name: true, email: true, role: true, avatar: true } },
-        },
-      },
-      messages: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { id: true, content: true, createdAt: true, senderId: true },
-      },
-    },
+    select: { id: true, isGroup: true, name: true, updatedAt: true },
   })
 
-  // Compute unread count for each conversation
-  const enriched = await Promise.all(
-    conversations.map(async (c) => {
-      const me = c.participants.find((p) => p.userId === userId)
-      const unreadCount = me?.lastReadAt
-        ? await prisma.chatMessage.count({
-            where: {
-              conversationId: c.id,
-              createdAt: { gt: me.lastReadAt },
-              senderId: { not: userId },
-              deletedAt: null,
-            },
-          })
-        : await prisma.chatMessage.count({
-            where: { conversationId: c.id, senderId: { not: userId }, deletedAt: null },
-          })
+  if (convRows.length === 0) return NextResponse.json([])
 
-      return {
-        id: c.id,
-        isGroup: c.isGroup,
-        name: c.name,
-        updatedAt: c.updatedAt,
-        participants: c.participants.map((p) => p.user),
-        lastMessage: c.messages[0] ?? null,
-        unreadCount,
-      }
+  const convIds = convRows.map(c => c.id)
+
+  // Flat participant query (one level of include)
+  const [participantRows, recentMessages] = await Promise.all([
+    prisma.conversationParticipant.findMany({
+      where: { conversationId: { in: convIds } },
+      select: {
+        conversationId: true,
+        userId: true,
+        lastReadAt: true,
+        user: { select: { id: true, name: true, email: true, role: true, avatar: true } },
+      },
+    }),
+    // Fetch recent messages for all convs and slice per-conv in JS
+    prisma.chatMessage.findMany({
+      where: { conversationId: { in: convIds }, deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, conversationId: true, content: true, createdAt: true, senderId: true },
+      take: convIds.length * 2, // at least 1 per conv
+    }),
+  ])
+
+  // Unread counts — one count query per conv is fine (already separate HTTP calls)
+  const unreadCounts = await Promise.all(
+    convRows.map(async (c) => {
+      const me = participantRows.find(p => p.conversationId === c.id && p.userId === userId)
+      const count = await prisma.chatMessage.count({
+        where: {
+          conversationId: c.id,
+          senderId: { not: userId },
+          deletedAt: null,
+          ...(me?.lastReadAt ? { createdAt: { gt: me.lastReadAt } } : {}),
+        },
+      })
+      return { conversationId: c.id, count }
     })
   )
+  const unreadMap = new Map(unreadCounts.map(u => [u.conversationId, u.count]))
+
+  // Group by conversation in JS
+  const participantsByConv = new Map<string, typeof participantRows>()
+  for (const p of participantRows) {
+    const arr = participantsByConv.get(p.conversationId) ?? []
+    arr.push(p)
+    participantsByConv.set(p.conversationId, arr)
+  }
+
+  const lastMsgByConv = new Map<string, typeof recentMessages[0]>()
+  for (const m of recentMessages) {
+    if (!lastMsgByConv.has(m.conversationId)) lastMsgByConv.set(m.conversationId, m)
+  }
+
+  const enriched = convRows.map(c => ({
+    id: c.id,
+    isGroup: c.isGroup,
+    name: c.name,
+    updatedAt: c.updatedAt,
+    participants: (participantsByConv.get(c.id) ?? []).map(p => p.user),
+    lastMessage: lastMsgByConv.get(c.id) ?? null,
+    unreadCount: unreadMap.get(c.id) ?? 0,
+  }))
 
   return NextResponse.json(enriched)
 }
@@ -95,6 +121,7 @@ export async function POST(req: NextRequest) {
   // For 1:1, look for an existing direct conversation
   if (userIds.length === 1) {
     const otherId = userIds[0]
+    // Neon HTTP: avoid include on findFirst — use select for flat data then fetch participants separately
     const existing = await prisma.conversation.findFirst({
       where: {
         schoolId,
@@ -104,16 +131,18 @@ export async function POST(req: NextRequest) {
           { participants: { some: { userId: otherId } } },
         ],
       },
-      include: {
-        participants: { include: { user: { select: { id: true, name: true, email: true, role: true, avatar: true } } } },
-      },
+      select: { id: true, name: true },
     })
     if (existing) {
+      const parts = await prisma.conversationParticipant.findMany({
+        where: { conversationId: existing.id },
+        select: { user: { select: { id: true, name: true, email: true, role: true, avatar: true } } },
+      })
       return NextResponse.json({
         id: existing.id,
         isGroup: false,
         name: existing.name,
-        participants: existing.participants.map((p) => p.user),
+        participants: parts.map(p => p.user),
         unreadCount: 0,
         lastMessage: null,
       })
@@ -154,19 +183,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message || "Failed to add participants" }, { status: 500 })
   }
 
-  // Fetch the completed conversation with participants
-  const conversation = await prisma.conversation.findUnique({
+  // Fetch participants separately (Neon HTTP: avoid deep nested include)
+  const convName = await prisma.conversation.findUnique({
     where: { id: conversationId },
-    include: {
-      participants: { include: { user: { select: { id: true, name: true, email: true, role: true, avatar: true } } } },
-    },
+    select: { name: true },
+  })
+  const parts = await prisma.conversationParticipant.findMany({
+    where: { conversationId },
+    select: { user: { select: { id: true, name: true, email: true, role: true, avatar: true } } },
   })
 
   return NextResponse.json({
     id: conversationId,
     isGroup,
-    name: conversation?.name ?? null,
-    participants: conversation?.participants.map((p) => p.user) ?? [],
+    name: convName?.name ?? null,
+    participants: parts.map(p => p.user),
     unreadCount: 0,
     lastMessage: null,
   }, { status: 201 })
