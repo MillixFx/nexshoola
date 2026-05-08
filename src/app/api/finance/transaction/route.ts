@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const role = session.user.role
+    if (role !== "ADMIN" && role !== "HEADMASTER" && role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const body = await req.json()
     const { schoolId, studentId, feeItemId, slipId, amount, method, reference, note } = body
+
+    // Prevent cross-school transaction recording
+    if (role !== "SUPER_ADMIN" && session.user.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
     const paid = Number(amount)
 

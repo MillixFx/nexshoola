@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 /**
  * GET /api/fee-slips?schoolId=xxx&classId=xxx&feeItemId=xxx&status=UNPAID
@@ -7,8 +8,16 @@ import { prisma } from "@/lib/prisma"
  */
 export async function GET(req: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const { searchParams } = new URL(req.url)
     const schoolId = searchParams.get("schoolId")
+
+    // Non-super-admins can only view their own school's fee slips
+    if (session.user.role !== "SUPER_ADMIN" && session.user.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     const classId = searchParams.get("classId")
     const feeItemId = searchParams.get("feeItemId")
     const status = searchParams.get("status")
@@ -51,7 +60,18 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const role = session.user.role
+    if (role !== "ADMIN" && role !== "HEADMASTER" && role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const { schoolId, feeItemId, classId, studentId, dueDate } = await req.json()
+
+    if (role !== "SUPER_ADMIN" && session.user.schoolId !== schoolId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
     if (!feeItemId) return NextResponse.json({ error: "feeItemId required" }, { status: 400 })
 
