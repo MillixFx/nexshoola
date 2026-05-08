@@ -62,7 +62,7 @@ export default async function DashboardPage() {
           class: { select: { name: true, section: true } },
         },
       }),
-      prisma.feeSlip.count({ where: { schoolId, status: { in: ["UNPAID", "PARTIAL"] } } }),
+      prisma.feeSlip.count({ where: { status: { in: ["UNPAID", "PARTIAL"] }, student: { schoolId } } }),
     ])
     recentAdmissions = admissions
     pendingFeeSlipsCount = unpaidFees
