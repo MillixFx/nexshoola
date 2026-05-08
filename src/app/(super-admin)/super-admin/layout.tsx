@@ -57,10 +57,7 @@ function SidebarContent({ pathname, onLinkClick }: { pathname: string; onLinkCli
         })}
       </nav>
 
-      <div className="p-3 border-t border-gray-800 space-y-2">
-        <div className="flex justify-center">
-          <ThemeToggle />
-        </div>
+      <div className="p-3 border-t border-gray-800">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
@@ -121,9 +118,12 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
               <span className="text-xs font-bold text-amber-700 dark:text-amber-300">Super Admin Console</span>
             </div>
           </div>
-          <Link href="/super-admin" className="text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">
-            ← Overview
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/super-admin" className="text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">
+              ← Overview
+            </Link>
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 dark:bg-gray-950">
           {children}
