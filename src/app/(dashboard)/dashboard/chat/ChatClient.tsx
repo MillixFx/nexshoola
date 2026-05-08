@@ -147,6 +147,7 @@ export default function ChatClient({
   // ── New conversation modal
   async function openNew() {
     setShowNew(true)
+    setConvError("") // clear any stale error from a previous attempt
     if (users.length === 0) {
       setUsersLoading(true)
       try {
