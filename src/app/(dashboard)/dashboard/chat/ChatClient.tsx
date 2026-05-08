@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { Send, Search, MessageSquare, Plus, ArrowLeft, Users as UsersIcon, X, Loader2, Check, CheckCheck } from "lucide-react"
+import { Send, Search, MessageSquare, Plus, ArrowLeft, Users as UsersIcon, X, Loader2, Check, CheckCheck, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type ChatUser = { id: string; name: string; email?: string; role: string; avatar?: string | null }
@@ -66,6 +66,8 @@ export default function ChatClient({
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [startingConv, setStartingConv] = useState<string | null>(null)
   const [convError, setConvError] = useState("")
+  const [clearing, setClearing] = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
 
   const messageRef = useRef<HTMLDivElement>(null)
   const lastSinceRef = useRef<string>("")
@@ -118,6 +120,9 @@ export default function ChatClient({
     return () => clearInterval(t)
   }, [activeId])
 
+  // ── Reset confirm state when switching conversations
+  useEffect(() => { setConfirmClear(false) }, [activeId])
+
   // ── Auto-scroll on new messages
   useEffect(() => {
     if (messageRef.current) messageRef.current.scrollTop = messageRef.current.scrollHeight
@@ -143,6 +148,22 @@ export default function ChatClient({
         fetchConversations()
       }
     } finally { setSending(false) }
+  }
+
+  // ── Clear / delete conversation
+  async function handleClear() {
+    if (!activeId || clearing) return
+    if (!confirmClear) { setConfirmClear(true); return }
+    setClearing(true)
+    try {
+      await fetch(`/api/chat/conversations/${activeId}`, { method: "DELETE" })
+      setActiveId(null)
+      setMessages([])
+      fetchConversations()
+    } finally {
+      setClearing(false)
+      setConfirmClear(false)
+    }
   }
 
   // ── New conversation modal
@@ -327,6 +348,23 @@ export default function ChatClient({
                     : convRole(active)}
                 </p>
               </div>
+              {/* Clear / delete conversation */}
+              <button
+                onClick={handleClear}
+                disabled={clearing}
+                title={confirmClear ? "Tap again to confirm delete" : "Delete conversation"}
+                className={cn(
+                  "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all shrink-0",
+                  confirmClear
+                    ? "bg-red-600 text-white hover:bg-red-700"
+                    : "text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                )}
+              >
+                {clearing
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Trash2 className="w-3.5 h-3.5" />}
+                {confirmClear && <span>Confirm?</span>}
+              </button>
             </header>
 
             {/* Messages */}
