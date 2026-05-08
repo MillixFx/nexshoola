@@ -29,49 +29,56 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = credentials.email as string
         const password = credentials.password as string
-        const schoolSlug = (credentials.schoolSlug as string) ?? ""
+        const schoolSlug = ((credentials.schoolSlug as string) ?? "").trim()
 
-        // ── Super Admin Login ─────────────────────────────────────────────
-        // If slug is blank or "superadmin", look for a SUPER_ADMIN user globally
-        if (!schoolSlug || schoolSlug === "superadmin") {
-          const user = await prisma.user.findFirst({
-            where: { email, role: "SUPER_ADMIN" },
-          })
+        // ── Explicit Super Admin slug ─────────────────────────────────────
+        if (schoolSlug === "superadmin") {
+          const user = await prisma.user.findFirst({ where: { email, role: "SUPER_ADMIN" } })
           if (!user) return null
           const ok = await bcrypt.compare(password, user.password)
           if (!ok) return null
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: "SUPER_ADMIN" as Role,
-            schoolId: user.schoolId,
-            schoolSlug: "superadmin",
-            image: user.avatar ?? null,
-          }
+          return { id: user.id, email: user.email, name: user.name, role: "SUPER_ADMIN" as Role, schoolId: user.schoolId, schoolSlug: "superadmin", image: user.avatar ?? null }
         }
 
-        // ── Regular School User Login ─────────────────────────────────────
-        const school = await prisma.school.findUnique({ where: { slug: schoolSlug } })
+        // ── School slug provided (e.g. from subdomain ?slug=) ─────────────
+        if (schoolSlug) {
+          const school = await prisma.school.findUnique({ where: { slug: schoolSlug } })
+          if (!school || !school.isActive) return null
+          const user = await prisma.user.findUnique({
+            where: { schoolId_email: { schoolId: school.id, email } },
+          })
+          if (!user || !user.isActive) return null
+          const ok = await bcrypt.compare(password, user.password)
+          if (!ok) return null
+          return { id: user.id, email: user.email, name: user.name, role: user.role, schoolId: user.schoolId, schoolSlug: school.slug, image: user.avatar ?? null }
+        }
+
+        // ── No slug: global lookup (simple login, no subdomain) ───────────
+        // 1. Try SUPER_ADMIN first
+        const superAdmin = await prisma.user.findFirst({ where: { email, role: "SUPER_ADMIN" } })
+        if (superAdmin) {
+          const ok = await bcrypt.compare(password, superAdmin.password)
+          if (!ok) return null
+          return { id: superAdmin.id, email: superAdmin.email, name: superAdmin.name, role: "SUPER_ADMIN" as Role, schoolId: superAdmin.schoolId, schoolSlug: "superadmin", image: superAdmin.avatar ?? null }
+        }
+
+        // 2. Find any active school user by email — flat query (Neon HTTP: no include)
+        const user = await prisma.user.findFirst({
+          where: { email, isActive: true },
+          select: { id: true, email: true, name: true, role: true, schoolId: true, password: true, avatar: true },
+        })
+        if (!user || !user.schoolId) return null
+        const ok = await bcrypt.compare(password, user.password)
+        if (!ok) return null
+
+        // Fetch school separately to get slug — flat query
+        const school = await prisma.school.findUnique({
+          where: { id: user.schoolId },
+          select: { slug: true, isActive: true },
+        })
         if (!school || !school.isActive) return null
 
-        const user = await prisma.user.findUnique({
-          where: { schoolId_email: { schoolId: school.id, email } },
-        })
-        if (!user || !user.isActive) return null
-
-        const passwordMatch = await bcrypt.compare(password, user.password)
-        if (!passwordMatch) return null
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          schoolId: user.schoolId,
-          schoolSlug: school.slug,
-          image: user.avatar ?? null,
-        }
+        return { id: user.id, email: user.email, name: user.name, role: user.role, schoolId: user.schoolId, schoolSlug: school.slug, image: user.avatar ?? null }
       },
     }),
   ],
