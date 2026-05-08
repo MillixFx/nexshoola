@@ -2,6 +2,34 @@ import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+// ── IP-based sliding-window rate limiter ─────────────────────────────────────
+// Runs on the Edge — one Map per edge node. Effective against scripted attacks
+// since geographic routing keeps the same client on the same edge node.
+const rlMap = new Map<string, { count: number; resetAt: number }>()
+
+/** Returns true if the request is allowed, false if it should be blocked. */
+function rateLimit(ip: string, bucket: string, limit: number, windowMs: number): boolean {
+  const key = `${ip}:${bucket}`
+  const now = Date.now()
+  const entry = rlMap.get(key)
+  if (!entry || now > entry.resetAt) {
+    rlMap.set(key, { count: 1, resetAt: now + windowMs })
+    return true
+  }
+  if (entry.count >= limit) return false
+  entry.count++
+  return true
+}
+
+// Periodically sweep expired entries so the Map doesn't grow forever
+let lastSweep = Date.now()
+function maybeSweep() {
+  const now = Date.now()
+  if (now - lastSweep < 60_000) return
+  lastSweep = now
+  for (const [k, v] of rlMap) if (now > v.resetAt) rlMap.delete(k)
+}
+
 const PUBLIC_PATHS = ["/", "/pricing", "/features", "/about", "/contact", "/login", "/register"]
 const SUPER_ADMIN_PREFIX = "/super-admin"
 
@@ -70,6 +98,37 @@ export default auth(async function proxy(req: NextRequest) {
   const host = req.headers.get("host") ?? ""
   const pathname = url.pathname
   const session = (req as any).auth
+
+  // ── Rate limiting ─────────────────────────────────────────────────────────
+  maybeSweep()
+  const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim()
+  const tooMany = () =>
+    NextResponse.json({ error: "Too many requests. Please slow down and try again." }, { status: 429 })
+
+  // School registration  — 5 per 10 min per IP  (prevents spam signups)
+  if (pathname === "/api/register" && req.method === "POST") {
+    if (!rateLimit(ip, "register", 5, 10 * 60 * 1000)) return tooMany()
+  }
+  // Login (NextAuth signin callback) — 15 per min per IP  (brute-force guard)
+  if (pathname.startsWith("/api/auth/") && req.method === "POST") {
+    if (!rateLimit(ip, "auth-post", 15, 60 * 1000)) return tooMany()
+  }
+  // Password change — 5 per min per IP
+  if (pathname === "/api/auth/change-password" && req.method === "POST") {
+    if (!rateLimit(ip, "change-pw", 5, 60 * 1000)) return tooMany()
+  }
+  // Payment initialisation — 10 per min per IP  (prevents payment spam)
+  if (pathname === "/api/paystack/initialize" && req.method === "POST") {
+    if (!rateLimit(ip, "paystack-init", 10, 60 * 1000)) return tooMany()
+  }
+  // Chat messages — 30 per min per IP  (prevents message flooding)
+  if (pathname.includes("/api/chat/conversations/") && pathname.endsWith("/messages") && req.method === "POST") {
+    if (!rateLimit(ip, "chat-msg", 30, 60 * 1000)) return tooMany()
+  }
+  // SMS notifications — 10 per min per IP  (SMS costs money)
+  if (pathname === "/api/notifications/send" && req.method === "POST") {
+    if (!rateLimit(ip, "sms-send", 10, 60 * 1000)) return tooMany()
+  }
 
   // Skip framework internals
   if (
