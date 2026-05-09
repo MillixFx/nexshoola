@@ -8,6 +8,7 @@ import {
 import Link from "next/link"
 import { Suspense } from "react"
 import AnalyticsCharts from "@/components/dashboard/AnalyticsCharts"
+import StaffQrBadge from "@/components/dashboard/StaffQrBadge"
 
 function ChartSkeleton() {
   return (
@@ -29,6 +30,9 @@ export default async function DashboardPage() {
   const session = await auth()
   const role = (session?.user as any)?.role ?? "ADMIN"
   const firstName = (session?.user?.name ?? "User").split(" ")[0]
+  // Staff roles that use the QR kiosk for attendance
+  const STAFF_ROLES = new Set(["ADMIN","HEADMASTER","TEACHER","ACCOUNTANT","LIBRARIAN","HOSTEL_MANAGER","HR","DRIVER"])
+  const isStaff = STAFF_ROLES.has(role)
 
   const schoolId = session?.user?.schoolId ?? ""
   const school = schoolId
@@ -235,8 +239,14 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Bottom grid: notices + events (+ recent admissions for admin) */}
-      <div className={`grid gap-5 ${(role === "ADMIN" || role === "HEADMASTER") ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+      {/* Bottom grid: notices + events (+ recent admissions for admin/HM) (+ QR badge for all staff) */}
+      <div className={`grid gap-5 ${
+        (role === "ADMIN" || role === "HEADMASTER")
+          ? "lg:grid-cols-4"          // notices + events + admissions + QR
+          : isStaff
+            ? "lg:grid-cols-3"        // notices + events + QR
+            : "lg:grid-cols-2"        // notices + events (student/parent)
+      }`}>
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900 dark:text-white">Recent Notices</h2>
@@ -289,6 +299,9 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* QR attendance badge — all staff */}
+        {isStaff && <StaffQrBadge />}
 
         {/* Recent admissions — admin / headmaster only */}
         {(role === "ADMIN" || role === "HEADMASTER") && (
