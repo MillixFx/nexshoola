@@ -49,6 +49,10 @@ model School {
   subscriptionPaidAt DateTime?
   subscriptionNotes  String?
 
+  // Staff attendance kiosk settings
+  staffLateAfter  String  @default("08:00") // HH:MM — after this time = LATE
+  staffQrSecret   String? // per-school HMAC secret for QR tokens (generated on first use)
+
   // Relations
   users           User[]
   classes         Class[]
@@ -77,6 +81,8 @@ model School {
   configuration   Configuration?
   conversations   Conversation[]
   permissions     UserPermission[]
+  staffAttendance StaffAttendance[]
+  kioskDevices    KioskDevice[]
 
   @@map("schools")
 }
@@ -123,6 +129,7 @@ model User {
   createdChats        Conversation[] @relation("CreatedConversations")
   substitutesAssigned ClassSubstitute[] @relation("SubstituteAssignedBy")
   permissions         UserPermission[] @relation("GrantedPermissions")
+  staffAttendance     StaffAttendance[]
 
   @@unique([schoolId, email])
   @@map("users")
@@ -434,6 +441,50 @@ model TeacherAttendance {
 
   @@unique([teacherId, date])
   @@map("teacher_attendance")
+}
+
+// ── Staff attendance (kiosk QR-based) ────────────────────────────────────────
+// Covers all staff: teachers + non-teaching employees
+model StaffAttendance {
+  id          String   @id @default(cuid())
+  schoolId    String
+  userId      String   // the staff User id
+  staffType   String   // "TEACHER" | "EMPLOYEE"
+  date        DateTime @db.Date
+  checkInTime DateTime? // exact timestamp when they scanned
+  status      StaffAttendanceStatus @default(ABSENT)
+  note        String?
+  kioskId     String?   // which kiosk device recorded this
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kiosk  KioskDevice? @relation(fields: [kioskId], references: [id])
+
+  @@unique([userId, date])
+  @@map("staff_attendance")
+}
+
+enum StaffAttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  LEAVE
+}
+
+// Registered kiosk devices — tablet/phone at school entrance
+model KioskDevice {
+  id          String   @id @default(cuid())
+  schoolId    String
+  name        String   // e.g. "Main Gate", "Staff Entrance"
+  tokenHash   String   @unique // SHA-256 of the plain device token
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  createdById String   // userId who registered it
+
+  school      School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  checkIns    StaffAttendance[]
+
+  @@map("kiosk_devices")
 }
 
 enum AttendanceStatus {

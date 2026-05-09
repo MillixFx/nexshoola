@@ -30,7 +30,7 @@ function maybeSweep() {
   for (const [k, v] of rlMap) if (now > v.resetAt) rlMap.delete(k)
 }
 
-const PUBLIC_PATHS = ["/", "/pricing", "/features", "/about", "/contact", "/login", "/register"]
+const PUBLIC_PATHS = ["/", "/pricing", "/features", "/about", "/contact", "/login", "/register", "/kiosk"]
 const SUPER_ADMIN_PREFIX = "/super-admin"
 
 // Subdomains that are never school slugs
@@ -40,6 +40,12 @@ const RESERVED = new Set(["www", "app", "admin", "api", "mail", "ftp", "preview"
 const ROLE_ALLOWED: Record<string, string[]> = {
   ADMIN:      ["*"],
   HEADMASTER: ["*"],
+  HR: [
+    "/dashboard", "/dashboard/hr", "/dashboard/payroll",
+    "/dashboard/leave", "/dashboard/suggestions", "/dashboard/reports",
+    "/dashboard/messages", "/dashboard/notice", "/dashboard/calendar",
+    "/dashboard/settings",
+  ],
   TEACHER: [
     "/dashboard", "/dashboard/students", "/dashboard/classes", "/dashboard/subjects",
     "/dashboard/attendance", "/dashboard/examinations", "/dashboard/library",
@@ -128,6 +134,10 @@ export default auth(async function proxy(req: NextRequest) {
   // SMS notifications — 10 per min per IP  (SMS costs money)
   if (pathname === "/api/notifications/send" && req.method === "POST") {
     if (!rateLimit(ip, "sms-send", 10, 60 * 1000)) return tooMany()
+  }
+  // Kiosk check-in — 60 per min per IP  (one per scan, ~1/sec max)
+  if (pathname === "/api/staff-attendance/check-in" && req.method === "POST") {
+    if (!rateLimit(ip, "kiosk-checkin", 60, 60 * 1000)) return tooMany()
   }
 
   // Skip framework internals

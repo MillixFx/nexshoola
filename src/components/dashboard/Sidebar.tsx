@@ -111,7 +111,8 @@ const NAV: NavSection[] = [
     title: "HR & Admin",
     icon: Settings,
     items: [
-      { label: "HR & Employees", href: "/dashboard/hr",   icon: Briefcase,  roles: ["ADMIN","HEADMASTER","HR"] as Role[] },
+      { label: "HR & Employees",  href: "/dashboard/hr",             icon: Briefcase,      roles: ["ADMIN","HEADMASTER","HR"] as Role[] },
+      { label: "Staff Attendance", href: "/dashboard/hr/attendance", icon: ClipboardCheck, roles: ["ADMIN","HEADMASTER","HR"] as Role[] },
       { label: "Leave",       href: "/dashboard/leave",       icon: LeaveIcon,  roles: ALL_STAFF },
       { label: "Suggestions", href: "/dashboard/suggestions", icon: Lightbulb,  roles: ALL },
       { label: "Reports",     href: "/dashboard/reports",     icon: BarChart3,
