@@ -32,7 +32,7 @@ export async function GET() {
   if (!(await canManage(session))) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const devices = await prisma.kioskDevice.findMany({
-    where: { schoolId: session.user.schoolId },
+    where: { schoolId: session.user.schoolId, isActive: true },
     orderBy: { createdAt: "desc" },
     select: { id: true, name: true, isActive: true, createdAt: true },
   })

@@ -53,6 +53,7 @@ export default function StaffAttendanceClient({
   const [newDeviceName, setNewDeviceName] = useState("")
   const [newToken, setNewToken]     = useState<string | null>(null)
   const [kioskLoading, setKioskLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Settings
   const [lateAfter, setLateAfter]   = useState("08:00")
@@ -111,9 +112,16 @@ export default function StaffAttendanceClient({
     setKioskLoading(false)
   }
 
-  async function deleteDevice(id: string) {
-    await fetch(`/api/staff-attendance/kiosk?id=${id}`, { method: "DELETE" })
-    await loadDevices()
+  async function deleteDevice(id: string, name: string) {
+    if (!confirm(`Remove "${name}" from kiosk devices? The tablet will no longer be able to record attendance.`)) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/staff-attendance/kiosk?id=${id}`, { method: "DELETE" })
+      if (!res.ok) { alert("Failed to remove device. Please try again."); return }
+      await loadDevices()
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   async function saveLateAfter() {
@@ -403,11 +411,14 @@ export default function StaffAttendanceClient({
                 </div>
                 {isAdmin && (
                   <button
-                    onClick={() => deleteDevice(d.id)}
-                    className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50"
-                    title="Deactivate"
+                    onClick={() => deleteDevice(d.id, d.name)}
+                    disabled={deletingId === d.id}
+                    className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50"
+                    title="Remove device"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {deletingId === d.id
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Trash2 className="w-4 h-4" />}
                   </button>
                 )}
               </div>
